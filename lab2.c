@@ -25,7 +25,7 @@
 /* arthur.cs.columbia.edu */
 #define SERVER_HOST "128.59.19.114"
 #define SERVER_PORT 42000
-
+//sdjoajdosajdosjad
 #define BUFFER_SIZE 128
 
 int caps_lock = 0; /* Caps lock is on? */

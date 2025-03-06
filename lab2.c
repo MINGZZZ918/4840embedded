@@ -56,7 +56,7 @@
  
  int main()
  {
-   int err, col, count = 0, row = 20, end = 0, end_row = 20;
+   int err, col, count = 0, row = 20, end = 0, ROW_ONE = 20, ROW_TWO = 21;
    struct sockaddr_in serv_addr;
  
    struct usb_keyboard_packet packet;
@@ -222,6 +222,8 @@
            }
          }
          if(count >= 64){ //write letters 
+          printf("count: %d/n" count);
+          printf("end: %d/n" end);
  fbputchar(keystate[i], row, count);
            if(count < 127)
              fbputchar('|', row, count+1);
@@ -242,6 +244,7 @@
           }
           fbputchar('|', row, count+1);
           fbputchar(message[i], row, count);
+          end++
         }
         message[count++] = keystate[i];
         if (count >= end) end = count;

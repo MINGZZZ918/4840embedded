@@ -222,8 +222,6 @@
            }
          }
          if(count >= 64){ //write letters 
-          printf("count: %d\n" count);
-          printf("end: %d\n" end);
  fbputchar(keystate[i], row, count);
            if(count < 127)
              fbputchar('|', row, count+1);
@@ -239,7 +237,6 @@
           }
          }
          if(count < end){
-          printf("hello");
           for(int j = end; j > count; j--){
             message[j+1] = message[j];
           }

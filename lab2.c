@@ -242,7 +242,6 @@
           }
           fbputchar('|', row, count+1);
           fbputchar(message[i], row, count);
-          end++
         }
         message[count++] = keystate[i];
         if (count >= end) end = count;

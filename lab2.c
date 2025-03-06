@@ -237,18 +237,14 @@
           }
          }
          if(count < end){
-          for(j = end; j > count; j--){
+          for(int j = end; j > count; j--){
             message[j+1] = message[j];
           }
           fbputchar('|', row, count+1);
           fbputchar(message[i], row, count);
-          count++;
-          end++;
         }
-        else{
-          message[count++] = keystate[i];
-          if (count >= end) end = count;
-        }
+        message[count++] = keystate[i];
+        if (count >= end) end = count;
        }
        for(int i=0; i<6; i++) prev_state[i] = keystate[i];
      }

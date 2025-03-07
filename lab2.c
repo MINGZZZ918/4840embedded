@@ -15,7 +15,7 @@
     // memset(recvBuf, 0, BUFFER_SIZE); 
   } 
  
-  for (int i=1; i<8; i++){ 
+ r (int i=1; i<8; i++){ 
     free(rowBuf[i]); 
   } 
  

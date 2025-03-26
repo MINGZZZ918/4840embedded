@@ -35,7 +35,7 @@
 
 #define DRIVER_NAME "vga_ball"
 
-/* Device registers  */ //which is the address of the registers
+/* Device registers  */ //the offset of each register
 #define CIR_RED(x) (x)
 #define CIR_GREEN(x) ((x)+1)
 #define CIR_BLUE(x) ((x)+2)
@@ -84,8 +84,8 @@ static void write_bg_color(vga_ball_color_t *color)
 
 static void write_circle(vga_ball_circle_t *circle) //write the circle to the screen
 {
-	iowrite8((unsigned char)((circle->x>>8)&0b11), CIR_XH(dev.virtbase) );
-	iowrite8((unsigned char)(circle->x), CIR_XL(dev.virtbase) );
+	iowrite8((unsigned char)((circle->x>>8)&0b11), CIR_XH(dev.virtbase) );//x and y have 2 bytes, so we need to write them separately. and we need to use 10 bits to represent the x and y
+	iowrite8((unsigned char)(circle->x), CIR_XL(dev.virtbase) ); //one is the high 2 bits, one is the low 8 bits
 	iowrite8((unsigned char)((circle->y>>8)&0b11), CIR_YH(dev.virtbase));
 	iowrite8((unsigned char)(circle->y), CIR_YL(dev.virtbase));
 	iowrite8(circle->radius, CIR_R(dev.virtbase));

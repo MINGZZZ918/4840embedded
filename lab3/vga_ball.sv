@@ -40,6 +40,7 @@ module vga_ball(input logic        clk,
 
 //dis_x = |x - x0|
 //dis_y = |y - y0|  plz use gpt for further explanation ^_^, the system frequency is different from the VGA clock frequency, that is the reason why we use hcount[10:1]
+//to justify which part is inside the circle and which part is outside the circle
    assign dis_x = (hcount[10:1] > circle_x[9:0]) ? (hcount[10:1] - circle_x[9:0]): (circle_x[9:0] - hcount[10:1]); 
    assign dis_y = (vcount[9:0] > circle_y[9:0]) ? (vcount[9:0] - circle_y[9:0]): (circle_y[9:0] - vcount[9:0]);
 

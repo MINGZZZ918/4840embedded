@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 /* References on libusb 1.0 and the USB HID/keyboard protocol
- *
+ *dadadadsa
  * http://libusb.org
  * http://www.dreamincode.net/forums/topic/148707-introduction-to-using-libusb-10/
  * http://www.usb.org/developers/devclass_docs/HID1_11.pdf

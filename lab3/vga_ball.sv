@@ -22,7 +22,8 @@ module vga_ball(input logic        clk,
 
    logic [7:0] 	   background_r, background_g, background_b;
    logic [7:0]     circle_r, circle_g, circle_b;
-   //logic [7:0]     rect_left,rect_top,rect_right,rect_bottom;
+ 
+ 
    logic [15:0]    circle_x,circle_y;
    logic [19:0]     circle_radius;
    logic [19:0]    dis2, r2;
@@ -41,10 +42,7 @@ module vga_ball(input logic        clk,
 	background_r <= 8'h0;
 	background_g <= 8'h0;
 	background_b <= 8'h80;
-  //rect_left <= 8'b11000000;
-  //rect_top <= 8'b11000000;
-  //rect_right <= 8'b11111111;
-  //rect_bottom <= 8'b11111111;
+  
     circle_x <= 16'h00000000;
     circle_y <= 16'h00000000;
     circle_radius <= 20'h0;

@@ -3,15 +3,7 @@
  *
  * Stephen A. Edwards
  * Columbia University
- *
- * Register map:
- * 
- * Byte Offset  7 ... 0   Meaning
- *        0    |  Red  |  Red component of background color (0-255)
- *        1    | Green |  Green component
- *        2    | Blue  |  Blue component
  */
-
 
 module vga_ball(input logic        clk,
 	        input logic 	   reset,
@@ -23,28 +15,21 @@ module vga_ball(input logic        clk,
 		output logic [7:0] VGA_R, VGA_G, VGA_B,
 		output logic 	   VGA_CLK, VGA_HS, VGA_VS,
 		                   VGA_BLANK_n,
-		output logic 	   VGA_SYNC_n); // I didnt modify the ports. but I use the address to write to the registers
-
+		output logic 	   VGA_SYNC_n);
 
    logic [10:0]	   hcount;
    logic [9:0]     vcount;
 
    logic [7:0] 	   background_r, background_g, background_b;
-   
-   logic [7:0]     circle_r, circle_g, circle_b;    // circle color
+   logic [7:0]     circle_r, circle_g, circle_b;
+   //logic [7:0]     rect_left,rect_top,rect_right,rect_bottom;
+   logic [15:0]    circle_x,circle_y;
+   logic [19:0]     circle_radius;
+   logic [19:0]    dis2, r2;
+   logic [19:0]     dis_x,dis_y;
 
-   logic [15:0]    circle_x,circle_y;  // circle coordinates
-   logic [19:0]     circle_radius;  // circle radius
-   logic [19:0]    dis2, r2;  // square of distance radius, dis^2 and circle radius^2
-   logic [19:0]     dis_x,dis_y;  // distance in x and y
-
-//dis_x = |x - x0|
-//dis_y = |y - y0|  plz use gpt for further explanation ^_^, the system frequency is different from the VGA clock frequency, that is the reason why we use hcount[10:1]
-//to justify which part is inside the circle and which part is outside the circle
-   assign dis_x = (hcount[10:1] > circle_x[9:0]) ? (hcount[10:1] - circle_x[9:0]): (circle_x[9:0] - hcount[10:1]); 
+   assign dis_x = (hcount[10:1] > circle_x[9:0]) ? (hcount[10:1] - circle_x[9:0]): (circle_x[9:0] - hcount[10:1]);
    assign dis_y = (vcount[9:0] > circle_y[9:0]) ? (vcount[9:0] - circle_y[9:0]): (circle_y[9:0] - vcount[9:0]);
-
-//the square for dis and r
    assign dis2 = $unsigned(dis_x)*$unsigned(dis_x) + 
                  $unsigned(dis_y)*$unsigned(dis_y);
    assign r2 = $unsigned(circle_radius)*$unsigned(circle_radius);
@@ -56,12 +41,15 @@ module vga_ball(input logic        clk,
 	background_r <= 8'h0;
 	background_g <= 8'h0;
 	background_b <= 8'h80;
+  //rect_left <= 8'b11000000;
+  //rect_top <= 8'b11000000;
+  //rect_right <= 8'b11111111;
+  //rect_bottom <= 8'b11111111;
     circle_x <= 16'h00000000;
     circle_y <= 16'h00000000;
     circle_radius <= 20'h0;
-
-     end else if (chipselect && write)  å
-       case (address)  // I added the case statement, we need this kind of thing to write to the registers, which needs the help from sw
+     end else if (chipselect && write)
+       case (address)
         4'h0 : circle_r <= writedata;
         4'h1 : circle_g <= writedata;
         4'h2 : circle_b <= writedata;
@@ -78,7 +66,6 @@ module vga_ball(input logic        clk,
    always_comb begin
       {VGA_R, VGA_G, VGA_B} = {8'h0, 8'h0, 8'h0};
       if (VGA_BLANK_n )
-      
 	if (dis2<r2 && circle_x <= 16'd1280 && circle_y <= 16'd640)
 	  {VGA_R, VGA_G, VGA_B} = {circle_r, circle_g, circle_b};
 	else
@@ -87,9 +74,6 @@ module vga_ball(input logic        clk,
    end
 	       
 endmodule
-
-
-
 
 module vga_counters(
  input logic 	     clk50, reset,

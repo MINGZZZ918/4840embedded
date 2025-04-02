@@ -67,8 +67,8 @@ module vga_ball(input logic        clk,
       // Commit new position only during vertical blanking (VGA_BLANK_n)
     always_ff @(posedge clk) begin
         if (VGA_BLANK_n) begin
-            ball_x <= ball_x_buffer;
-            ball_y <= ball_y_buffer;
+            ball_x <= ball_x_buf;
+            ball_y <= ball_y_buf;
         end
     end
 
@@ -82,7 +82,7 @@ module vga_ball(input logic        clk,
    assign dx = (hcount >> 1) > ball_x ? (hcount >> 1) - ball_x : ball_x - (hcount >> 1);
    assign dy = (vcount > ball_y) ? (vcount - ball_y) : (ball_y - vcount);
 
-   assign ball_sq_dist = dx*dx + dy*dy
+   assign ball_sq_dist = dx*dx + dy*dy;
    assign ball_on = (ball_sq_dist <= BALL_SIZE * BALL_SIZE);
 
    // VGA output

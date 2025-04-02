@@ -32,11 +32,15 @@ module vga_ball(input logic        clk,
    logic [7:0] 	   background_r, background_g, background_b;
    
    logic [10:0]    ball_x;        // X and Y position of the ball
-   logic [9:0]     ball_y;        
+   logic [9:0]     ball_y;     
+
+   // Buffered ball positions
+   logic [10:0] ball_x_buf;
+   logic [9:0] ball_y_buf;   
    
    // ball size
-   parameter BALL_SIZE = 10;
-	
+   parameter BALL_SIZE = 30;
+
    vga_counters counters(.clk50(clk), .*);
 
       always_ff @(posedge clk)
@@ -46,30 +50,41 @@ module vga_ball(input logic        clk,
         background_b <= 8'h80;
         ball_x <= 11'd400;        // initiial X position
         ball_y <= 10'd300;        // initial Y position
+        ball_x_buf <= 11'd400; // Initial buffered X position
+        ball_y_buf <= 10'd300; // Initial buffered Y position
      end else if (chipselect && write)
        case (address)
          3'h0 : background_r <= writedata;
          3'h1 : background_g <= writedata;
          3'h2 : background_b <= writedata;
-         3'h3 : ball_x[7:0] <= writedata;          // X low 8 bits
-         3'h4 : ball_x[10:8] <= writedata[2:0];    // X high 3 bits
-         3'h5 : ball_y[7:0] <= writedata;          // Y low 8 bits
-         3'h6 : ball_y[9:8] <= writedata[1:0];     // Y high 2 bits
+         3'h3 : ball_x_buf[7:0] <= writedata; // X low 8 bits
+         3'h4 : ball_x_buf[10:8] <= writedata[2:0]; // X high 3 bits
+         3'h5 : ball_y_buf[7:0] <= writedata; // Y low 8 bits
+         3'h6 : ball_y_buf[9:8] <= writedata[1:0]; // Y high 2 bits
        endcase
 
-   
+
+      // Commit new position only during vertical blanking (VGA_BLANK_n)
+    always_ff @(posedge clk) begin
+        if (VGA_BLANK_n) begin
+            ball_x <= ball_x_buffer;
+            ball_y <= ball_y_buffer;
+        end
+    end
+
    logic ball_on;
    logic [10:0] dx, dy;
    logic [21:0] ball_sq_dist;  // just to calculate the square of the distance
    
 // calculate the square of the distance between the ball and the pixel
-   assign dx = (hcount[10:0] > ball_x) ? (hcount[10:0] - ball_x) : (ball_x - hcount[10:0]);
+
+
+   assign dx = (hcount >> 1) > ball_x ? (hcount >> 1) - ball_x : ball_x - (hcount >> 1);
    assign dy = (vcount > ball_y) ? (vcount - ball_y) : (ball_y - vcount);
-   assign ball_sq_dist = dx*dx + dy*dy;
-   
-   // if the square of the distance is less than the square of the ball size, the ball is on
-   assign ball_on = (ball_sq_dist <= BALL_SIZE*BALL_SIZE);
-   
+
+   assign ball_sq_dist = dx*dx + dy*dy
+   assign ball_on = (ball_sq_dist <= BALL_SIZE * BALL_SIZE);
+
    // VGA output
    always_comb begin
       {VGA_R, VGA_G, VGA_B} = {8'h0, 8'h0, 8'h0};

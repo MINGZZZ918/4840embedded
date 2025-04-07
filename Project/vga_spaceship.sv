@@ -27,7 +27,7 @@
  *       20     |  Bullet2 Active (1 = active, 0 = inactive)
  */
 
-module vga_spaceship(
+module vga_ball(
     input  logic        clk,
     input  logic        reset,
     input  logic [7:0]  writedata,

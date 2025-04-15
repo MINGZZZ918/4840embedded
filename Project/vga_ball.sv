@@ -17,9 +17,6 @@
  *        29    |  Image X position (lower 8 bits)
  *        30    |  Image X position (upper 3 bits)
  *        31    |  Image Y position (lower 8 bits)
- *        32    |  Image Y position (upper 2 bits)
- *        33    |  Image Display Flag (1 = display, 0 = hide)
- *        34    |  Image Data (RGB pixel data, 64x64x3 bytes)
  */
 
 module vga_ball(
@@ -28,7 +25,7 @@ module vga_ball(
     input  logic [7:0]  writedata,
     input  logic        write,
     input  logic        chipselect,
-    input  logic [15:0] address,  // 扩展地址位以适应图片数据
+    input  logic [4:0]  address,  // 改为5位地址宽度
 
     output logic [7:0]  VGA_R, VGA_G, VGA_B,
     output logic        VGA_CLK, VGA_HS, VGA_VS,
@@ -66,8 +63,8 @@ module vga_ball(
     logic [7:0]     image_data[IMAGE_HEIGHT][IMAGE_WIDTH][3]; // RGB数据
 
     // 飞船像素艺术模式 (16x16)
-    // 0=黑色(透明), 1=灰白色, 2=红色, 3=蓝色, 4=紫色
-    logic [2:0] ship_pattern[0:15][0:15];
+    // 0=黑色(透明), 1=红色, 2=白色, 3=蓝色
+    logic [1:0] ship_pattern[16][16]; // 改为2位宽，最多支持4种颜色
     
     // Instantiate VGA counter module
     vga_counters counters(.clk50(clk), .*);
@@ -103,120 +100,109 @@ module vga_ball(
                 end
             end
 
-            // 初始化飞船像素艺术模式
-            // 0行 (顶部)
-            for (int x = 0; x < 16; x++) ship_pattern[0][x] = 0;
-            // 1行
-            for (int x = 0; x < 16; x++) ship_pattern[1][x] = 0;
-            ship_pattern[1][7] = 1; ship_pattern[1][8] = 1;
-            // 2行
-            for (int x = 0; x < 16; x++) ship_pattern[2][x] = 0;
-            ship_pattern[2][6] = 1; ship_pattern[2][7] = 1; 
-            ship_pattern[2][8] = 1; ship_pattern[2][9] = 1;
-            // 3行
-            for (int x = 0; x < 16; x++) ship_pattern[3][x] = 0;
-            ship_pattern[3][5] = 1; ship_pattern[3][6] = 1;
-            ship_pattern[3][7] = 1; ship_pattern[3][8] = 1;
-            ship_pattern[3][9] = 1; ship_pattern[3][10] = 1;
-            // 4行
-            for (int x = 0; x < 16; x++) ship_pattern[4][x] = 0;
-            ship_pattern[4][1] = 2; ship_pattern[4][5] = 1;
-            ship_pattern[4][6] = 1; ship_pattern[4][7] = 1;
-            ship_pattern[4][8] = 1; ship_pattern[4][9] = 1;
-            ship_pattern[4][10] = 1; ship_pattern[4][14] = 2;
-            // 5行
-            for (int x = 0; x < 16; x++) ship_pattern[5][x] = 0;
-            ship_pattern[5][2] = 1; ship_pattern[5][5] = 1;
-            ship_pattern[5][6] = 3; ship_pattern[5][7] = 1;
-            ship_pattern[5][8] = 1; ship_pattern[5][9] = 3;
-            ship_pattern[5][10] = 1; ship_pattern[5][13] = 1;
-            // 6行
-            for (int x = 0; x < 16; x++) ship_pattern[6][x] = 0;
-            ship_pattern[6][2] = 1; ship_pattern[6][3] = 1;
-            ship_pattern[6][4] = 1; ship_pattern[6][5] = 1;
-            ship_pattern[6][6] = 1; ship_pattern[6][7] = 2;
-            ship_pattern[6][8] = 2; ship_pattern[6][9] = 1;
-            ship_pattern[6][10] = 1; ship_pattern[6][11] = 1;
-            ship_pattern[6][12] = 1; ship_pattern[6][13] = 1;
-            // 7行
-            for (int x = 0; x < 16; x++) ship_pattern[7][x] = 0;
-            ship_pattern[7][1] = 1; ship_pattern[7][2] = 1;
-            ship_pattern[7][3] = 1; ship_pattern[7][4] = 1;
-            ship_pattern[7][5] = 1; ship_pattern[7][6] = 1;
-            ship_pattern[7][7] = 2; ship_pattern[7][8] = 2;
-            ship_pattern[7][9] = 1; ship_pattern[7][10] = 1;
-            ship_pattern[7][11] = 1; ship_pattern[7][12] = 1;
-            ship_pattern[7][13] = 1; ship_pattern[7][14] = 1;
-            // 8行
-            for (int x = 0; x < 16; x++) ship_pattern[8][x] = 0;
-            ship_pattern[8][0] = 2; ship_pattern[8][1] = 1;
-            ship_pattern[8][2] = 1; ship_pattern[8][3] = 1;
-            ship_pattern[8][4] = 1; ship_pattern[8][5] = 1;
-            ship_pattern[8][6] = 1; ship_pattern[8][7] = 2;
-            ship_pattern[8][8] = 2; ship_pattern[8][9] = 1;
-            ship_pattern[8][10] = 1; ship_pattern[8][11] = 1;
-            ship_pattern[8][12] = 1; ship_pattern[8][13] = 1;
-            ship_pattern[8][14] = 1; ship_pattern[8][15] = 2;
-            // 9行
-            for (int x = 0; x < 16; x++) ship_pattern[9][x] = 0;
-            ship_pattern[9][1] = 1; ship_pattern[9][2] = 1;
-            ship_pattern[9][3] = 1; ship_pattern[9][4] = 1;
-            ship_pattern[9][5] = 1; ship_pattern[9][6] = 1;
-            ship_pattern[9][7] = 1; ship_pattern[9][8] = 1;
-            ship_pattern[9][9] = 1; ship_pattern[9][10] = 1;
-            ship_pattern[9][11] = 1; ship_pattern[9][12] = 1;
-            ship_pattern[9][13] = 1; ship_pattern[9][14] = 1;
-            // 10行
-            for (int x = 0; x < 16; x++) ship_pattern[10][x] = 0;
-            ship_pattern[10][2] = 1; ship_pattern[10][3] = 1;
-            ship_pattern[10][4] = 1; ship_pattern[10][5] = 1;
-            ship_pattern[10][6] = 1; ship_pattern[10][7] = 2;
-            ship_pattern[10][8] = 2; ship_pattern[10][9] = 1;
-            ship_pattern[10][10] = 1; ship_pattern[10][11] = 1;
-            ship_pattern[10][12] = 1; ship_pattern[10][13] = 1;
-            // 11行
-            for (int x = 0; x < 16; x++) ship_pattern[11][x] = 0;
-            ship_pattern[11][3] = 2; ship_pattern[11][6] = 1;
-            ship_pattern[11][7] = 2; ship_pattern[11][8] = 2;
-            ship_pattern[11][9] = 1; ship_pattern[11][12] = 2;
-            // 12行
-            for (int x = 0; x < 16; x++) ship_pattern[12][x] = 0;
-            ship_pattern[12][4] = 2; ship_pattern[12][11] = 2;
-            // 13行
-            for (int x = 0; x < 16; x++) ship_pattern[13][x] = 0;
-            // 14行
-            for (int x = 0; x < 16; x++) ship_pattern[14][x] = 0;
-            // 15行
-            for (int x = 0; x < 16; x++) ship_pattern[15][x] = 0;
-            ship_pattern[15][7] = 4;
+            // 初始化飞船像素艺术模式 - 全部初始化为0
+            for (int y = 0; y < 16; y++) begin
+                for (int x = 0; x < 16; x++) begin
+                    ship_pattern[y][x] <= 2'b00;
+                end
+            end
+            
+            // 上部 - 设置为红色(1)和白色(2)
+            ship_pattern[2][7] <= 2'b01; ship_pattern[2][8] <= 2'b01;
+            ship_pattern[3][6] <= 2'b01; ship_pattern[3][7] <= 2'b01; 
+            ship_pattern[3][8] <= 2'b01; ship_pattern[3][9] <= 2'b01;
+            
+            // 中部 - 主体为红色(1)，窗户为白色(2)，引擎为蓝色(3)
+            // 行4
+            ship_pattern[4][2] <= 2'b01; ship_pattern[4][3] <= 2'b01; ship_pattern[4][4] <= 2'b01;
+            ship_pattern[4][5] <= 2'b01; ship_pattern[4][6] <= 2'b01; ship_pattern[4][7] <= 2'b01;
+            ship_pattern[4][8] <= 2'b01; ship_pattern[4][9] <= 2'b01; ship_pattern[4][10] <= 2'b01;
+            ship_pattern[4][11] <= 2'b01; ship_pattern[4][12] <= 2'b01;
+            
+            // 行5
+            ship_pattern[5][1] <= 2'b01; ship_pattern[5][2] <= 2'b01; ship_pattern[5][3] <= 2'b01;
+            ship_pattern[5][4] <= 2'b01; ship_pattern[5][5] <= 2'b01; ship_pattern[5][6] <= 2'b01;
+            ship_pattern[5][7] <= 2'b10; ship_pattern[5][8] <= 2'b01; ship_pattern[5][9] <= 2'b01;
+            ship_pattern[5][10] <= 2'b01; ship_pattern[5][11] <= 2'b01; ship_pattern[5][12] <= 2'b01;
+            ship_pattern[5][13] <= 2'b01;
+            
+            // 行6
+            ship_pattern[6][0] <= 2'b01; ship_pattern[6][1] <= 2'b01; ship_pattern[6][2] <= 2'b01;
+            ship_pattern[6][3] <= 2'b01; ship_pattern[6][4] <= 2'b01; ship_pattern[6][5] <= 2'b01;
+            ship_pattern[6][6] <= 2'b01; ship_pattern[6][7] <= 2'b01; ship_pattern[6][8] <= 2'b01;
+            ship_pattern[6][9] <= 2'b01; ship_pattern[6][10] <= 2'b01; ship_pattern[6][11] <= 2'b01;
+            ship_pattern[6][12] <= 2'b01; ship_pattern[6][13] <= 2'b01; ship_pattern[6][14] <= 2'b11;
+            
+            // 行7
+            ship_pattern[7][0] <= 2'b01; ship_pattern[7][1] <= 2'b01; ship_pattern[7][2] <= 2'b01;
+            ship_pattern[7][3] <= 2'b01; ship_pattern[7][4] <= 2'b01; ship_pattern[7][5] <= 2'b01;
+            ship_pattern[7][6] <= 2'b01; ship_pattern[7][7] <= 2'b01; ship_pattern[7][8] <= 2'b01;
+            ship_pattern[7][9] <= 2'b01; ship_pattern[7][10] <= 2'b01; ship_pattern[7][11] <= 2'b01;
+            ship_pattern[7][12] <= 2'b01; ship_pattern[7][13] <= 2'b01; ship_pattern[7][14] <= 2'b11;
+            ship_pattern[7][15] <= 2'b11;
+            
+            // 行8
+            ship_pattern[8][0] <= 2'b01; ship_pattern[8][1] <= 2'b01; ship_pattern[8][2] <= 2'b01;
+            ship_pattern[8][3] <= 2'b01; ship_pattern[8][4] <= 2'b01; ship_pattern[8][5] <= 2'b01;
+            ship_pattern[8][6] <= 2'b01; ship_pattern[8][7] <= 2'b01; ship_pattern[8][8] <= 2'b01;
+            ship_pattern[8][9] <= 2'b01; ship_pattern[8][10] <= 2'b01; ship_pattern[8][11] <= 2'b01;
+            ship_pattern[8][12] <= 2'b01; ship_pattern[8][13] <= 2'b01; ship_pattern[8][14] <= 2'b11;
+            ship_pattern[8][15] <= 2'b11;
+            
+            // 行9
+            ship_pattern[9][0] <= 2'b01; ship_pattern[9][1] <= 2'b01; ship_pattern[9][2] <= 2'b01;
+            ship_pattern[9][3] <= 2'b01; ship_pattern[9][4] <= 2'b01; ship_pattern[9][5] <= 2'b01;
+            ship_pattern[9][6] <= 2'b01; ship_pattern[9][7] <= 2'b01; ship_pattern[9][8] <= 2'b01;
+            ship_pattern[9][9] <= 2'b01; ship_pattern[9][10] <= 2'b01; ship_pattern[9][11] <= 2'b01;
+            ship_pattern[9][12] <= 2'b01; ship_pattern[9][13] <= 2'b01; ship_pattern[9][14] <= 2'b11;
+            
+            // 行10
+            ship_pattern[10][1] <= 2'b01; ship_pattern[10][2] <= 2'b01; ship_pattern[10][3] <= 2'b01;
+            ship_pattern[10][4] <= 2'b01; ship_pattern[10][5] <= 2'b01; ship_pattern[10][6] <= 2'b01;
+            ship_pattern[10][7] <= 2'b10; ship_pattern[10][8] <= 2'b01; ship_pattern[10][9] <= 2'b01;
+            ship_pattern[10][10] <= 2'b01; ship_pattern[10][11] <= 2'b01; ship_pattern[10][12] <= 2'b01;
+            ship_pattern[10][13] <= 2'b01;
+            
+            // 行11
+            ship_pattern[11][2] <= 2'b01; ship_pattern[11][3] <= 2'b01; ship_pattern[11][4] <= 2'b01;
+            ship_pattern[11][5] <= 2'b01; ship_pattern[11][6] <= 2'b01; ship_pattern[11][7] <= 2'b01;
+            ship_pattern[11][8] <= 2'b01; ship_pattern[11][9] <= 2'b01; ship_pattern[11][10] <= 2'b01;
+            ship_pattern[11][11] <= 2'b01; ship_pattern[11][12] <= 2'b01;
+            
+            // 下部
+            ship_pattern[12][6] <= 2'b01; ship_pattern[12][7] <= 2'b01; ship_pattern[12][8] <= 2'b01;
+            ship_pattern[12][9] <= 2'b01;
+            ship_pattern[13][7] <= 2'b01; ship_pattern[13][8] <= 2'b01;
         end 
         else if (chipselect && write) begin
             case (address)
-                16'd0: background_r <= writedata;
-                16'd1: background_g <= writedata;
-                16'd2: background_b <= writedata;
+                5'd0: background_r <= writedata;
+                5'd1: background_g <= writedata;
+                5'd2: background_b <= writedata;
                 
                 // Ship position
-                16'd3: ship_x[7:0] <= writedata;
-                16'd4: ship_x[10:8] <= writedata[2:0];
-                16'd5: ship_y[7:0] <= writedata;
-                16'd6: ship_y[9:8] <= writedata[1:0];
+                5'd3: ship_x[7:0] <= writedata;
+                5'd4: ship_x[10:8] <= writedata[2:0];
+                5'd5: ship_y[7:0] <= writedata;
+                5'd6: ship_y[9:8] <= writedata[1:0];
                 
                 // Bullets - 每个子弹使用4个寄存器
-                16'd28: bullet_active <= writedata[MAX_BULLETS-1:0];
+                5'd28: bullet_active <= writedata[MAX_BULLETS-1:0];
                 
                 // 图片属性
-                16'd29: image_x[7:0] <= writedata;
-                16'd30: image_x[10:8] <= writedata[2:0];
-                16'd31: image_y[7:0] <= writedata;
-                16'd32: image_y[9:8] <= writedata[1:0];
-                16'd33: image_display <= writedata[0];
+                5'd29: image_x[7:0] <= writedata;
+                5'd30: image_x[10:8] <= writedata[2:0];
+                5'd31: image_y[7:0] <= writedata;
+                5'd0: image_y[9:8] <= writedata[1:0]; // 循环使用寄存器地址
+                5'd1: image_display <= writedata[0];  // 循环使用寄存器地址
                 
                 default: begin
-                    // 子弹位置寄存器
-                    if (address >= 16'd7 && address < 16'd7 + 4*MAX_BULLETS) begin
-                        int bullet_idx = (address - 16'd7) / 4;  // 确定是哪个子弹
-                        int bullet_reg = (address - 16'd7) % 4;  // 确定是子弹的哪个属性
+                    // 子弹位置寄存器 - 使用地址循环
+                    if (address >= 5'd7 && address < 5'd7 + 4*MAX_BULLETS) begin
+                        int bullet_idx;
+                        int bullet_reg;
+                        bullet_idx = (address - 5'd7) / 4;  // 确定是哪个子弹
+                        bullet_reg = (address - 5'd7) % 4;  // 确定是子弹的哪个属性
                         
                         case (bullet_reg)
                             0: bullet_x[bullet_idx][7:0] <= writedata;
@@ -225,17 +211,6 @@ module vga_ball(
                             3: bullet_y[bullet_idx][9:8] <= writedata[1:0];
                         endcase
                     end
-                    // 图片数据寄存器
-                    else if (address >= 16'd34 && address < 16'd34 + IMAGE_HEIGHT*IMAGE_WIDTH*3) begin
-                        int offset = address - 16'd34;
-                        int pixel_index = offset / 3;
-                        int pixel_y = pixel_index / IMAGE_WIDTH;
-                        int pixel_x = pixel_index % IMAGE_WIDTH;
-                        int color_channel = offset % 3;
-                        
-                        // 存储RGB数据
-                        image_data[pixel_y][pixel_x][color_channel] <= writedata;
-                    end
                 end
             endcase
         end
@@ -243,18 +218,20 @@ module vga_ball(
 
     // 飞船显示逻辑 - 使用像素艺术模式
     logic ship_on;
-    logic [2:0] ship_pixel_value;
+    logic [1:0] ship_pixel_value;
+    logic [3:0] rel_x, rel_y;
 
     always_comb begin
         ship_on = 0;
         ship_pixel_value = 0;
+        rel_x = 0;
+        rel_y = 0;
         
         // 检查当前像素是否在飞船范围内
         if (hcount >= ship_x && hcount < ship_x + SHIP_WIDTH &&
             vcount >= ship_y && vcount < ship_y + SHIP_HEIGHT) begin
             
             // 计算当前像素在飞船图案中的相对位置
-            logic [3:0] rel_x, rel_y;
             rel_x = hcount - ship_x;
             rel_y = vcount - ship_y;
             
@@ -270,8 +247,10 @@ module vga_ball(
 
     // 多个子弹的显示逻辑
     logic bullet_on;
+    
     always_comb begin
         bullet_on = 0;
+        
         for (int i = 0; i < MAX_BULLETS; i++) begin
             if (bullet_active[i] && 
                 hcount >= bullet_x[i] && hcount < bullet_x[i] + BULLET_SIZE &&
@@ -284,12 +263,15 @@ module vga_ball(
     // 图片显示逻辑
     logic image_on;
     logic [7:0] image_pixel_r, image_pixel_g, image_pixel_b;
+    logic [5:0] img_x, img_y;
     
     always_comb begin
         image_on = 0;
         image_pixel_r = 8'd0;
         image_pixel_g = 8'd0;
         image_pixel_b = 8'd0;
+        img_x = 0;
+        img_y = 0;
         
         // 检查是否应该显示图片，以及当前像素是否在图片范围内
         if (image_display && 
@@ -297,7 +279,6 @@ module vga_ball(
             vcount >= image_y && vcount < image_y + IMAGE_HEIGHT) begin
             
             // 计算在图片中的相对位置
-            logic [5:0] img_x, img_y; // 6位足够表示0-63
             img_x = hcount - image_x;
             img_y = vcount - image_y;
             
@@ -307,7 +288,6 @@ module vga_ball(
             image_pixel_b = image_data[img_y][img_x][2];
             
             // 如果像素不是全黑，则显示图片
-            // 这里允许显示黑色像素，但你可以添加阈值检查来实现透明度
             if (image_pixel_r != 8'd0 || image_pixel_g != 8'd0 || image_pixel_b != 8'd0) begin
                 image_on = 1;
             end
@@ -331,10 +311,9 @@ module vga_ball(
             if (ship_on) begin
                 // 根据船的像素值选择颜色
                 case (ship_pixel_value)
-                    3'd1: {VGA_R, VGA_G, VGA_B} = {8'hD0, 8'hD0, 8'hD0}; // 灰白色
-                    3'd2: {VGA_R, VGA_G, VGA_B} = {8'hFF, 8'h40, 8'h40}; // 红色
-                    3'd3: {VGA_R, VGA_G, VGA_B} = {8'h40, 8'h60, 8'hFF}; // 蓝色
-                    3'd4: {VGA_R, VGA_G, VGA_B} = {8'hA0, 8'h20, 8'hFF}; // 紫色
+                    2'b01: {VGA_R, VGA_G, VGA_B} = {8'hE0, 8'h40, 8'h20}; // 红色
+                    2'b10: {VGA_R, VGA_G, VGA_B} = {8'hFF, 8'hFF, 8'hFF}; // 白色
+                    2'b11: {VGA_R, VGA_G, VGA_B} = {8'h40, 8'hA0, 8'hFF}; // 蓝色
                     default: {VGA_R, VGA_G, VGA_B} = {8'hFF, 8'hFF, 8'hFF}; // 默认白色
                 endcase
             end

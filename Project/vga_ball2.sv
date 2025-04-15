@@ -157,4 +157,54 @@ endmodule
 // VGA timing generator module - 保持不变
 module vga_counters(
     input logic        clk50, reset,
-    output logic [10:0
+    output logic [10:0] hcount,  // hcount[10:1] is pixel column
+    output logic [9:0]  vcount,  // vcount[9:0] is pixel row
+    output logic        VGA_CLK, VGA_HS, VGA_VS, VGA_BLANK_n, VGA_SYNC_n
+);
+
+    // Parameters for hcount
+    parameter HACTIVE      = 11'd 1280,
+              HFRONT_PORCH = 11'd 32,
+              HSYNC        = 11'd 192,
+              HBACK_PORCH  = 11'd 96,   
+              HTOTAL       = HACTIVE + HFRONT_PORCH + HSYNC + HBACK_PORCH; // 1600
+    
+    // Parameters for vcount
+    parameter VACTIVE      = 10'd 480,
+              VFRONT_PORCH = 10'd 10,
+              VSYNC        = 10'd 2,
+              VBACK_PORCH  = 10'd 33,
+              VTOTAL       = VACTIVE + VFRONT_PORCH + VSYNC + VBACK_PORCH; // 525
+
+    logic endOfLine;
+    
+    always_ff @(posedge clk50 or posedge reset)
+        if (reset)          hcount <= 0;
+        else if (endOfLine) hcount <= 0;
+        else                hcount <= hcount + 11'd 1;
+
+    assign endOfLine = hcount == HTOTAL - 1;
+        
+    logic endOfField;
+    
+    always_ff @(posedge clk50 or posedge reset)
+        if (reset)          vcount <= 0;
+        else if (endOfLine)
+            if (endOfField) vcount <= 0;
+            else            vcount <= vcount + 10'd 1;
+
+    assign endOfField = vcount == VTOTAL - 1;
+
+    // Horizontal sync: from 0x520 to 0x5DF (0x57F)
+    assign VGA_HS = !( (hcount[10:8] == 3'b101) & !(hcount[7:5] == 3'b111));
+    assign VGA_VS = !( vcount[9:1] == (VACTIVE + VFRONT_PORCH) / 2);
+
+    assign VGA_SYNC_n = 1'b0; // For putting sync on the green signal; unused
+    
+    // Horizontal active: 0 to 1279     Vertical active: 0 to 479
+    assign VGA_BLANK_n = !( hcount[10] & (hcount[9] | hcount[8]) ) &
+                        !( vcount[9] | (vcount[8:5] == 4'b1111) );
+
+    assign VGA_CLK = hcount[0]; // 25 MHz clock: rising edge sensitive
+    
+endmodule

@@ -25,7 +25,7 @@ module vga_ball(
     input  logic [7:0]  writedata,
     input  logic        write,
     input  logic        chipselect,
-    input  logic [4:0]  address,  // 改为5位地址宽度
+    input  logic [4:0]  address,  // 5位地址宽度
 
     output logic [7:0]  VGA_R, VGA_G, VGA_B,
     output logic        VGA_CLK, VGA_HS, VGA_VS,
@@ -64,7 +64,7 @@ module vga_ball(
 
     // 飞船像素艺术模式 (16x16)
     // 0=黑色(透明), 1=红色, 2=白色, 3=蓝色
-    logic [1:0] ship_pattern[16][16]; // 改为2位宽，最多支持4种颜色
+    logic [1:0] ship_pattern[16][16]; // 2位宽，支持4种颜色
     
     // Instantiate VGA counter module
     vga_counters counters(.clk50(clk), .*);
@@ -189,12 +189,13 @@ module vga_ball(
                 // Bullets - 每个子弹使用4个寄存器
                 5'd28: bullet_active <= writedata[MAX_BULLETS-1:0];
                 
-                // 图片属性
+                // 图片属性 - 使用地址循环
                 5'd29: image_x[7:0] <= writedata;
                 5'd30: image_x[10:8] <= writedata[2:0];
                 5'd31: image_y[7:0] <= writedata;
-                5'd0: image_y[9:8] <= writedata[1:0]; // 循环使用寄存器地址
-                5'd1: image_display <= writedata[0];  // 循环使用寄存器地址
+                // 下面使用地址0和1来存储额外的图像信息
+                5'd0: image_y[9:8] <= writedata[1:0]; // 复用寄存器地址
+                5'd1: image_display <= writedata[0];  // 复用寄存器地址
                 
                 default: begin
                     // 子弹位置寄存器 - 使用地址循环
@@ -227,12 +228,12 @@ module vga_ball(
         rel_x = 0;
         rel_y = 0;
         
-        // 检查当前像素是否在飞船范围内
-        if (hcount >= ship_x && hcount < ship_x + SHIP_WIDTH &&
+        // 检查当前像素是否在飞船范围内 - 使用hcount[10:1]作为实际像素列
+        if (hcount[10:1] >= ship_x[9:0] && hcount[10:1] < ship_x[9:0] + SHIP_WIDTH &&
             vcount >= ship_y && vcount < ship_y + SHIP_HEIGHT) begin
             
             // 计算当前像素在飞船图案中的相对位置
-            rel_x = hcount - ship_x;
+            rel_x = hcount[10:1] - ship_x[9:0];
             rel_y = vcount - ship_y;
             
             // 获取这个位置上的像素值
@@ -253,7 +254,7 @@ module vga_ball(
         
         for (int i = 0; i < MAX_BULLETS; i++) begin
             if (bullet_active[i] && 
-                hcount >= bullet_x[i] && hcount < bullet_x[i] + BULLET_SIZE &&
+                hcount[10:1] >= bullet_x[i][9:0] && hcount[10:1] < bullet_x[i][9:0] + BULLET_SIZE &&
                 vcount >= bullet_y[i] && vcount < bullet_y[i] + BULLET_SIZE) begin
                 bullet_on = 1;
             end
@@ -273,13 +274,13 @@ module vga_ball(
         img_x = 0;
         img_y = 0;
         
-        // 检查是否应该显示图片，以及当前像素是否在图片范围内
+        // 检查是否应该显示图片，以及当前像素是否在图片范围内 - 使用hcount[10:1]
         if (image_display && 
-            hcount >= image_x && hcount < image_x + IMAGE_WIDTH &&
+            hcount[10:1] >= image_x[9:0] && hcount[10:1] < image_x[9:0] + IMAGE_WIDTH &&
             vcount >= image_y && vcount < image_y + IMAGE_HEIGHT) begin
             
             // 计算在图片中的相对位置
-            img_x = hcount - image_x;
+            img_x = hcount[10:1] - image_x[9:0];
             img_y = vcount - image_y;
             
             // 获取像素颜色

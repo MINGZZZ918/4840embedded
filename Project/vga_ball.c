@@ -21,7 +21,7 @@
 
 #define DRIVER_NAME "vga_ball"
 
-/* Device registers - 使用5位地址 */
+/* Device registers - 与vga_ball.sv中的寄存器定义完全匹配 */
 #define BG_RED(x)         (x)
 #define BG_GREEN(x)       ((x)+1)
 #define BG_BLUE(x)        ((x)+2)
@@ -37,12 +37,13 @@
 #define BULLET_Y_H(x,i)   (BULLET_BASE(x) + 4*(i) + 3)
 #define BULLET_ACTIVE(x)  (BULLET_BASE(x) + 4*MAX_BULLETS)
 
-/* 图片寄存器定义 - 使用地址循环 */
-#define IMAGE_X_L(x)      ((x)+3)  // 复用船的位置寄存器
-#define IMAGE_X_H(x)      ((x)+4)
-#define IMAGE_Y_L(x)      ((x)+5)
-#define IMAGE_Y_H(x)      ((x)+6)
-#define IMAGE_DISPLAY(x)  ((x)+0)  // 复用背景色寄存器
+/* 图片寄存器定义 - 保持与vga_ball.sv的一致性 */
+#define IMAGE_BASE(x)     (BULLET_ACTIVE(x) + 1)
+#define IMAGE_X_L(x)      (IMAGE_BASE(x))
+#define IMAGE_X_H(x)      (IMAGE_BASE(x) + 1)
+#define IMAGE_Y_L(x)      (IMAGE_BASE(x) + 2)
+#define IMAGE_Y_H(x)      (IMAGE_BASE(x) + 3)
+#define IMAGE_DISPLAY(x)  (IMAGE_BASE(x) + 4)
 
 /*
  * Information about our device
@@ -110,15 +111,6 @@ static void write_bullets(vga_ball_object_t bullets[])
  */
 static void write_image(vga_ball_image_t *image)
 {
-    // 保存当前寄存器值
-    unsigned char bg_r = ioread8(BG_RED(dev.virtbase));
-    unsigned char bg_g = ioread8(BG_GREEN(dev.virtbase));
-    unsigned char bg_b = ioread8(BG_BLUE(dev.virtbase));
-    unsigned char ship_x_l = ioread8(SHIP_X_L(dev.virtbase));
-    unsigned char ship_x_h = ioread8(SHIP_X_H(dev.virtbase));
-    unsigned char ship_y_l = ioread8(SHIP_Y_L(dev.virtbase));
-    unsigned char ship_y_h = ioread8(SHIP_Y_H(dev.virtbase));
-    
     // 写入图片位置和显示标志
     iowrite8((unsigned char)(image->x & 0xFF), IMAGE_X_L(dev.virtbase));
     iowrite8((unsigned char)((image->x >> 8) & 0x07), IMAGE_X_H(dev.virtbase));
@@ -126,16 +118,7 @@ static void write_image(vga_ball_image_t *image)
     iowrite8((unsigned char)((image->y >> 8) & 0x03), IMAGE_Y_H(dev.virtbase));
     iowrite8(image->display, IMAGE_DISPLAY(dev.virtbase));
     
-    // 图片数据由用户空间传递，但不在这里写入
-    
-    // 恢复寄存器值
-    iowrite8(bg_r, BG_RED(dev.virtbase));
-    iowrite8(bg_g, BG_GREEN(dev.virtbase));
-    iowrite8(bg_b, BG_BLUE(dev.virtbase));
-    iowrite8(ship_x_l, SHIP_X_L(dev.virtbase));
-    iowrite8(ship_x_h, SHIP_X_H(dev.virtbase));
-    iowrite8(ship_y_l, SHIP_Y_L(dev.virtbase));
-    iowrite8(ship_y_h, SHIP_Y_H(dev.virtbase));
+    // 图片数据由用户空间传递，但不在这里写入硬件
     
     dev.image = *image;
 }
@@ -148,7 +131,8 @@ static void update_game_state(vga_ball_arg_t *state)
     write_background(&state->background);
     write_ship(&state->ship);
     write_bullets(state->bullets);
-    // 注意：这里不更新图片数据，只更新背景、飞船和子弹
+    // 写入图像显示状态
+    iowrite8(state->image.display, IMAGE_DISPLAY(dev.virtbase));
 }
 
 /*

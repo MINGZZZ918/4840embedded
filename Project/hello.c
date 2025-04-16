@@ -117,9 +117,12 @@ void update_bullets(void) {
         if (game_state.bullets[i].active) {
             game_state.bullets[i].position.x += BULLET_SPEED;
             
-            // 检查是否超出屏幕
-            if (game_state.bullets[i].position.x > SCREEN_WIDTH) {
+            // 检查是否超出屏幕，确保子弹在超出屏幕后设置为非活动状态
+            if (game_state.bullets[i].position.x > SCREEN_WIDTH - BULLET_SIZE) {
                 game_state.bullets[i].active = 0;
+                // 将子弹重置到屏幕外，防止出现回卷情况
+                game_state.bullets[i].position.x = 0;
+                game_state.bullets[i].position.y = 0;
             }
         }
     }

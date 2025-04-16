@@ -80,16 +80,24 @@ static void write_bullets(vga_ball_object_t bullets[])
     int i;
     
     for (i = 0; i < MAX_BULLETS; i++) {
-        // 写入每个子弹的位置
-        iowrite8((unsigned char)(bullets[i].position.x & 0xFF), BULLET_X_L(dev.virtbase, i));
-        iowrite8((unsigned char)((bullets[i].position.x >> 8) & 0x07), BULLET_X_H(dev.virtbase, i));
-        iowrite8((unsigned char)(bullets[i].position.y & 0xFF), BULLET_Y_L(dev.virtbase, i));
-        iowrite8((unsigned char)((bullets[i].position.y >> 8) & 0x03), BULLET_Y_H(dev.virtbase, i));
-        
-        // 存储子弹状态位
-        if (bullets[i].active)
-            active_bits |= (1 << i);
+        // 仅当子弹活动时才更新其位置
+        if (bullets[i].active) {
+            // 写入每个子弹的位置
+            iowrite8((unsigned char)(bullets[i].position.x & 0xFF), BULLET_X_L(dev.virtbase, i));
+            iowrite8((unsigned char)((bullets[i].position.x >> 8) & 0x07), BULLET_X_H(dev.virtbase, i));
+            iowrite8((unsigned char)(bullets[i].position.y & 0xFF), BULLET_Y_L(dev.virtbase, i));
+            iowrite8((unsigned char)((bullets[i].position.y >> 8) & 0x03), BULLET_Y_H(dev.virtbase, i));
             
+            // 设置活动状态位
+            active_bits |= (1 << i);
+        } else {
+            // 对于非活动的子弹，将其位置重置为0
+            iowrite8(0, BULLET_X_L(dev.virtbase, i));
+            iowrite8(0, BULLET_X_H(dev.virtbase, i));
+            iowrite8(0, BULLET_Y_L(dev.virtbase, i));
+            iowrite8(0, BULLET_Y_H(dev.virtbase, i));
+        }
+        
         dev.bullets[i] = bullets[i];
     }
     

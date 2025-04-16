@@ -21,7 +21,7 @@
 
 #define DRIVER_NAME "vga_ball"
 
-/* Device registers - 与vga_ball.sv中的寄存器定义完全匹配 */
+/* Device registers */
 #define BG_RED(x)         (x)
 #define BG_GREEN(x)       ((x)+1)
 #define BG_BLUE(x)        ((x)+2)
@@ -35,15 +35,7 @@
 #define BULLET_X_H(x,i)   (BULLET_BASE(x) + 4*(i) + 1)
 #define BULLET_Y_L(x,i)   (BULLET_BASE(x) + 4*(i) + 2)
 #define BULLET_Y_H(x,i)   (BULLET_BASE(x) + 4*(i) + 3)
-#define BULLET_ACTIVE(x)  (BULLET_BASE(x) + 4*MAX_BULLETS)
-
-/* 图片寄存器定义 - 保持与vga_ball.sv的一致性 */
-#define IMAGE_BASE(x)     (BULLET_ACTIVE(x) + 1)
-#define IMAGE_X_L(x)      (IMAGE_BASE(x))
-#define IMAGE_X_H(x)      (IMAGE_BASE(x) + 1)
-#define IMAGE_Y_L(x)      (IMAGE_BASE(x) + 2)
-#define IMAGE_Y_H(x)      (IMAGE_BASE(x) + 3)
-#define IMAGE_DISPLAY(x)  (IMAGE_BASE(x) + 4)
+#define BULLET_ACTIVE(x)  ((x)+28)  // 固定地址，对应vga_ball.sv中的28偏移量
 
 /*
  * Information about our device
@@ -54,7 +46,6 @@ struct vga_ball_dev {
     vga_ball_color_t background;
     vga_ball_object_t ship;
     vga_ball_object_t bullets[MAX_BULLETS];
-    vga_ball_image_t image;  // 图片数据
 } dev;
 
 /*
@@ -107,23 +98,6 @@ static void write_bullets(vga_ball_object_t bullets[])
 }
 
 /*
- * Write image data - 简化版本，只写入位置和显示标志
- */
-static void write_image(vga_ball_image_t *image)
-{
-    // 写入图片位置和显示标志
-    iowrite8((unsigned char)(image->x & 0xFF), IMAGE_X_L(dev.virtbase));
-    iowrite8((unsigned char)((image->x >> 8) & 0x07), IMAGE_X_H(dev.virtbase));
-    iowrite8((unsigned char)(image->y & 0xFF), IMAGE_Y_L(dev.virtbase));
-    iowrite8((unsigned char)((image->y >> 8) & 0x03), IMAGE_Y_H(dev.virtbase));
-    iowrite8(image->display, IMAGE_DISPLAY(dev.virtbase));
-    
-    // 图片数据由用户空间传递，但不在这里写入硬件
-    
-    dev.image = *image;
-}
-
-/*
  * Update all game state at once
  */
 static void update_game_state(vga_ball_arg_t *state)
@@ -131,8 +105,6 @@ static void update_game_state(vga_ball_arg_t *state)
     write_background(&state->background);
     write_ship(&state->ship);
     write_bullets(state->bullets);
-    // 写入图像显示状态
-    iowrite8(state->image.display, IMAGE_DISPLAY(dev.virtbase));
 }
 
 /*
@@ -178,12 +150,6 @@ static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
             if (copy_to_user((vga_ball_arg_t *) arg, &vb_arg, sizeof(vga_ball_arg_t)))
                 return -EACCES;
             break;
-            
-        case VGA_BALL_WRITE_IMAGE:
-            if (copy_from_user(&vb_arg, (vga_ball_arg_t *) arg, sizeof(vga_ball_arg_t)))
-                return -EACCES;
-            write_image(&vb_arg.image);
-            break;
 
         case VGA_BALL_UPDATE_GAME_STATE:
             if (copy_from_user(&vb_arg, (vga_ball_arg_t *) arg, sizeof(vga_ball_arg_t)))
@@ -220,7 +186,6 @@ static int __init vga_ball_probe(struct platform_device *pdev)
     vga_ball_color_t background = { 0x00, 0x00, 0x20 }; // Dark blue
     vga_ball_object_t ship = { { 200, 240 }, 1 };      // Ship starting position
     vga_ball_object_t bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
-    vga_ball_image_t image = { 0 };                    // 初始化图片
     int i, ret;
 
     /* Register ourselves as a misc device */
@@ -247,11 +212,17 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         goto out_release_mem_region;
     }
         
+    /* Initialize all bullets to inactive state */
+    for (i = 0; i < MAX_BULLETS; i++) {
+        bullets[i].position.x = 0;
+        bullets[i].position.y = 0;
+        bullets[i].active = 0;
+    }
+        
     /* Set initial values */
     write_background(&background);
     write_ship(&ship);
     write_bullets(bullets);
-    write_image(&image);
 
     return 0;
 

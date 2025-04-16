@@ -21,7 +21,7 @@
 int vga_ball_fd;
 
 /* Screen dimensions */
-#define SCREEN_WIDTH 1280
+#define SCREEN_WIDTH 640  // 修改为显示分辨率的一半，因为hcount[10:1]
 #define SCREEN_HEIGHT 480
 
 /* Ship constants */
@@ -68,7 +68,7 @@ typedef struct {
 #pragma pack(pop)
 
 /**
- * 读取BMP图片并存储到游戏状态中
+ * 读取BMP图片并存储到游戏状态中 - 简化版本，只加载部分图片数据
  */
 int load_bmp_image(const char *filename, int x, int y) {
     FILE *file = fopen(filename, "rb");
@@ -127,6 +127,9 @@ int load_bmp_image(const char *filename, int x, int y) {
     int width = (infoHeader.width < IMAGE_WIDTH) ? infoHeader.width : IMAGE_WIDTH;
     int height = (infoHeader.height < IMAGE_HEIGHT) ? infoHeader.height : IMAGE_HEIGHT;
     
+    // 初始化图像数据为0
+    memset(game_state.image.data, 0, sizeof(game_state.image.data));
+    
     // BMP图片是从下到上存储的，所以我们需要反转
     for (int y = height - 1; y >= 0; y--) {
         // 读取一行数据
@@ -153,9 +156,10 @@ int load_bmp_image(const char *filename, int x, int y) {
 }
 
 /**
- * 传输图片数据到硬件
+ * 传输图片数据到硬件 - 简化版本
  */
 void update_image() {
+    // 只更新图片位置和显示状态
     if (ioctl(vga_ball_fd, VGA_BALL_WRITE_IMAGE, &game_state)) {
         perror("ioctl(VGA_BALL_WRITE_IMAGE) failed");
         exit(EXIT_FAILURE);
@@ -288,7 +292,7 @@ int main(int argc, char *argv[]) {
     
     printf("Starting animation, press Ctrl+C to exit...\n");
     
-    /* Main game loop */
+  /* Main game loop */
     while (1) {
         /* Decrement cooldown */
         if (bullet_cooldown > 0) bullet_cooldown--;

@@ -10,21 +10,42 @@ else
 	KERNEL_SOURCE := /usr/src/linux-headers-$(shell uname -r)
         PWD := $(shell pwd)
 
-default: module hello
 
+
+# ...
+else
+
+KERNEL_SOURCE := /usr/src/linux-headers-$(shell uname -r)
+PWD           := $(shell pwd)
+
+# user‐space sources and flags
+US_SRCS       := hello.c controller.c
+US_OBJS       := $(US_SRCS:.c=.o)
+CFLAGS       += -I.           # so #include "controller.h" works
+LDFLAGS      += -lusb-1.0 -lpthread
+
+.PHONY: all
+all: module hello
+
+# 1) kernel module build
 module:
-	${MAKE} -C ${KERNEL_SOURCE} SUBDIRS=${PWD} modules
+    $(MAKE) -C $(KERNEL_SOURCE) SUBDIRS=$(PWD) modules
+
+# 2) user‐space program
+hello: $(US_SRCS)
+    $(CC) $(CFLAGS) -o $@ $(US_SRCS) $(LDFLAGS)
 
 clean:
-	${MAKE} -C ${KERNEL_SOURCE} SUBDIRS=${PWD} clean
-	${RM} hello
+    $(MAKE) -C $(KERNEL_SOURCE) SUBDIRS=$(PWD) clean
+    $(RM) hello *.o
 
-TARFILES = Makefile README vga_ball.h vga_ball.c hello.c
-TARFILE = lab3-sw.tar.gz
-.PHONY : tar
-tar : $(TARFILE)
+# bundle everything
+TARFILES  := Makefile README vga_ball.h vga_ball.c hello.c controller.c controller.h
+TARFILE   := lab3-sw.tar.gz
+.PHONY: tar
+tar: $(TARFILE)
 
-$(TARFILE) : $(TARFILES)
-	tar zcfC $(TARFILE) .. $(TARFILES:%=lab3-sw/%)
+$(TARFILE): $(TARFILES)
+    tar zcfC $(TARFILE) .. $(TARFILES:%=lab3-sw/%)
 
-endif 
+endif

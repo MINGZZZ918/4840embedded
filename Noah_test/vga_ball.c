@@ -55,7 +55,7 @@
 struct vga_ball_dev {
     struct resource res; /* Resource: our registers */
     void __iomem *virtbase; /* Where registers can be accessed in memory */
-    backround_color background;
+    background_color background;
     spaceship ship;
     bullet bullets[MAX_BULLETS];
     enemy enemies[ENEMY_COUNT];
@@ -64,7 +64,7 @@ struct vga_ball_dev {
 /*
 * Write background color
 */
-static void write_background(backround_color *background)
+static void write_background(background_color *background)
 {
     iowrite8(background->red, BG_RED(dev.virtbase));
     iowrite8(background->green, BG_GREEN(dev.virtbase));
@@ -87,7 +87,7 @@ static void write_ship(spaceship *ship)
 /*
 * Write bullets properties
 */
-static void write_bullets(bullet bullets[])
+static void write_bullets(bullet *bullets)
 {
     unsigned char active_bits = 0;
     int i;
@@ -111,7 +111,7 @@ static void write_bullets(bullet bullets[])
 }
 
 
-static void write_enemies(enemy enemies[])
+static void write_enemies(enemy *enemies)
 {
     for (int i = 0; i < ENEMY_COUNT; i++) {
         iowrite8(enemies[i].x & 0xFF, ENEMY_X_L(dev.virtbase, i));
@@ -187,7 +187,7 @@ static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
         case VGA_BALL_WRITE_ENEMIES:
             if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
                 return -EACCES;
-            write_bullets(vb_arg.enemies);
+            write_enemies(vb_arg.enemies);
             break;
 
         case VGA_BALL_READ_ENEMIES:
@@ -228,7 +228,7 @@ static struct miscdevice vga_ball_misc_device = {
 static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
-    backround_color background = { 0x00, 0x00, 0x20 }; // Dark blue
+    background_color background = { 0x00, 0x00, 0x20 }; // Dark blue
     spaceship ship = { { 200, 240 }, 1 };      // Ship starting position
     bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
     enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive

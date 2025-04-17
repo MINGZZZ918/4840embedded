@@ -2,7 +2,6 @@
 #define _VGA_BALL_H
 
 #include <linux/ioctl.h>
-#include <pthread.h>
 
 /* 定义最大子弹数量 */
 #define MAX_BULLETS 5
@@ -40,12 +39,14 @@ typedef enum {
     QUEUE_EMPTY
 } event;
 
+#ifndef __KERNEL__
 typedef struct {
     event events[INPUT_QUEUE_SIZE]; // holds the events to handle before next frame
     int head; // current position in the queue 
     int tail;
     pthread_mutex_t lock; 
 } input_queue;
+#endif
 
 typedef struct {
     unsigned short pos_x, pos_y;

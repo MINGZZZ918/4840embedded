@@ -113,12 +113,16 @@ static void write_bullets(bullet *bullets)
 
 static void write_enemies(enemy *enemies)
 {
-    for (int i = 0; i < ENEMY_COUNT; i++) {
-        iowrite8(enemies[i].x & 0xFF, ENEMY_X_L(dev.virtbase, i));
-        iowrite8((enemies[i].x >> 8) & 0x07, ENEMY_X_H(dev.virtbase, i));
 
-        iowrite8(enemies[i].y & 0xFF, ENEMY_Y_L(dev.virtbase, i));
-        iowrite8((enemies[i].y >> 8) & 0x03, ENEMY_Y_H(dev.virtbase, i));
+    unsigned char active_bits = 0;
+    int i;
+
+    for (i = 0; i < ENEMY_COUNT; i++) {
+        iowrite8(enemies[i].pos_x & 0xFF, ENEMY_X_L(dev.virtbase, i));
+        iowrite8((enemies[i].pos_x >> 8) & 0x07, ENEMY_X_H(dev.virtbase, i));
+
+        iowrite8(enemies[i].pos_y & 0xFF, ENEMY_Y_L(dev.virtbase, i));
+        iowrite8((enemies[i].pos_y >> 8) & 0x03, ENEMY_Y_H(dev.virtbase, i));
 
         iowrite8(enemies[i].sprite, ENEMY_SPRITE(dev.virtbase, i));
 

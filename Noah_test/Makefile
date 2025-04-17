@@ -10,42 +10,27 @@ else
 	KERNEL_SOURCE := /usr/src/linux-headers-$(shell uname -r)
         PWD := $(shell pwd)
 
+default: module hello
 
+hello: hello.o controller.o
+	cc -Wall -o hello hello.o controller.o -lusb-1.0 -pthread -lm
 
-# ...
-else
+hello.o: hello.c controller.h
+controller.o: controller.c controller.h
 
-KERNEL_SOURCE := /usr/src/linux-headers-$(shell uname -r)
-PWD           := $(shell pwd)
-
-# user‐space sources and flags
-US_SRCS       := hello.c controller.c
-US_OBJS       := $(US_SRCS:.c=.o)
-CFLAGS       += -I.           # so #include "controller.h" works
-LDFLAGS      += -lusb-1.0 -lpthread
-
-.PHONY: all
-all: module hello
-
-# 1) kernel module build
 module:
-    $(MAKE) -C $(KERNEL_SOURCE) SUBDIRS=$(PWD) modules
-
-# 2) user‐space program
-hello: $(US_SRCS)
-    $(CC) $(CFLAGS) -o $@ $(US_SRCS) $(LDFLAGS)
+	${MAKE} -C ${KERNEL_SOURCE} SUBDIRS=${PWD} modules
 
 clean:
-    $(MAKE) -C $(KERNEL_SOURCE) SUBDIRS=$(PWD) clean
-    $(RM) hello *.o
+	${MAKE} -C ${KERNEL_SOURCE} SUBDIRS=${PWD} clean
+	${RM} hello
 
-# bundle everything
-TARFILES  := Makefile README vga_ball.h vga_ball.c hello.c controller.c controller.h
-TARFILE   := lab3-sw.tar.gz
-.PHONY: tar
-tar: $(TARFILE)
+TARFILES = Makefile README vga_ball.h vga_ball.c hello.c controller.h controller.c
+TARFILE = lab3-sw.tar.gz
+.PHONY : tar
+tar : $(TARFILE)
 
-$(TARFILE): $(TARFILES)
-    tar zcfC $(TARFILE) .. $(TARFILES:%=lab3-sw/%)
+$(TARFILE) : $(TARFILES)
+	tar zcfC $(TARFILE) .. $(TARFILES:%=lab3-sw/%)
 
-endif
+endif 

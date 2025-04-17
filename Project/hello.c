@@ -22,10 +22,13 @@ int vga_ball_fd;
 #define SCREEN_HEIGHT 480
 
 /* Ship constants */
-#define SHIP_WIDTH 16  // 修改为与vga_ball.sv中一致的像素艺术飞船宽度
-#define SHIP_HEIGHT 16 // 修改为与vga_ball.sv中一致的像素艺术飞船高度
+#define SHIP_WIDTH 16  // 与vga_ball.sv中一致的像素艺术飞船宽度
+#define SHIP_HEIGHT 16 // 与vga_ball.sv中一致的像素艺术飞船高度
 #define SHIP_INITIAL_X 200
 #define SHIP_INITIAL_Y 240
+#define SHIP_VERTICAL_SPEED 1 // 飞船垂直移动速度
+#define SHIP_MIN_Y 50         // 飞船Y坐标最小值，确保不超出屏幕上边界
+#define SHIP_MAX_Y (SCREEN_HEIGHT - SHIP_HEIGHT - 50) // 飞船Y坐标最大值，确保不超出屏幕下边界
 
 /* Bullet constants */
 #define BULLET_SIZE 4
@@ -38,6 +41,7 @@ int vga_ball_fd;
 /* Game state */
 vga_ball_arg_t game_state;
 int bullet_cooldown = 0;
+int direction = 1; // 垂直移动方向: 1=向下, -1=向上
 
 /* Array of background colors to cycle through */
 static const vga_ball_color_t colors[] = {
@@ -95,11 +99,15 @@ void fire_bullet(void) {
             if (!game_state.bullets[i].active) {
                 // 设置子弹位置为飞船前方
                 game_state.bullets[i].position.x = game_state.ship.position.x + SHIP_WIDTH;
-                game_state.bullets[i].position.y = game_state.ship.position.y + (SHIP_HEIGHT / 2);
+                game_state.bullets[i].position.y = game_state.ship.position.y + (SHIP_HEIGHT / 2) - (BULLET_SIZE / 2);
                 game_state.bullets[i].active = 1;
                 
                 // 重置冷却时间
                 bullet_cooldown = BULLET_COOLDOWN_FRAMES;
+                printf("发射子弹 %d: 位置 x=%d, y=%d\n", 
+                       i, 
+                       game_state.bullets[i].position.x,
+                       game_state.bullets[i].position.y);
                 break;
             }
         }
@@ -115,14 +123,19 @@ void update_bullets(void) {
     // 更新所有激活的子弹
     for (i = 0; i < MAX_BULLETS; i++) {
         if (game_state.bullets[i].active) {
+            // 移动子弹
             game_state.bullets[i].position.x += BULLET_SPEED;
             
             // 检查是否超出屏幕，确保子弹在超出屏幕后设置为非活动状态
-            if (game_state.bullets[i].position.x > SCREEN_WIDTH - BULLET_SIZE) {
+            if (game_state.bullets[i].position.x >= SCREEN_WIDTH - BULLET_SIZE) {
+                // 先将子弹设置为非活动状态
                 game_state.bullets[i].active = 0;
-                // 将子弹重置到屏幕外，防止出现回卷情况
+                
+                // 然后重置位置到屏幕外，防止出现回卷
                 game_state.bullets[i].position.x = 0;
                 game_state.bullets[i].position.y = 0;
+                
+                printf("子弹 %d 消失: 位置 x=%d\n", i, game_state.bullets[i].position.x);
             }
         }
     }
@@ -159,7 +172,7 @@ int main(void) {
         if (bullet_cooldown > 0) bullet_cooldown--;
         
         /* Periodically change background color */
-        if (frame_count % 120 == 0) {  // Every 2 seconds
+        if (frame_count % 120 == 0) {
             color_index = (color_index + 1) % COLOR_COUNT;
             game_state.background = colors[color_index];
         }
@@ -170,15 +183,39 @@ int main(void) {
         /* Move bullets */
         update_bullets();
         
-        /* Vertical ship movement (small oscillation) */
-        if (frame_count % 300 < 150) {
-            game_state.ship.position.y++;
+        /* 垂直方向飞船移动 - 确保平滑移动 */
+        if (direction > 0) {
+            game_state.ship.position.y += SHIP_VERTICAL_SPEED;
+            if (game_state.ship.position.y >= SHIP_MAX_Y) {
+                direction = -1;
+                printf("飞船改变方向: 向上\n");
+            }
         } else {
-            game_state.ship.position.y--;
+            game_state.ship.position.y -= SHIP_VERTICAL_SPEED;
+            if (game_state.ship.position.y <= SHIP_MIN_Y) {
+                direction = 1;
+                printf("飞船改变方向: 向下\n");
+            }
         }
         
         /* Update the hardware */
         update_hardware();
+        
+        /* Print debug information */
+        if (frame_count % 60 == 0) { // 每秒显示一次状态
+            printf("飞船位置: x=%d, y=%d\n", 
+                   game_state.ship.position.x, 
+                   game_state.ship.position.y);
+            
+            // 打印活动子弹数量
+            int active_count = 0;
+            for (int i = 0; i < MAX_BULLETS; i++) {
+                if (game_state.bullets[i].active) {
+                    active_count++;
+                }
+            }
+            printf("活动子弹数量: %d\n", active_count);
+        }
         
         /* Delay for next frame */
         usleep(FRAME_DELAY_MS * 1000);

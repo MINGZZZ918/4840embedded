@@ -10,12 +10,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h> 
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <time.h>
 #include <pthread.h>
+#include <fcntl.h>
 #include "vga_ball.h"
-#include "contoller.h"
+#include "controller.h"
 
 
 
@@ -43,15 +45,18 @@ static int vga_ball_fd;
 
 static const char filename[] = "/dev/vga_ball";
 
+
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER; 
+
 static gamestate game_state = {
 
     .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT},
-    .queue = {.head = 0, .tail = 0, .lock = PTHREAD_MUTEX_INITIALIZER},
+    .queue = {.head = 0, .tail = 0},
     .background = {.red = 0x00, .green = 0x00, .blue = 0x20}
 };
 
 /* Array of background colors to cycle through */
-static const vga_ball_color_t colors[] = {
+static const background_color colors[] = {
     { 0x00, 0x00, 0x10 },  // Very dark blue
     { 0x00, 0x00, 0x20 },  // Dark blue
     { 0x10, 0x10, 0x30 },  // Navy blue
@@ -74,8 +79,8 @@ void init_game_state() {
             game_state.bullets[i].active = 0;
         }
 
-        game_state.enemies[i].pos_x = i * ENEMY_WIDTH;
-        game_state.enemies[i].pos_y = i * ENEMY_HEIGHT;
+        game_state.enemies[i].pos_x = (i % ENEMY_COUNT/3) * ENEMY_WIDTH;
+        game_state.enemies[i].pos_y = (i % ENEMY_COUNT/3) * ENEMY_HEIGHT;
         game_state.enemies[i].velo_x = 1;
         game_state.enemies[i].velo_y = 0;
         game_state.enemies[i].sprite = i % NUM_ENEMIES;
@@ -119,9 +124,9 @@ void enqueue(input_queue *queue, event *events, int count) {
     pthread_mutex_unlock(&queue->lock);
 }
 
-void dequeue(input_queue *queue, event *events, int count) {
+int dequeue(input_queue *queue, event *events, int count) {
 
-    int num_events;
+    int num_events = 0;
 
     pthread_mutex_lock(&queue->lock);
 
@@ -135,12 +140,14 @@ void dequeue(input_queue *queue, event *events, int count) {
         else events[i] = QUEUE_EMPTY;
     }
     pthread_mutex_unlock(&queue->lock);
+
+    return num_events;
 }
 
 pthread_t game_thread;
 void *game_logic(void *);
 
-struct libusb_device_handle *contoller;
+struct libusb_device_handle *controller;
 
 uint8_t endpoint_address;
 
@@ -273,7 +280,7 @@ int main(){
 
 void ship_movement(){
 
-    spaceship *ship = game_state.ship;
+    spaceship *ship = &game_state.ship;
 
     ship->pos_x += ship->velo_x;
     ship->pos_y += ship->velo_y;
@@ -286,7 +293,7 @@ void bullet_movement(int new_bullets){ // probably going to have to pass the cur
 
     for (int i = 0; i < MAX_BULLETS; i++) {
 
-        bul = game_state.bullets[i];
+        bul = &game_state.bullets[i];
 
         if (bul->active){
 
@@ -299,7 +306,7 @@ void bullet_movement(int new_bullets){ // probably going to have to pass the cur
 
             for (int j = 0; j<ENEMY_COUNT; j++){ // checking to see if we hit an enemy
 
-                enemy = game_state.enemies[j];
+                enemy = &game_state.enemies[j];
 
                 if (enemy->active && abs(enemy->pos_x - bul->pos_x) <= ENEMY_WIDTH
                     && abs(enemy->pos_y - bul->pos_y) <= ENEMY_HEIGHT){
@@ -312,8 +319,8 @@ void bullet_movement(int new_bullets){ // probably going to have to pass the cur
         }
         else if (!bul->active && new_bullets) {
             bul->active = 1;
-            bul->pos_x = ship->pos_x+1; // make it start in the middle of the ship
-            bul->pos_y = ship->pos_y-1; // make it start above the ship
+            bul->pos_x = game_state.ship.pos_x+1; // make it start in the middle of the ship
+            bul->pos_y = game_state.ship.pos_y-1; // make it start above the ship
             bul->velo_y = -1; 
             new_bullets--;
 
@@ -330,7 +337,7 @@ int enemy_movement(int enemy_dir){
 
     for (int i = 0; i < ENEMY_COUNT; i++){
 
-        enemy = game_state.enemies[i];
+        enemy = &game_state.enemies[i];
 
         if (enemy->active){
 
@@ -350,11 +357,11 @@ int enemy_movement(int enemy_dir){
         }
 
         // important!!! compare to whichever has the larger size
-        if (enemy->active && abs(ship->pos_x - enemy->pos_x) <= SHIP_WIDTH
-        && abs(ship->pos_y - enemy->pos_y) <= SHIP_HEIGHT){
+        if (enemy->active && abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
+        && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
 
             enemy->active = 0;
-            ship->lives-=1;
+            game_state.ship.lives-=1;
             num_left --;
         }
     }
@@ -365,9 +372,8 @@ int enemy_movement(int enemy_dir){
 void *game_logic(void *ingored){
 
     spaceship *ship = &game_state.ship;
-    int new_bullets, enemy_dir = 0;
+    int new_bullets, enemy_dir = 0, count, enemies_remaining;
     event input_events[4];
-    int count;
 
     for(;;){
 

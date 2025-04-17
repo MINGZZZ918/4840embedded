@@ -1,4 +1,4 @@
-#include "contoller.h"
+#include "controller.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,12 +63,12 @@ struct libusb_device_handle *opencontoller(uint8_t *endpoint_address) {
         exit(1);
       }
 
-      if (libusb_kernel_driver_active(controller,i))
-        libusb_detach_kernel_driver(controller, i);
+      if (libusb_kernel_driver_active(controller,0))
+        libusb_detach_kernel_driver(controller, 0);
 
-      libusb_set_auto_detach_kernel_driver(controller, i);
+      libusb_set_auto_detach_kernel_driver(controller, 0);
 
-      if ((r = libusb_claim_interface(controller, i)) != 0) {
+      if ((r = libusb_claim_interface(controller, 0)) != 0) {
         fprintf(stderr, "Error: libusb_claim_interface failed: %d\n", r);
         exit(1);
       }

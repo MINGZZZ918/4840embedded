@@ -1,6 +1,6 @@
 /*
  * Userspace program for the VGA Ball game
- * With image loading capability
+ * Demonstrates a spaceship automatically firing multiple bullets
  */
 
 #include <stdio.h>
@@ -14,9 +14,6 @@
 #include <sys/stat.h>
 #include "vga_ball.h"
 
-/* 添加处理BMP图片所需的库 */
-#include <stdint.h>
-
 /* File descriptor for the VGA ball device */
 int vga_ball_fd;
 
@@ -25,10 +22,13 @@ int vga_ball_fd;
 #define SCREEN_HEIGHT 480
 
 /* Ship constants */
-#define SHIP_WIDTH 40
-#define SHIP_HEIGHT 30
+#define SHIP_WIDTH 16  // 与vga_ball.sv中一致的像素艺术飞船宽度
+#define SHIP_HEIGHT 16 // 与vga_ball.sv中一致的像素艺术飞船高度
 #define SHIP_INITIAL_X 200
 #define SHIP_INITIAL_Y 240
+#define SHIP_VERTICAL_SPEED 1 // 飞船垂直移动速度
+#define SHIP_MIN_Y 50         // 飞船Y坐标最小值，确保不超出屏幕上边界
+#define SHIP_MAX_Y (SCREEN_HEIGHT - SHIP_HEIGHT - 50) // 飞船Y坐标最大值，确保不超出屏幕下边界
 
 /* Bullet constants */
 #define BULLET_SIZE 4
@@ -41,126 +41,7 @@ int vga_ball_fd;
 /* Game state */
 vga_ball_arg_t game_state;
 int bullet_cooldown = 0;
-
-/* BMP文件头结构 */
-#pragma pack(push, 1)
-typedef struct {
-    uint16_t signature;      // "BM"
-    uint32_t fileSize;       // 文件大小
-    uint16_t reserved1;
-    uint16_t reserved2;
-    uint32_t dataOffset;     // 图像数据偏移量
-} BMPFileHeader;
-
-typedef struct {
-    uint32_t headerSize;     // 信息头大小
-    int32_t width;           // 图像宽度
-    int32_t height;          // 图像高度
-    uint16_t planes;         // 颜色平面数
-    uint16_t bitsPerPixel;   // 每像素位数
-    uint32_t compression;    // 压缩方式
-    uint32_t imageSize;      // 图像数据大小
-    int32_t xPixelsPerMeter;
-    int32_t yPixelsPerMeter;
-    uint32_t colorsUsed;
-    uint32_t colorsImportant;
-} BMPInfoHeader;
-#pragma pack(pop)
-
-/**
- * 读取BMP图片并存储到游戏状态中
- */
-int load_bmp_image(const char *filename, int x, int y) {
-    FILE *file = fopen(filename, "rb");
-    if (!file) {
-        fprintf(stderr, "无法打开图片文件: %s\n", filename);
-        return -1;
-    }
-    
-    BMPFileHeader fileHeader;
-    BMPInfoHeader infoHeader;
-    
-    // 读取文件头
-    if (fread(&fileHeader, sizeof(fileHeader), 1, file) != 1) {
-        fprintf(stderr, "读取文件头失败\n");
-        fclose(file);
-        return -1;
-    }
-    
-    // 检查是否是BMP文件
-    if (fileHeader.signature != 0x4D42) { // "BM"
-        fprintf(stderr, "不是有效的BMP文件\n");
-        fclose(file);
-        return -1;
-    }
-    
-    // 读取信息头
-    if (fread(&infoHeader, sizeof(infoHeader), 1, file) != 1) {
-        fprintf(stderr, "读取信息头失败\n");
-        fclose(file);
-        return -1;
-    }
-    
-    // 检查格式支持
-    if (infoHeader.bitsPerPixel != 24) {
-        fprintf(stderr, "仅支持24位BMP图片\n");
-        fclose(file);
-        return -1;
-    }
-    
-    // 设置图片位置
-    game_state.image.x = x;
-    game_state.image.y = y;
-    game_state.image.display = 1;
-    
-    // 计算每行的字节数（包括填充）
-    int rowSize = ((infoHeader.width * 3 + 3) & ~3);
-    
-    // 移动到图像数据起始位置
-    fseek(file, fileHeader.dataOffset, SEEK_SET);
-    
-    // 读取并转换图像数据
-    // BMP存储是从下到上的，需要反转
-    uint8_t *rowBuffer = (uint8_t*)malloc(rowSize);
-    
-    // 限制图片大小不超过我们的缓冲区
-    int width = (infoHeader.width < IMAGE_WIDTH) ? infoHeader.width : IMAGE_WIDTH;
-    int height = (infoHeader.height < IMAGE_HEIGHT) ? infoHeader.height : IMAGE_HEIGHT;
-    
-    // BMP图片是从下到上存储的，所以我们需要反转
-    for (int y = height - 1; y >= 0; y--) {
-        // 读取一行数据
-        if (fread(rowBuffer, rowSize, 1, file) != 1) {
-            fprintf(stderr, "读取图像数据失败\n");
-            free(rowBuffer);
-            fclose(file);
-            return -1;
-        }
-        
-        // 复制到图像缓冲区，注意BMP是BGR格式，需要转为RGB
-        for (int x = 0; x < width; x++) {
-            game_state.image.data[height - 1 - y][x][0] = rowBuffer[x * 3 + 2]; // R
-            game_state.image.data[height - 1 - y][x][1] = rowBuffer[x * 3 + 1]; // G
-            game_state.image.data[height - 1 - y][x][2] = rowBuffer[x * 3 + 0]; // B
-        }
-    }
-    
-    free(rowBuffer);
-    fclose(file);
-    printf("成功加载图片: %s (%dx%d)\n", filename, width, height);
-    
-    return 0;
-}
-
-/**
- * 传输图片数据到硬件
- */
-void update_image() {
-    if (ioctl(vga_ball_fd, VGA_BALL_WRITE_IMAGE, &game_state)) {
-        perror("ioctl(VGA_BALL_WRITE_IMAGE) failed");
-        exit(EXIT_FAILURE);
-    }
-}
+int direction = 1; // 垂直移动方向: 1=向下, -1=向上
 
 /* Array of background colors to cycle through */
 static const vga_ball_color_t colors[] = {
@@ -194,10 +75,6 @@ void init_game_state(void) {
         game_state.bullets[i].position.y = 0;
         game_state.bullets[i].active = 0;
     }
-    
-    // 初始化图片数据
-    memset(&game_state.image, 0, sizeof(game_state.image));
-    game_state.image.display = 0;  // 默认不显示图片
 }
 
 /**
@@ -222,11 +99,15 @@ void fire_bullet(void) {
             if (!game_state.bullets[i].active) {
                 // 设置子弹位置为飞船前方
                 game_state.bullets[i].position.x = game_state.ship.position.x + SHIP_WIDTH;
-                game_state.bullets[i].position.y = game_state.ship.position.y + (SHIP_HEIGHT / 2);
+                game_state.bullets[i].position.y = game_state.ship.position.y + (SHIP_HEIGHT / 2) - (BULLET_SIZE / 2);
                 game_state.bullets[i].active = 1;
                 
                 // 重置冷却时间
                 bullet_cooldown = BULLET_COOLDOWN_FRAMES;
+                printf("发射子弹 %d: 位置 x=%d, y=%d\n", 
+                       i, 
+                       game_state.bullets[i].position.x,
+                       game_state.bullets[i].position.y);
                 break;
             }
         }
@@ -242,11 +123,19 @@ void update_bullets(void) {
     // 更新所有激活的子弹
     for (i = 0; i < MAX_BULLETS; i++) {
         if (game_state.bullets[i].active) {
+            // 移动子弹
             game_state.bullets[i].position.x += BULLET_SPEED;
             
-            // 检查是否超出屏幕
-            if (game_state.bullets[i].position.x > SCREEN_WIDTH) {
+            // 检查是否超出屏幕，确保子弹在超出屏幕后设置为非活动状态
+            if (game_state.bullets[i].position.x >= SCREEN_WIDTH - BULLET_SIZE) {
+                // 先将子弹设置为非活动状态
                 game_state.bullets[i].active = 0;
+                
+                // 然后重置位置到屏幕外，防止出现回卷
+                game_state.bullets[i].position.x = 0;
+                game_state.bullets[i].position.y = 0;
+                
+                printf("子弹 %d 消失: 位置 x=%d\n", i, game_state.bullets[i].position.x);
             }
         }
     }
@@ -255,12 +144,12 @@ void update_bullets(void) {
 /**
  * Main function - runs the game loop
  */
-int main(int argc, char *argv[]) {
+int main(void) {
     static const char filename[] = "/dev/vga_ball";
     int frame_count = 0;
     int color_index = 0;
-    
-    printf("VGA Ball Demo with Image Support started\n");
+
+    printf("VGA Ball Demo started\n");
 
     /* Open the device file */
     if ((vga_ball_fd = open(filename, O_RDWR)) == -1) {
@@ -273,17 +162,6 @@ int main(int argc, char *argv[]) {
     
     /* Initialize game state */
     init_game_state();
-    
-    /* 处理命令行参数 - 如果提供了图片路径，加载图片 */
-    if (argc > 1) {
-        printf("尝试加载图片: %s\n", argv[1]);
-        if (load_bmp_image(argv[1], 100, 100) == 0) {
-            // 成功加载图片，将其传输到硬件
-            update_image();
-        }
-    }
-    
-    /* 更新所有游戏状态 */
     update_hardware();
     
     printf("Starting animation, press Ctrl+C to exit...\n");
@@ -294,7 +172,7 @@ int main(int argc, char *argv[]) {
         if (bullet_cooldown > 0) bullet_cooldown--;
         
         /* Periodically change background color */
-        if (frame_count % 120 == 0) {  // Every 2 seconds
+        if (frame_count % 120 == 0) {
             color_index = (color_index + 1) % COLOR_COUNT;
             game_state.background = colors[color_index];
         }
@@ -305,15 +183,39 @@ int main(int argc, char *argv[]) {
         /* Move bullets */
         update_bullets();
         
-        /* Vertical ship movement (small oscillation) */
-        if (frame_count % 300 < 150) {
-            game_state.ship.position.y++;
+        /* 垂直方向飞船移动 - 确保平滑移动 */
+        if (direction > 0) {
+            game_state.ship.position.y += SHIP_VERTICAL_SPEED;
+            if (game_state.ship.position.y >= SHIP_MAX_Y) {
+                direction = -1;
+                printf("飞船改变方向: 向上\n");
+            }
         } else {
-            game_state.ship.position.y--;
+            game_state.ship.position.y -= SHIP_VERTICAL_SPEED;
+            if (game_state.ship.position.y <= SHIP_MIN_Y) {
+                direction = 1;
+                printf("飞船改变方向: 向下\n");
+            }
         }
         
         /* Update the hardware */
         update_hardware();
+        
+        /* Print debug information */
+        if (frame_count % 60 == 0) { // 每秒显示一次状态
+            printf("飞船位置: x=%d, y=%d\n", 
+                   game_state.ship.position.x, 
+                   game_state.ship.position.y);
+            
+            // 打印活动子弹数量
+            int active_count = 0;
+            for (int i = 0; i < MAX_BULLETS; i++) {
+                if (game_state.bullets[i].active) {
+                    active_count++;
+                }
+            }
+            printf("活动子弹数量: %d\n", active_count);
+        }
         
         /* Delay for next frame */
         usleep(FRAME_DELAY_MS * 1000);

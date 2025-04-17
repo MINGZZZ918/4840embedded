@@ -2,7 +2,7 @@
  * Device driver for the VGA Ball game
  *
  * A Platform device implemented using the misc subsystem
- */
+*/
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -35,23 +35,36 @@
 #define BULLET_X_H(x,i)   (BULLET_BASE(x) + 4*(i) + 1)
 #define BULLET_Y_L(x,i)   (BULLET_BASE(x) + 4*(i) + 2)
 #define BULLET_Y_H(x,i)   (BULLET_BASE(x) + 4*(i) + 3)
-#define BULLET_ACTIVE(x)  ((x)+28)  // 固定地址，对应vga_ball.sv中的28偏移量
+#define BULLET_ACTIVE(x)  (BULLET_BASE(x) + 4*MAX_BULLETS)
+
+
+#define ENEMY_BASE(x)     (x + 0x100) // Place it after bullet block
+#define ENEMY_X_L(x,i)    (ENEMY_BASE(x) + 5*(i))
+#define ENEMY_X_H(x,i)    (ENEMY_BASE(x) + 5*(i) + 1)
+#define ENEMY_Y_L(x,i)    (ENEMY_BASE(x) + 5*(i) + 2)
+#define ENEMY_Y_H(x,i)    (ENEMY_BASE(x) + 5*(i) + 3)
+#define ENEMY_SPRITE(x,i) (ENEMY_BASE(x) + 5*(i) + 4)
+#define ENEMY_ACTIVE(x)   (ENEMY_BASE(x) + 5*ENEMY_COUNT)
+
+
+
 
 /*
- * Information about our device
- */
+* Information about our device
+*/
 struct vga_ball_dev {
     struct resource res; /* Resource: our registers */
     void __iomem *virtbase; /* Where registers can be accessed in memory */
-    vga_ball_color_t background;
-    vga_ball_object_t ship;
-    vga_ball_object_t bullets[MAX_BULLETS];
+    background_color background;
+    spaceship ship;
+    bullet bullets[MAX_BULLETS];
+    enemy enemies[ENEMY_COUNT];
 } dev;
 
 /*
- * Write background color
- */
-static void write_background(vga_ball_color_t *background)
+* Write background color
+*/
+static void write_background(background_color *background)
 {
     iowrite8(background->red, BG_RED(dev.virtbase));
     iowrite8(background->green, BG_GREEN(dev.virtbase));
@@ -60,44 +73,36 @@ static void write_background(vga_ball_color_t *background)
 }
 
 /*
- * Write ship position
- */
-static void write_ship(vga_ball_object_t *ship)
+* Write ship position
+*/
+static void write_ship(spaceship *ship)
 {
-    iowrite8((unsigned char)(ship->position.x & 0xFF), SHIP_X_L(dev.virtbase));
-    iowrite8((unsigned char)((ship->position.x >> 8) & 0x07), SHIP_X_H(dev.virtbase));
-    iowrite8((unsigned char)(ship->position.y & 0xFF), SHIP_Y_L(dev.virtbase));
-    iowrite8((unsigned char)((ship->position.y >> 8) & 0x03), SHIP_Y_H(dev.virtbase));
+    iowrite8((unsigned char)(ship->pos_x & 0xFF), SHIP_X_L(dev.virtbase));
+    iowrite8((unsigned char)((ship->pos_x >> 8) & 0x07), SHIP_X_H(dev.virtbase));
+    iowrite8((unsigned char)(ship->pos_y & 0xFF), SHIP_Y_L(dev.virtbase));
+    iowrite8((unsigned char)((ship->pos_y >> 8) & 0x03), SHIP_Y_H(dev.virtbase));
     dev.ship = *ship;
 }
 
 /*
- * Write bullets properties
- */
-static void write_bullets(vga_ball_object_t bullets[])
+* Write bullets properties
+*/
+static void write_bullets(bullet *bullets)
 {
     unsigned char active_bits = 0;
     int i;
     
     for (i = 0; i < MAX_BULLETS; i++) {
-        // 仅当子弹活动时才更新其位置
-        if (bullets[i].active) {
-            // 写入每个子弹的位置
-            iowrite8((unsigned char)(bullets[i].position.x & 0xFF), BULLET_X_L(dev.virtbase, i));
-            iowrite8((unsigned char)((bullets[i].position.x >> 8) & 0x07), BULLET_X_H(dev.virtbase, i));
-            iowrite8((unsigned char)(bullets[i].position.y & 0xFF), BULLET_Y_L(dev.virtbase, i));
-            iowrite8((unsigned char)((bullets[i].position.y >> 8) & 0x03), BULLET_Y_H(dev.virtbase, i));
-            
-            // 设置活动状态位
-            active_bits |= (1 << i);
-        } else {
-            // 对于非活动的子弹，将其位置重置为0
-            iowrite8(0, BULLET_X_L(dev.virtbase, i));
-            iowrite8(0, BULLET_X_H(dev.virtbase, i));
-            iowrite8(0, BULLET_Y_L(dev.virtbase, i));
-            iowrite8(0, BULLET_Y_H(dev.virtbase, i));
-        }
+        // 写入每个子弹的位置
+        iowrite8((unsigned char)(bullets[i].pos_x & 0xFF), BULLET_X_L(dev.virtbase, i));
+        iowrite8((unsigned char)((bullets[i].pos_x >> 8) & 0x07), BULLET_X_H(dev.virtbase, i));
+        iowrite8((unsigned char)(bullets[i].pos_y & 0xFF), BULLET_Y_L(dev.virtbase, i));
+        iowrite8((unsigned char)((bullets[i].pos_y >> 8) & 0x03), BULLET_Y_H(dev.virtbase, i));
         
+        // 存储子弹状态位
+        if (bullets[i].active)
+            active_bits |= (1 << i);
+            
         dev.bullets[i] = bullets[i];
     }
     
@@ -105,62 +110,98 @@ static void write_bullets(vga_ball_object_t bullets[])
     iowrite8(active_bits, BULLET_ACTIVE(dev.virtbase));
 }
 
+
+static void write_enemies(enemy *enemies)
+{
+
+    unsigned char active_bits = 0;
+    int i;
+
+    for (i = 0; i < ENEMY_COUNT; i++) {
+        iowrite8(enemies[i].pos_x & 0xFF, ENEMY_X_L(dev.virtbase, i));
+        iowrite8((enemies[i].pos_x >> 8) & 0x07, ENEMY_X_H(dev.virtbase, i));
+
+        iowrite8(enemies[i].pos_y & 0xFF, ENEMY_Y_L(dev.virtbase, i));
+        iowrite8((enemies[i].pos_y >> 8) & 0x03, ENEMY_Y_H(dev.virtbase, i));
+
+        iowrite8(enemies[i].sprite, ENEMY_SPRITE(dev.virtbase, i));
+
+        if (enemies[i].active)
+            active_bits |= (1 << i);
+    }
+
+    iowrite8(active_bits, ENEMY_ACTIVE(dev.virtbase));
+}
+
 /*
- * Update all game state at once
- */
-static void update_game_state(vga_ball_arg_t *state)
+* Update all game state at once
+*/
+static void update_game_state(gamestate *state)
 {
     write_background(&state->background);
     write_ship(&state->ship);
     write_bullets(state->bullets);
+    write_enemies(state->enemies);
 }
 
 /*
- * Handle ioctl() calls from userspace
- */
+* Handle ioctl() calls from userspace
+*/
 static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
-    vga_ball_arg_t vb_arg;
+    gamestate vb_arg;
 
     switch (cmd) {
         case VGA_BALL_WRITE_BACKGROUND:
-            if (copy_from_user(&vb_arg, (vga_ball_arg_t *) arg, sizeof(vga_ball_arg_t)))
+            if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
                 return -EACCES;
             write_background(&vb_arg.background);
             break;
 
         case VGA_BALL_READ_BACKGROUND:
             vb_arg.background = dev.background;
-            if (copy_to_user((vga_ball_arg_t *) arg, &vb_arg, sizeof(vga_ball_arg_t)))
+            if (copy_to_user((gamestate *) arg, &vb_arg, sizeof(gamestate)))
                 return -EACCES;
             break;
 
         case VGA_BALL_WRITE_SHIP:
-            if (copy_from_user(&vb_arg, (vga_ball_arg_t *) arg, sizeof(vga_ball_arg_t)))
+            if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
                 return -EACCES;
             write_ship(&vb_arg.ship);
             break;
 
         case VGA_BALL_READ_SHIP:
             vb_arg.ship = dev.ship;
-            if (copy_to_user((vga_ball_arg_t *) arg, &vb_arg, sizeof(vga_ball_arg_t)))
+            if (copy_to_user((gamestate *) arg, &vb_arg, sizeof(gamestate)))
                 return -EACCES;
             break;
 
         case VGA_BALL_WRITE_BULLETS:
-            if (copy_from_user(&vb_arg, (vga_ball_arg_t *) arg, sizeof(vga_ball_arg_t)))
+            if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
                 return -EACCES;
             write_bullets(vb_arg.bullets);
             break;
 
         case VGA_BALL_READ_BULLETS:
-            memcpy(vb_arg.bullets, dev.bullets, sizeof(vga_ball_object_t) * MAX_BULLETS);
-            if (copy_to_user((vga_ball_arg_t *) arg, &vb_arg, sizeof(vga_ball_arg_t)))
+            memcpy(vb_arg.bullets, dev.bullets, sizeof(bullet) * MAX_BULLETS);
+            if (copy_to_user((gamestate *) arg, &vb_arg, sizeof(gamestate)))
+                return -EACCES;
+            break;
+
+        case VGA_BALL_WRITE_ENEMIES:
+            if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
+                return -EACCES;
+            write_enemies(vb_arg.enemies);
+            break;
+
+        case VGA_BALL_READ_ENEMIES:
+            memcpy(vb_arg.enemies, dev.bullets, sizeof(enemy) * MAX_BULLETS);
+            if (copy_to_user((gamestate *) arg, &vb_arg, sizeof(gamestate)))
                 return -EACCES;
             break;
 
         case VGA_BALL_UPDATE_GAME_STATE:
-            if (copy_from_user(&vb_arg, (vga_ball_arg_t *) arg, sizeof(vga_ball_arg_t)))
+            if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
                 return -EACCES;
             update_game_state(&vb_arg);
             break;
@@ -186,14 +227,16 @@ static struct miscdevice vga_ball_misc_device = {
 };
 
 /*
- * Initialization code: get resources and display initial state
- */
+* Initialization code: get resources and display initial state
+*/
 static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
-    vga_ball_color_t background = { 0x00, 0x00, 0x20 }; // Dark blue
-    vga_ball_object_t ship = { { 200, 240 }, 1 };      // Ship starting position
-    vga_ball_object_t bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
+    background_color background = { 0x00, 0x00, 0x20 }; // Dark blue
+    spaceship ship = { { 200, 240 }, 1 };      // Ship starting position
+    bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
+    enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
+
     int i, ret;
 
     /* Register ourselves as a misc device */
@@ -208,7 +251,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
 
     /* Make sure we can use these registers */
     if (request_mem_region(dev.res.start, resource_size(&dev.res),
-                           DRIVER_NAME) == NULL) {
+                        DRIVER_NAME) == NULL) {
         ret = -EBUSY;
         goto out_deregister;
     }
@@ -218,13 +261,6 @@ static int __init vga_ball_probe(struct platform_device *pdev)
     if (dev.virtbase == NULL) {
         ret = -ENOMEM;
         goto out_release_mem_region;
-    }
-        
-    /* Initialize all bullets to inactive state */
-    for (i = 0; i < MAX_BULLETS; i++) {
-        bullets[i].position.x = 0;
-        bullets[i].position.y = 0;
-        bullets[i].active = 0;
     }
         
     /* Set initial values */

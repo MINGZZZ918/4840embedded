@@ -1,22 +1,5 @@
 /*
  * Avalon memory-mapped peripheral for VGA Ball Game
- *
- * Register Map:
- * 
- * Byte Offset    Meaning
- *        0     |  Background Red
- *        1     |  Background Green
- *        2     |  Background Blue
- *        3     |  Ship X position (lower 8 bits)
- *        4     |  Ship X position (upper 3 bits)
- *        5     |  Ship Y position (lower 8 bits)
- *        6     |  Ship Y position (upper 2 bits)
- *        7     |  Bullet 0 X position (lower 8 bits)
- *        ...   |  ...
- *        28    |  Bullets Active Bits (bit 0-4 correspond to bullets 0-4)
- *        29    |  Image X position (lower 8 bits)
- *        30    |  Image X position (upper 3 bits)
- *        31    |  Image Y position (lower 8 bits)
  */
 
 module vga_ball(
@@ -25,7 +8,7 @@ module vga_ball(
     input  logic [7:0]  writedata,
     input  logic        write,
     input  logic        chipselect,
-    input  logic [4:0]  address,  // 5位地址宽度
+    input  logic [4:0]  address,
 
     output logic [7:0]  VGA_R, VGA_G, VGA_B,
     output logic        VGA_CLK, VGA_HS, VGA_VS,
@@ -47,8 +30,8 @@ module vga_ball(
     // Spaceship position and properties
     logic [10:0]    ship_x;
     logic [9:0]     ship_y;
-    parameter SHIP_WIDTH = 16;   // 调整为像素艺术飞船的宽度
-    parameter SHIP_HEIGHT = 16;  // 调整为像素艺术飞船的高度
+    parameter SHIP_WIDTH = 16;   // 飞船宽度
+    parameter SHIP_HEIGHT = 16;  // 飞船高度
     
     // 多个子弹的属性
     logic [10:0]    bullet_x[MAX_BULLETS];
@@ -189,16 +172,13 @@ module vga_ball(
                 // Bullets - 每个子弹使用4个寄存器
                 5'd28: bullet_active <= writedata[MAX_BULLETS-1:0];
                 
-                // 图片属性 - 使用地址循环
+                // 图片属性
                 5'd29: image_x[7:0] <= writedata;
                 5'd30: image_x[10:8] <= writedata[2:0];
                 5'd31: image_y[7:0] <= writedata;
-                // 下面使用地址0和1来存储额外的图像信息
-                5'd0: image_y[9:8] <= writedata[1:0]; // 复用寄存器地址
-                5'd1: image_display <= writedata[0];  // 复用寄存器地址
                 
                 default: begin
-                    // 子弹位置寄存器 - 使用地址循环
+                    // 子弹位置寄存器
                     if (address >= 5'd7 && address < 5'd7 + 4*MAX_BULLETS) begin
                         int bullet_idx;
                         int bullet_reg;
@@ -217,10 +197,17 @@ module vga_ball(
         end
     end
 
-    // 飞船显示逻辑 - 使用像素艺术模式
+    // 修复重复显示问题 - 确保飞船只在指定位置显示一次
+    // 添加额外的检查来确保飞船不会重复显示
     logic ship_on;
     logic [1:0] ship_pixel_value;
     logic [3:0] rel_x, rel_y;
+    logic [10:0] actual_hcount;
+    logic [9:0] actual_vcount;
+    
+    // 确保使用正确的像素位置，防止重复
+    assign actual_hcount = {1'b0, hcount[10:1]};
+    assign actual_vcount = vcount;
 
     always_comb begin
         ship_on = 0;
@@ -228,25 +215,31 @@ module vga_ball(
         rel_x = 0;
         rel_y = 0;
         
-        // 检查当前像素是否在飞船范围内 - 使用hcount[10:1]作为实际像素列
-        if (hcount[10:1] >= ship_x[9:0] && hcount[10:1] < ship_x[9:0] + SHIP_WIDTH &&
-            vcount >= ship_y && vcount < ship_y + SHIP_HEIGHT) begin
+        // 只有当像素坐标在飞船区域内时才显示飞船
+        // 通过直接比较整个坐标来确保唯一性
+        if (actual_hcount >= ship_x[10:0] && 
+            actual_hcount < ship_x[10:0] + SHIP_WIDTH &&
+            actual_vcount >= ship_y && 
+            actual_vcount < ship_y + SHIP_HEIGHT) begin
             
             // 计算当前像素在飞船图案中的相对位置
-            rel_x = hcount[10:1] - ship_x[9:0];
-            rel_y = vcount - ship_y;
+            rel_x = actual_hcount - ship_x[10:0];
+            rel_y = actual_vcount - ship_y;
             
-            // 获取这个位置上的像素值
-            ship_pixel_value = ship_pattern[rel_y][rel_x];
-            
-            // 如果像素值不为0，则飞船在此位置显示
-            if (ship_pixel_value != 0) begin
-                ship_on = 1;
+            // 确保相对坐标在有效范围内
+            if (rel_x < SHIP_WIDTH && rel_y < SHIP_HEIGHT) begin
+                // 获取这个位置上的像素值
+                ship_pixel_value = ship_pattern[rel_y][rel_x];
+                
+                // 如果像素值不为0，则飞船在此位置显示
+                if (ship_pixel_value != 0) begin
+                    ship_on = 1;
+                end
             end
         end
     end
 
-    // 多个子弹的显示逻辑
+    // 多个子弹的显示逻辑 - 修复以防止重复显示
     logic bullet_on;
     
     always_comb begin
@@ -254,14 +247,17 @@ module vga_ball(
         
         for (int i = 0; i < MAX_BULLETS; i++) begin
             if (bullet_active[i] && 
-                hcount[10:1] >= bullet_x[i][9:0] && hcount[10:1] < bullet_x[i][9:0] + BULLET_SIZE &&
-                vcount >= bullet_y[i] && vcount < bullet_y[i] + BULLET_SIZE) begin
+                actual_hcount >= bullet_x[i] && 
+                actual_hcount < bullet_x[i] + BULLET_SIZE &&
+                actual_vcount >= bullet_y[i] && 
+                actual_vcount < bullet_y[i] + BULLET_SIZE &&
+                bullet_x[i] < 11'd1280) begin
                 bullet_on = 1;
             end
         end
     end
     
-    // 图片显示逻辑
+    // 图片显示逻辑 - 修复以防止重复显示
     logic image_on;
     logic [7:0] image_pixel_r, image_pixel_g, image_pixel_b;
     logic [5:0] img_x, img_y;
@@ -274,28 +270,32 @@ module vga_ball(
         img_x = 0;
         img_y = 0;
         
-        // 检查是否应该显示图片，以及当前像素是否在图片范围内 - 使用hcount[10:1]
         if (image_display && 
-            hcount[10:1] >= image_x[9:0] && hcount[10:1] < image_x[9:0] + IMAGE_WIDTH &&
-            vcount >= image_y && vcount < image_y + IMAGE_HEIGHT) begin
+            actual_hcount >= image_x && 
+            actual_hcount < image_x + IMAGE_WIDTH &&
+            actual_vcount >= image_y && 
+            actual_vcount < image_y + IMAGE_HEIGHT) begin
             
             // 计算在图片中的相对位置
-            img_x = hcount[10:1] - image_x[9:0];
-            img_y = vcount - image_y;
+            img_x = actual_hcount - image_x;
+            img_y = actual_vcount - image_y;
             
-            // 获取像素颜色
-            image_pixel_r = image_data[img_y][img_x][0];
-            image_pixel_g = image_data[img_y][img_x][1];
-            image_pixel_b = image_data[img_y][img_x][2];
-            
-            // 如果像素不是全黑，则显示图片
-            if (image_pixel_r != 8'd0 || image_pixel_g != 8'd0 || image_pixel_b != 8'd0) begin
-                image_on = 1;
+            // 确保相对坐标在有效范围内
+            if (img_x < IMAGE_WIDTH && img_y < IMAGE_HEIGHT) begin
+                // 获取像素颜色
+                image_pixel_r = image_data[img_y][img_x][0];
+                image_pixel_g = image_data[img_y][img_x][1];
+                image_pixel_b = image_data[img_y][img_x][2];
+                
+                // 如果像素不是全黑，则显示图片
+                if (image_pixel_r != 8'd0 || image_pixel_g != 8'd0 || image_pixel_b != 8'd0) begin
+                    image_on = 1;
+                end
             end
         end
     end
 
-    // VGA output logic - 增加图片显示优先级
+    // VGA output logic
     always_comb begin
         {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h00, 8'h00}; // 默认黑色
         
@@ -333,8 +333,8 @@ endmodule
 // VGA timing generator module
 module vga_counters(
     input logic        clk50, reset,
-    output logic [10:0] hcount,  // hcount[10:1] is pixel column
-    output logic [9:0]  vcount,  // vcount[9:0] is pixel row
+    output logic [10:0] hcount,  // hcount是像素列，hcount[10:1]是实际显示的像素位置
+    output logic [9:0]  vcount,  // vcount是像素行
     output logic        VGA_CLK, VGA_HS, VGA_VS, VGA_BLANK_n, VGA_SYNC_n
 );
 

@@ -34,6 +34,17 @@ int vga_ball_fd;
 #define BULLET_SIZE 4
 #define BULLET_SPEED 10
 
+/* 敌人常量 */
+#define ENEMY_WIDTH 16
+#define ENEMY_HEIGHT 16
+#define ENEMY1_INITIAL_X 800
+#define ENEMY1_INITIAL_Y 150
+#define ENEMY2_INITIAL_X 800
+#define ENEMY2_INITIAL_Y 350
+#define ENEMY_BULLET_SIZE 4
+#define ENEMY_BULLET_SPEED 8
+#define ENEMY_BULLET_COOLDOWN_FRAMES 60 // 约1秒发射一次
+
 /* Animation and game timing */
 #define FRAME_DELAY_MS 16  // ~60 FPS
 #define BULLET_COOLDOWN_FRAMES 20 // 0.33 second between shots
@@ -59,21 +70,37 @@ static const vga_ball_color_t colors[] = {
 void init_game_state(void) {
     int i;
     
-    // Set background color
+    // 设置背景色
     game_state.background.red = 0x00;
     game_state.background.green = 0x00;
-    game_state.background.blue = 0x20;  // Dark blue background
+    game_state.background.blue = 0x20;  // 深蓝色背景
     
-    // Ship (left side)
+    // 飞船(左侧)
     game_state.ship.position.x = SHIP_INITIAL_X;
     game_state.ship.position.y = SHIP_INITIAL_Y;
     game_state.ship.active = 1;
     
-    // 初始化所有子弹为非激活状态
+    // 初始化所有玩家子弹为非激活状态
     for (i = 0; i < MAX_BULLETS; i++) {
         game_state.bullets[i].position.x = 0;
         game_state.bullets[i].position.y = 0;
         game_state.bullets[i].active = 0;
+    }
+    
+    // 初始化敌人
+    game_state.enemies[0].position.x = ENEMY1_INITIAL_X;
+    game_state.enemies[0].position.y = ENEMY1_INITIAL_Y;
+    game_state.enemies[0].active = 1;
+    
+    game_state.enemies[1].position.x = ENEMY2_INITIAL_X;
+    game_state.enemies[1].position.y = ENEMY2_INITIAL_Y;
+    game_state.enemies[1].active = 1;
+    
+    // 初始化所有敌人子弹为非激活状态
+    for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
+        game_state.enemy_bullets[i].position.x = 0;
+        game_state.enemy_bullets[i].position.y = 0;
+        game_state.enemy_bullets[i].active = 0;
     }
 }
 
@@ -87,6 +114,9 @@ void update_hardware(void) {
     }
 }
 
+/**
+ * Find an inactive bullet slot and fire a new bullet
+ */
 /**
  * Find an inactive bullet slot and fire a new bullet
  */
@@ -142,6 +172,81 @@ void update_bullets(void) {
 }
 
 /**
+ * 敌人随机发射子弹函数
+ */
+void enemy_fire_bullet(int enemy_index) {
+    int i;
+    static int enemy_cooldowns[2] = {0, 0}; // 每个敌人独立的冷却时间
+    
+    // 检查敌人是否活动
+    if (!game_state.enemies[enemy_index].active) {
+        return;
+    }
+    
+    // 检查冷却时间
+    if (enemy_cooldowns[enemy_index] <= 0) {
+        // 随机决定是否发射子弹 (约20%概率)
+        if (rand() % 100 < 20) {
+            // 计算子弹槽范围 (每个敌人最多3颗子弹)
+            int start_slot = enemy_index * 3;
+            int end_slot = start_slot + 3;
+            
+            // 寻找非活动的子弹槽位
+            for (i = start_slot; i < end_slot; i++) {
+                if (!game_state.enemy_bullets[i].active) {
+                    // 设置子弹位置为敌人前方
+                    game_state.enemy_bullets[i].position.x = game_state.enemies[enemy_index].position.x;
+                    game_state.enemy_bullets[i].position.y = game_state.enemies[enemy_index].position.y + (ENEMY_HEIGHT / 2);
+                    game_state.enemy_bullets[i].active = 1;
+                    
+                    // 重置冷却时间 (随机化冷却时间，使敌人不同步发射)
+                    enemy_cooldowns[enemy_index] = ENEMY_BULLET_COOLDOWN_FRAMES + (rand() % 60);
+                    
+                    printf("敌人 %d 发射子弹: 位置 x=%d, y=%d\n", 
+                           enemy_index, 
+                           game_state.enemy_bullets[i].position.x,
+                           game_state.enemy_bullets[i].position.y);
+                    break;
+                }
+            }
+        } else {
+            // 即使不发射，也设置一个较短的冷却时间
+            enemy_cooldowns[enemy_index] = 15 + (rand() % 30);
+        }
+    } else {
+        // 递减冷却时间
+        enemy_cooldowns[enemy_index]--;
+    }
+}
+
+/**
+ * 更新敌人子弹位置函数
+ */
+void update_enemy_bullets(void) {
+    int i;
+    
+    // 更新所有激活的敌人子弹
+    for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
+        if (game_state.enemy_bullets[i].active) {
+            // 敌人子弹向左移动
+            game_state.enemy_bullets[i].position.x -= ENEMY_BULLET_SPEED;
+            
+            // 检查是否超出屏幕左侧
+            if (game_state.enemy_bullets[i].position.x <= 0) {
+                // 将子弹设置为非活动状态
+                game_state.enemy_bullets[i].active = 0;
+                
+                // 重置位置到屏幕外
+                game_state.enemy_bullets[i].position.x = 0;
+                game_state.enemy_bullets[i].position.y = 0;
+                
+                printf("敌人子弹 %d 消失: 越过左边界\n", i);
+            }
+        }
+    }
+}
+
+/**
  * Main function - runs the game loop
  */
 int main(void) {
@@ -165,6 +270,9 @@ int main(void) {
     update_hardware();
     
     printf("Starting animation, press Ctrl+C to exit...\n");
+    printf("添加了两个敌人，位置: (%d,%d) 和 (%d,%d)\n", 
+           ENEMY1_INITIAL_X, ENEMY1_INITIAL_Y, 
+           ENEMY2_INITIAL_X, ENEMY2_INITIAL_Y);
     
     /* Main game loop */
     while (1) {
@@ -180,8 +288,15 @@ int main(void) {
         /* Always try to fire bullet when cooldown allows */
         fire_bullet();
         
+        /* 敌人尝试发射子弹 */
+        enemy_fire_bullet(0);  // 敌人1
+        enemy_fire_bullet(1);  // 敌人2
+        
         /* Move bullets */
         update_bullets();
+        
+        /* 更新敌人子弹 */
+        update_enemy_bullets();
         
         /* 垂直方向飞船移动 - 确保平滑移动 */
         if (direction > 0) {
@@ -214,7 +329,16 @@ int main(void) {
                     active_count++;
                 }
             }
-            printf("活动子弹数量: %d\n", active_count);
+            printf("玩家活动子弹数量: %d\n", active_count);
+            
+            // 打印敌人子弹数量
+            int enemy_bullet_count = 0;
+            for (int i = 0; i < MAX_ENEMY_BULLETS; i++) {
+                if (game_state.enemy_bullets[i].active) {
+                    enemy_bullet_count++;
+                }
+            }
+            printf("敌人活动子弹数量: %d\n", enemy_bullet_count);
         }
         
         /* Delay for next frame */

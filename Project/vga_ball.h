@@ -5,6 +5,7 @@
 
 /* 定义最大子弹数量 */
 #define MAX_BULLETS 5
+#define MAX_ENEMY_BULLETS 6  // 每个敌人3颗子弹
 
 /* Color structure */
 typedef struct {
@@ -33,7 +34,9 @@ typedef struct {
 typedef struct {
     vga_ball_color_t background;
     vga_ball_object_t ship;
-    vga_ball_object_t bullets[MAX_BULLETS]; // 现在支持多个子弹
+    vga_ball_object_t bullets[MAX_BULLETS]; // 玩家子弹
+    vga_ball_object_t enemies[2];           // 两个敌人
+    vga_ball_object_t enemy_bullets[MAX_ENEMY_BULLETS]; // 敌人子弹
 } vga_ball_arg_t;
 
 #define VGA_BALL_MAGIC 'v'
@@ -46,5 +49,9 @@ typedef struct {
 #define VGA_BALL_WRITE_BULLETS      _IOW(VGA_BALL_MAGIC, 5, vga_ball_arg_t)
 #define VGA_BALL_READ_BULLETS       _IOR(VGA_BALL_MAGIC, 6, vga_ball_arg_t)
 #define VGA_BALL_UPDATE_GAME_STATE  _IOW(VGA_BALL_MAGIC, 7, vga_ball_arg_t)
+#define VGA_BALL_WRITE_ENEMIES      _IOW(VGA_BALL_MAGIC, 8, vga_ball_arg_t)
+#define VGA_BALL_READ_ENEMIES       _IOR(VGA_BALL_MAGIC, 9, vga_ball_arg_t)
+#define VGA_BALL_WRITE_ENEMY_BULLETS _IOW(VGA_BALL_MAGIC, 10, vga_ball_arg_t)
+#define VGA_BALL_READ_ENEMY_BULLETS  _IOR(VGA_BALL_MAGIC, 11, vga_ball_arg_t)
 
 #endif /* _VGA_BALL_H */

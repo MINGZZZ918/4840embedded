@@ -128,6 +128,10 @@ static void write_bullets(bullet bullets[])
 
 static void write_enemies(enemy enemies[])
 {
+
+    unsigned char active_bits = 0;
+
+
     /* 写入敌人1 */
     iowrite8((unsigned char)(enemies[0].pos_x & 0xFF), ENEMY1_X_L(dev.virtbase));
     iowrite8((unsigned char)((enemies[0].pos_x >> 8) & 0x07), ENEMY1_X_H(dev.virtbase));
@@ -141,7 +145,7 @@ static void write_enemies(enemy enemies[])
     iowrite8((unsigned char)((enemies[1].pos_y >> 8) & 0x03), ENEMY2_Y_H(dev.virtbase));
     
     /* 写入激活状态 */
-    unsigned char active_bits = 0;
+
     active_bits |= (enemies[0].active ? 1 : 0);
     active_bits |= (enemies[1].active ? 2 : 0);
     iowrite8(active_bits, ENEMY_ACTIVE(dev.virtbase));
@@ -161,12 +165,12 @@ static void write_enemy_bullets(enemy enemies[])
     int i;
     
     for (i = 0; i < MAX_ENEMIES; i++) {
-        if (enemy[i].bul.active) {
+        if (enemies[i].bul.active) {
             /* 写入每个子弹的位置 */
-            iowrite8((unsigned char)(enemy[i].bul.pos_x & 0xFF), ENEMY_BULLET_X_L(dev.virtbase, i));
-            iowrite8((unsigned char)((enemy[i].bul.pos_x >> 8) & 0x07), ENEMY_BULLET_X_H(dev.virtbase, i));
-            iowrite8((unsigned char)(enemy[i].bul.pos_y & 0xFF), ENEMY_BULLET_Y_L(dev.virtbase, i));
-            iowrite8((unsigned char)((enemy[i].bul.pos_y >> 8) & 0x03), ENEMY_BULLET_Y_H(dev.virtbase, i));
+            iowrite8((unsigned char)(enemies[i].bul.pos_x & 0xFF), ENEMY_BULLET_X_L(dev.virtbase, i));
+            iowrite8((unsigned char)((enemies[i].bul.pos_x >> 8) & 0x07), ENEMY_BULLET_X_H(dev.virtbase, i));
+            iowrite8((unsigned char)(enemies[i].bul.pos_y & 0xFF), ENEMY_BULLET_Y_L(dev.virtbase, i));
+            iowrite8((unsigned char)((enemies[i].bul.pos_y >> 8) & 0x03), ENEMY_BULLET_Y_H(dev.virtbase, i));
             
             /* 设置活动状态位 */
             active_bits |= (1 << i);
@@ -178,7 +182,7 @@ static void write_enemy_bullets(enemy enemies[])
             iowrite8(0, ENEMY_BULLET_Y_H(dev.virtbase, i));
         }
         
-        dev.enemy[i].bul = enemy[i].bul;
+        dev.enemies[i].bul = enemies[i].bul;
     }
     
     /* 写入子弹活动状态位图 */
@@ -299,9 +303,9 @@ static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
     background_color background = { 0x00, 0x00, 0x20 }; // Dark blue
-    spaceship ship = { { 200, 240 }, 1 };      // Ship starting position
+    spaceship ship = { .pos_x = 200, .pos_y = 240, .lives =1 };      // Ship starting position
     bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
-    enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
+    //enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
 
     int i, ret;
 

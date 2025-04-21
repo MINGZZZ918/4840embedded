@@ -239,7 +239,7 @@ int main(){
     while (start == 0){
         // recieve packets 
 
-        printf("hello \n");
+        // printf("hello \n");
 
         libusb_interrupt_transfer(controller, endpoint_address,
             (unsigned char *) &packet, sizeof(packet), &transferred, 0);
@@ -248,11 +248,12 @@ int main(){
         if(packet.buttons == 0x2f) start = 1;
     }
 
-    // init_game_state();
+    printf("Game Begins\n");
+    init_game_state();
     update_hardware();
 
     /* Start the game thread */
-    pthread_create(&game_thread, NULL, game_logic, NULL);
+    // pthread_create(&game_thread, NULL, game_logic, NULL);
 
     for (;;){
 

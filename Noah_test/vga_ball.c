@@ -87,10 +87,11 @@ static void write_background(background_color *background)
 */
 static void write_ship(spaceship *ship)
 {
-    iowrite8((unsigned char)(ship->pos_x & 0xFF), SHIP_X_L(dev.virtbase));
     iowrite8((unsigned char)((ship->pos_x >> 8) & 0x07), SHIP_X_H(dev.virtbase));
-    iowrite8((unsigned char)(ship->pos_y & 0xFF), SHIP_Y_L(dev.virtbase));
+    iowrite8((unsigned char)(ship->pos_x & 0xFF), SHIP_X_L(dev.virtbase));
+
     iowrite8((unsigned char)((ship->pos_y >> 8) & 0x03), SHIP_Y_H(dev.virtbase));
+    iowrite8((unsigned char)(ship->pos_y & 0xFF), SHIP_Y_L(dev.virtbase));
     dev.ship = *ship;
 }
 
@@ -155,7 +156,6 @@ static void write_enemies(enemy enemies[])
     dev.enemies[0] = enemies[0];
     dev.enemies[1] = enemies[1];
 }
-
 
 
 /*

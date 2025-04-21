@@ -54,15 +54,17 @@ static int vga_ball_fd;
 
 static const char filename[] = "/dev/vga_ball";
 
-
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER; 
 
 static gamestate game_state = {
 
     .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_bullets = 0},
-    .queue = {.head = 0, .tail = 0},
     .background = {.red = 0x00, .green = 0x00, .blue = 0x20}
 };
+
+
+static input_queue queue = {.head = 0, .tail = 0};
+
 
 /* Array of background colors to cycle through */
 static const background_color colors[] = {
@@ -359,7 +361,7 @@ int main(){
             for (int i = 0; i < 4; i++)
                 if (prev_state[i] == input_events[i]) changes ++;
 
-            if (changes) enqueue(&game_state.queue, input_events, 4);
+            if (changes) enqueue(&queue, input_events, 4);
         }    
     }
 }
@@ -475,7 +477,7 @@ void *game_logic(void *ingored){
         if (++enemy_dir > 5) enemy_dir = 0;
 
         // need to implement potential logic to have the velocities speed up depending on a powerup etc
-        while((count = dequeue(&game_state.queue, input_events, 4)) > 0){
+        while((count = dequeue(&queue, input_events, 4)) > 0){
 
             switch (input_events[0]) {
                 case LEFT:

@@ -75,7 +75,6 @@ typedef struct {
     spaceship ship;
     bullet bullets[MAX_BULLETS];
     enemy enemies[ENEMY_COUNT];
-    input_queue queue;
     background_color background;
 } gamestate;
 

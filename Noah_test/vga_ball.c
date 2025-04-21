@@ -57,8 +57,6 @@
 #define ENEMY_BULLET_ACTIVE(x) ((x)+61)
 
 
-
-
 /*
 * Information about our device
 */

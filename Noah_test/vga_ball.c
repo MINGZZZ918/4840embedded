@@ -163,8 +163,7 @@ static void write_enemy_bullets(enemy enemies[])
 {
     unsigned char active_bits = 0;
     int i;
-    
-    for (i = 0; i < MAX_ENEMIES; i++) {
+    for (i = 0; i < ENEMY_COUNT; i++) {
         if (enemies[i].bul.active) {
             /* 写入每个子弹的位置 */
             iowrite8((unsigned char)(enemies[i].bul.pos_x & 0xFF), ENEMY_BULLET_X_L(dev.virtbase, i));
@@ -198,7 +197,7 @@ static void update_game_state(gamestate *state)
     write_ship(&state->ship);
     write_bullets(state->bullets);
     write_enemies(state->enemies);
-    write_enemy_bullets(state->enemy_bullets);
+    write_enemy_bullets(state->enemies);
 }
 
 /*
@@ -307,7 +306,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
     bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
     //enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
 
-    int i, ret;
+    int ret;
 
     /* Register ourselves as a misc device */
     ret = misc_register(&vga_ball_misc_device);

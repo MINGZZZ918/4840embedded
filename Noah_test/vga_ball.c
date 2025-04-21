@@ -57,6 +57,8 @@
 #define ENEMY_BULLET_ACTIVE(x) ((x)+61)
 
 
+static gamestate vb_arg;
+
 /*
 * Information about our device
 */
@@ -205,7 +207,6 @@ static void update_game_state(gamestate *state)
 */
 static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
-    gamestate vb_arg;
 
     switch (cmd) {
         case VGA_BALL_WRITE_BACKGROUND:

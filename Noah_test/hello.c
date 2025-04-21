@@ -130,7 +130,37 @@ void init_game_state() {
         game_state.bullets[i].active = 0;
     }
 
-    enemy_start_pos();
+    // enemy_start_pos();
+
+    for (int i = 0; i < ENEMY_COUNT; i++) {
+
+        if (i+1 % ENEMIES_PER_ROW == 0){
+            row ++;
+        }
+
+        if (row == num_rows){
+
+            extra_space = PIXELS_PER_ROW % ((ENEMY_COUNT - i+1) * ENEMY_WIDTH);
+            row++;
+        }
+
+        game_state.enemies[i].pos_x = game_state.enemies[i].start_x = i * ENEMY_WIDTH;
+        game_state.enemies[i].pos_y = game_state.enemies[i].start_y = 0;
+
+
+        game_state.enemies[i].velo_x = 1;
+        game_state.enemies[i].velo_y = 0;
+        game_state.enemies[i].sprite = i % NUM_ENEMIES; // this needs changed
+        game_state.enemies[i].moving = 1;
+        game_state.enemies[i].active = 1;
+
+        game_state.enemies[i].bul.pos_x = 0;
+        game_state.enemies[i].bul. pos_y = 0;
+        game_state.enemies[i].bul.velo_y = 0;
+        game_state.enemies[i].bul.active = 0;
+    }
+
+
 }
 
 /**

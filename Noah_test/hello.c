@@ -30,8 +30,13 @@
 #define ENEMY_WIDTH 100
 #define ENEMY_HEIGHT 100
 
+#define PIXELS_PER_ROW 624
+
+// how many enemies can fit in a single row
+#define ENEMIES_PER_ROW (PIXELS_PER_ROW / ENEMY_WIDTH)
+
 #define MAX_BULLETS 5
-#define ENEMY_COUNT 40
+#define ENEMY_COUNT 39
 #define LIFE_COUNT 5
 
 #define INPUT_QUEUE_SIZE 32
@@ -40,20 +45,26 @@
 
 #define NUM_ENEMIES 5 // how many different sprites we have
 
+
+#define DIV_CEIL(a, b)  ( ((a) + (b) - 1) / (b) )
+
+
 /* File descriptor for the VGA ball device */
 static int vga_ball_fd;
 
 static const char filename[] = "/dev/vga_ball";
 
-
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER; 
 
 static gamestate game_state = {
 
-    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT},
-    .queue = {.head = 0, .tail = 0},
+    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_bullets = 0},
     .background = {.red = 0x00, .green = 0x00, .blue = 0x20}
 };
+
+
+static input_queue queue = {.head = 0, .tail = 0};
+
 
 /* Array of background colors to cycle through */
 static const background_color colors[] = {
@@ -64,26 +75,39 @@ static const background_color colors[] = {
     { 0x20, 0x20, 0x40 }   // Blue-purple
 };
 
-/**
- * Initialize game state
- */
-void init_game_state() {
+
+
+
+void enemy_start_pos(){
+
+    int num_rows = DIV_CEIL(ENEMIES_PER_ROW, PIXELS_PER_ROW);
+
+    // the amount of leftover space that can go in between enemies
+    int extra_space = PIXELS_PER_ROW % (ENEMIES_PER_ROW*ENEMY_WIDTH);
+
+
+    int row = 0;
+
 
     for (int i = 0; i < ENEMY_COUNT; i++) {
 
-        if(i < MAX_BULLETS){
-
-            game_state.bullets[i].pos_x = 0;
-            game_state.bullets[i].pos_y = 0;
-            game_state.bullets[i].velo_y = 0;
-            game_state.bullets[i].active = 0;
+        if (i+1 % ENEMIES_PER_ROW == 0){
+            row ++;
         }
 
-        game_state.enemies[i].pos_x = (i % ENEMY_COUNT/3) * ENEMY_WIDTH;
-        game_state.enemies[i].pos_y = (i % ENEMY_COUNT/3) * ENEMY_HEIGHT;
+        if (row == num_rows){
+
+            extra_space = PIXELS_PER_ROW % ((ENEMY_COUNT - i+1) * ENEMY_WIDTH);
+            row++;
+        }
+
+        game_state.enemies[i].pos_x = game_state.enemies[i].start_x = ((i % ENEMIES_PER_ROW) * ENEMY_WIDTH) + extra_space;
+        game_state.enemies[i].pos_y = game_state.enemies[i].start_y = i * ENEMY_HEIGHT * row;
+
+
         game_state.enemies[i].velo_x = 1;
         game_state.enemies[i].velo_y = 0;
-        game_state.enemies[i].sprite = i % NUM_ENEMIES;
+        game_state.enemies[i].sprite = i % NUM_ENEMIES; // this needs changed
         game_state.enemies[i].moving = 1;
         game_state.enemies[i].active = 1;
 
@@ -92,6 +116,43 @@ void init_game_state() {
         game_state.enemies[i].bul.velo_y = 0;
         game_state.enemies[i].bul.active = 0;
     }
+
+}
+
+/**
+ * Initialize game state
+ */
+void init_game_state() {
+
+    for (int i = 0; i < MAX_BULLETS; i++) {
+
+        game_state.bullets[i].pos_x = 0;
+        game_state.bullets[i].pos_y = 0;
+        game_state.bullets[i].velo_y = 0;
+        game_state.bullets[i].active = 0;
+    }
+
+    // enemy_start_pos();
+
+    for (int i = 0; i < ENEMY_COUNT; i++) {
+
+        game_state.enemies[i].pos_x = game_state.enemies[i].start_x = i * ENEMY_WIDTH;
+        game_state.enemies[i].pos_y = game_state.enemies[i].start_y = 0;
+
+
+        game_state.enemies[i].velo_x = 1;
+        game_state.enemies[i].velo_y = 0;
+        game_state.enemies[i].sprite = i % NUM_ENEMIES; // this needs changed
+        game_state.enemies[i].moving = 1;
+        game_state.enemies[i].active = 1;
+
+        game_state.enemies[i].bul.pos_x = 0;
+        game_state.enemies[i].bul. pos_y = 0;
+        game_state.enemies[i].bul.velo_y = 0;
+        game_state.enemies[i].bul.active = 0;
+    }
+
+
 }
 
 /**
@@ -154,8 +215,8 @@ uint8_t endpoint_address;
 
 int main(){
 
-    int start = 0;
-    event input_events[4];
+    int start = 0, changes;
+    event input_events[4], prev_state[4] = {LR_NONE, UD_NONE, BUTTON_NONE, BUMPER_NONE};
     controller_packet packet;
     int transferred;
 
@@ -169,22 +230,34 @@ int main(){
         return EXIT_FAILURE;
     }
 
+    /* Open the controller */
+    if ( (controller = opencontroller(&endpoint_address)) == NULL ) {
+        fprintf(stderr, "Did not find a controller\n");
+        exit(1);
+    }
+
     while (start == 0){
         // recieve packets 
+
+        // printf("hello \n");
 
         libusb_interrupt_transfer(controller, endpoint_address,
             (unsigned char *) &packet, sizeof(packet), &transferred, 0);
 
+        
         if(packet.buttons == 0x2f) start = 1;
     }
 
-    // init_game_state();
-    // update_hardware();
+    printf("Game Begins\n");
+    init_game_state();
+    update_hardware();
 
     /* Start the game thread */
     // pthread_create(&game_thread, NULL, game_logic, NULL);
 
     for (;;){
+
+        changes = 0;
 
         if (game_state.ship.lives == 0) break;
 
@@ -210,7 +283,6 @@ int main(){
                     break;
             }
 
-
             switch (packet.ud_arrows) {
                 case 0x00:
                     input_events[1] = UP;
@@ -229,18 +301,18 @@ int main(){
             }
 
             switch (packet.buttons) {
-                case 0x2f:
-                    input_events[2] = BUTTON_A;
-                    printf("aaaaaaa \n");
-                    break;
+                // case 0x2f:
+                //     input_events[2] = BUTTON_A;
+                //     printf("aaaaaaa \n");
+                //     break;
                     
-                case 0x4f:
-                    input_events[2] = BUTTON_B;
-                    break;
+                // case 0x4f:
+                //     input_events[2] = BUTTON_B;
+                //     break;
 
-                case 0x1f:
-                    input_events[2] = BUTTON_X;
-                    break;
+                // case 0x1f:
+                //     input_events[2] = BUTTON_X;
+                //     break;
                 
                 case 0x8f:
                     input_events[2] = BUTTON_Y;
@@ -260,19 +332,27 @@ int main(){
                     input_events[3] = BUMPER_R;
                     break;
 
-                case 0x10:
-                    input_events[3] = SELECT;
-                    break;
-                
-                case 0x20:
-                    input_events[3] = START;
+                case 0x03:
+                    input_events[3] = BUMPER_LR;
                     break;
 
+                // case 0x10:
+                //     input_events[3] = SELECT;
+                //     break;
+                
+                // case 0x20:
+                //     input_events[3] = START;
+                //     break;
+
                 default:
-                    input_events[3] = BUTTON_NONE;
+                    input_events[3] = BUMPER_NONE;
                     break;
             }
-            // enqueue(&game_state.queue, input_events, 4);
+
+            for (int i = 0; i < 4; i++)
+                if (prev_state[i] == input_events[i]) changes ++;
+
+            if (changes) enqueue(&queue, input_events, 4);
         }    
     }
 }
@@ -301,6 +381,7 @@ void bullet_movement(int new_bullets){ // probably going to have to pass the cur
             if (bul->pos_y == 0){ // top of screen
 
                 bul->active = 0;
+                game_state.ship.num_bullets --;
                 continue;
             }
 
@@ -313,19 +394,21 @@ void bullet_movement(int new_bullets){ // probably going to have to pass the cur
 
                     enemy->active = 0;
                     bul->active = 0;
+                    game_state.ship.num_bullets --;
                     break;
                 }
             }
         }
+
+        // may have issue where two bullets are on top of each other here
+        // can change that by multiplying the starting position by new_bullets
         else if (!bul->active && new_bullets) {
             bul->active = 1;
             bul->pos_x = game_state.ship.pos_x+1; // make it start in the middle of the ship
             bul->pos_y = game_state.ship.pos_y-1; // make it start above the ship
-            bul->velo_y = -1; 
+            bul->velo_y = -1; // towards the top of the screen
+            game_state.ship.num_bullets ++;
             new_bullets--;
-
-            // may have issue where two bullets are on top of each other here
-            // can change that by multiplying the starting position by new_bullets
         }
     }
 }
@@ -354,15 +437,16 @@ int enemy_movement(int enemy_dir){
                 if(enemy_dir = 0) enemy->velo_x *= -1;
                 enemy->pos_x += enemy->velo_x;
             }
-        }
 
-        // important!!! compare to whichever has the larger size
-        if (enemy->active && abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
-        && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
 
-            enemy->active = 0;
-            game_state.ship.lives-=1;
-            num_left --;
+            // important!!! compare to whichever has the larger size
+            if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
+            && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
+
+                enemy->active = 0;
+                game_state.ship.lives-=1;
+                num_left --;
+            }
         }
     }
     return num_left;
@@ -372,17 +456,19 @@ int enemy_movement(int enemy_dir){
 void *game_logic(void *ingored){
 
     spaceship *ship = &game_state.ship;
-    int new_bullets, enemy_dir = 0, count, enemies_remaining;
+    int new_bullets, enemy_dir = 0, count, enemies_remaining, old_bullets, bullet_wait;
     event input_events[4];
 
     for(;;){
 
         new_bullets = 0;
 
+        if (bullet_wait > 0) bullet_wait --;
+
         if (++enemy_dir > 5) enemy_dir = 0;
 
         // need to implement potential logic to have the velocities speed up depending on a powerup etc
-        while((count = dequeue(&game_state.queue, input_events, 4)) > 0){
+        while((count = dequeue(&queue, input_events, 4)) > 0){
 
             switch (input_events[0]) {
                 case LEFT:
@@ -417,19 +503,20 @@ void *game_logic(void *ingored){
                 default:
                     break;
             }
-
+            
+            // add for the cases where multiple buttons are pressed
             switch (input_events[2]) {
-                case BUTTON_A:
-                    new_bullets++;
-                    break;
+                // case BUTTON_A:
+                //     break;
                     
-                case BUTTON_B:
-                    break;
+                // case BUTTON_B:
+                //     break;
 
-                case BUTTON_X:
-                    break;
-                
+                // case BUTTON_X:
+                //     break;
+
                 case BUTTON_Y:
+                    if(ship->num_bullets < MAX_BULLETS && !bullet_wait) new_bullets++;
                     break;
 
                 case BUTTON_NONE:
@@ -439,18 +526,25 @@ void *game_logic(void *ingored){
                     break;
             }
 
+            // add for the cases where multiple buttons are pressed
             switch (input_events[3]) {
                 case BUMPER_L:
+                    if(ship->num_bullets < MAX_BULLETS && !bullet_wait) new_bullets++;
                     break;
                     
                 case BUMPER_R:
+                    if(ship->num_bullets < MAX_BULLETS && !bullet_wait) new_bullets++;
                     break;
 
-                case SELECT:
+                case BUMPER_LR:
+                    if(ship->num_bullets < MAX_BULLETS && !bullet_wait) new_bullets++;
                     break;
+
+                // case SELECT:
+                //     break;
                 
-                case START:
-                    break;
+                // case START:
+                //     break;
 
                 case BUMPER_NONE:
                     break;
@@ -458,6 +552,12 @@ void *game_logic(void *ingored){
                 default:
                     break;
             }
+
+            // can a user press faster than this???????????
+            // if they can then i will need to change it to only do this if they are for sure holding it down
+            if(new_bullets && bullet_wait == 0) bullet_wait = 5;
+
+            if (new_bullets > 1) new_bullets --;
         }
 
         ship_movement();

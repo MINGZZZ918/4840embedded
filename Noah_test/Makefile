@@ -10,6 +10,10 @@ else
 	KERNEL_SOURCE := /usr/src/linux-headers-$(shell uname -r)
         PWD := $(shell pwd)
 
+
+# .PHONY: all
+# all: hello
+
 default: module hello
 
 hello: hello.o controller.o

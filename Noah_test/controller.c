@@ -16,14 +16,13 @@
  * The argument con
  *
  */
-struct libusb_device_handle *opencontoller(uint8_t *endpoint_address) {
+struct libusb_device_handle *opencontroller(uint8_t *endpoint_address) {
 
   libusb_device **devs;
   struct libusb_device_handle *controller = NULL;
   struct libusb_device_descriptor desc;
 
   ssize_t num_devs, d;
-
 
   /* Start the library */
   if ( libusb_init(NULL) < 0 ) {
@@ -59,7 +58,8 @@ struct libusb_device_handle *opencontoller(uint8_t *endpoint_address) {
       int r;
 
       if ((r = libusb_open(dev, &controller)) != 0) {
-        fprintf(stderr, "Error: libusb_open failed: %d\n", r);
+        fprintf(stderr, "Error: libusb_open failed: %s (%d)\n",
+            libusb_error_name(r), r);
         exit(1);
       }
 

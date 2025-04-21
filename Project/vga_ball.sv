@@ -225,6 +225,7 @@ module vga_ball(
                 enemy_pattern[y][11] <= 2'b01;
             end
         end 
+        //finish initial
         else if (chipselect && write) begin
             case (address)
                 6'd0: background_r <= writedata;
@@ -301,7 +302,7 @@ module vga_ball(
     logic [9:0] actual_vcount;
     
     // 确保使用正确的像素位置，防止重复
-    assign actual_hcount = {1'b0, hcount[10:1]};
+    assign actual_hcount = {hcount[10:1],1'b0};
     assign actual_vcount = vcount;
 
     always_comb begin

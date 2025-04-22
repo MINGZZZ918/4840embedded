@@ -59,7 +59,7 @@ static int vga_ball_fd;
 static const char filename[] = "/dev/vga_ball";
 
 /* Array of background colors to cycle through */
-static const vga_ball_object_t colors[] = {
+static const background_color colors[] = {
     { 0x00, 0x00, 0x10 },  // Very dark blue
     { 0x00, 0x00, 0x20 },  // Dark blue
     { 0x10, 0x10, 0x30 },  // Navy blue
@@ -118,8 +118,6 @@ void update_hardware() {
 //     ship->pos_x += ship->velo_x;
 //     ship->pos_y += ship->velo_y;
 // }
-
-
 
 // void bullet_movement(int new_bullet){
 
@@ -200,7 +198,7 @@ uint8_t endpoint_address;
 
 int main(){
 
-    vga_ball_object_t *ship = &game_state.ship;
+    spaceship *ship = &game_state.ship;
     controller_packet packet;
     int transferred, start = 0;
 
@@ -231,10 +229,6 @@ int main(){
     // init_game_state();
     update_hardware();
 }
-
-
-
-
 
 // int main(){
 

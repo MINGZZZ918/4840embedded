@@ -32,9 +32,6 @@
 
 #define ENEMY_WIDTH 16
 #define ENEMY_HEIGHT 16
-#define ENEMY_COUNT 39 // max_num of enemies
-
-#define MAX_BULLETS 5
 
 #define LIFE_COUNT 5
 
@@ -84,6 +81,13 @@ void init_game_state() {
         game_state.bullets[i].pos_y = 0;
         game_state.bullets[i].velo_y = 0;
         game_state.bullets[i].active = 0;
+    }
+
+    for (int i = 0; i < ENEMY_COUNT; i++) {
+
+        game_state.enemies[i].pos_x = i*ENEMY_WIDTH;
+        game_state.enemies[i].pos_y = 1;
+        game_state.enemies[i].active = 1;
     }
 }
 
@@ -135,32 +139,32 @@ void bullet_movement(int new_bullet){
     }
 }
 
-// int enemy_movement(){
+int enemy_movement(){
 
-//     enemy *enemy;
-//     int num_left = 0;
+    enemy *enemy;
+    int num_left = 0;
 
-//     for (int i = 0; i < ENEMY_COUNT; i++){
+    for (int i = 0; i < ENEMY_COUNT; i++){
 
-//         enemy = &game_state.enemies[i];
+        enemy = &game_state.enemies[i];
 
-//         if (enemy->active){
+        if (enemy->active){
 
-//             num_left ++;
+            num_left ++;
 
-//             // important!!! compare to whichever has the larger size
-//             if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
-//             && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
+            // important!!! compare to whichever has the larger size
+            if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
+            && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
 
-//                 enemy->active = 0;
-//                 game_state.ship.lives -= 1;
-//                 num_left --;
-//             }
-//         }
-//     }
+                enemy->active = 0;
+                game_state.ship.lives -= 1;
+                num_left --;
+            }
+        }
+    }
 
-//     return num_left;
-// }
+    return num_left;
+}
 
 struct libusb_device_handle *controller;
 
@@ -171,7 +175,7 @@ int main(){
 
     spaceship *ship = &game_state.ship;
     controller_packet packet;
-    int transferred, start = 0, new_bullet, prev_bullet = 0;
+    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining;
 
     /* Open the device file */
     if ((vga_ball_fd = open(filename, O_RDWR)) == -1) {
@@ -296,6 +300,7 @@ int main(){
 
             ship_movement();
             bullet_movement(new_bullet);
+            enemies_remaining = enemy_movement();
             // enemies_remaining = enemy_movement();
 
             if(ship->lives <= 0){

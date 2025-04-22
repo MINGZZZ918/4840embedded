@@ -65,6 +65,7 @@ struct vga_ball_dev {
     background_color background;
     spaceship ship;
     bullet bullets[MAX_BULLETS];
+    enemy enemies[ENEMY_COUNT];
 } dev;
 
 /*
@@ -127,6 +128,34 @@ static void write_bullets(bullet bullets[])
 
 
 /*
+ * Write enemies properties
+ */
+static void write_enemies(enemy enemies[])
+{
+    /* 写入敌人1 */
+    iowrite8((unsigned char)(enemies[0].pos_x & 0xFF), ENEMY1_X_L(dev.virtbase));
+    iowrite8((unsigned char)((enemies[0].pos_x >> 8) & 0x07), ENEMY1_X_H(dev.virtbase));
+    iowrite8((unsigned char)(enemies[0].pos_y & 0xFF), ENEMY1_Y_L(dev.virtbase));
+    iowrite8((unsigned char)((enemies[0].pos_y >> 8) & 0x03), ENEMY1_Y_H(dev.virtbase));
+    
+    /* 写入敌人2 */
+    iowrite8((unsigned char)(enemies[1].pos_x & 0xFF), ENEMY2_X_L(dev.virtbase));
+    iowrite8((unsigned char)((enemies[1].pos_x >> 8) & 0x07), ENEMY2_X_H(dev.virtbase));
+    iowrite8((unsigned char)(enemies[1].pos_y & 0xFF), ENEMY2_Y_L(dev.virtbase));
+    iowrite8((unsigned char)((enemies[1].pos_y >> 8) & 0x03), ENEMY2_Y_H(dev.virtbase));
+    
+    /* 写入激活状态 */
+    unsigned char active_bits = 0;
+    active_bits |= (enemies[0].active ? 1 : 0);
+    active_bits |= (enemies[1].active ? 2 : 0);
+    iowrite8(active_bits, ENEMY_ACTIVE(dev.virtbase));
+    
+    dev.enemies[0] = enemies[0];
+    dev.enemies[1] = enemies[1];
+}
+
+
+/*
 * Update all game state at once
 */
 static void update_game_state(gamestate *state)
@@ -134,6 +163,7 @@ static void update_game_state(gamestate *state)
     write_background(&state->background);
     write_ship(&state->ship);
     write_bullets(state->bullets);
+    write_enemies(state->enemies)
 
 }
 
@@ -182,7 +212,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
     background_color background = { 0x00, 0x00, 0x20 }; // Dark blue
     spaceship ship = { .pos_x = 400, .pos_y = 400, .active = 1 };  // Ship starting position
     bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
-    // enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
+    enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
 
     int i, ret;
 
@@ -216,11 +246,18 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         bullets[i].pos_y = 0;
         bullets[i].active = 0;
     }
+
+    for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
+        enemy_bullets[i].pos_x = 0;
+        enemy_bullets[i].pos_y = 0;
+        enemy_bullets[i].active = 0;
+    }
         
     /* Set initial values */
     write_background(&background);
     write_ship(&ship);
     write_bullets(bullets);
+    write_enemies(enemies);
 
     return 0;
 

@@ -7,6 +7,7 @@
 /* 定义最大子弹数量 */
 #define MAX_BULLETS 5
 #define MAX_ENEMY_BULLETS 6  // 每个敌人3颗子弹
+#define ENEMY_COUNT 2
 
 /* Color structure */
 typedef struct {
@@ -26,9 +27,19 @@ typedef struct {
 } bullet;
 
 typedef struct {
+    unsigned short pos_x, pos_y;
+    // unsigned short velo_x, velo_y;
+    // int sprite; // different enemies have different visuals
+    // int moving; // if the enemy is currently moving towards the ship
+    bullet bul; // bullet structure for each enemy to shoot
+    int active;
+} enemy;
+
+typedef struct {
     background_color background;
     spaceship ship;
     bullet bullets[MAX_BULLETS];
+    enemy enemies[ENEMY_COUNT];
 } gamestate;
 
 #define VGA_BALL_MAGIC 'v'

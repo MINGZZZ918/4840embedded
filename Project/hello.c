@@ -18,7 +18,7 @@
 int vga_ball_fd;
 
 /* Screen dimensions */
-#define SCREEN_WIDTH 1280
+#define SCREEN_WIDTH 1280//640?
 #define SCREEN_HEIGHT 480
 
 /* Ship constants */
@@ -195,7 +195,7 @@ void enemy_fire_bullet(int enemy_index) {
             for (i = start_slot; i < end_slot; i++) {
                 if (!game_state.enemy_bullets[i].active) {
                     // 设置子弹位置为敌人前方
-                    game_state.enemy_bullets[i].position.x = game_state.enemies[enemy_index].position.x;
+                    game_state.enemy_bullets[i].position.x = game_state.enemies[enemy_index].position.x - ENEMY_BULLET_SIZE;
                     game_state.enemy_bullets[i].position.y = game_state.enemies[enemy_index].position.y + (ENEMY_HEIGHT / 2);
                     game_state.enemy_bullets[i].active = 1;
                     

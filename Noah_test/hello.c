@@ -128,7 +128,7 @@ void bullet_movement(int new_bullet){
             bul->active = 1;
             bul->pos_x = game_state.ship.pos_x+(SHIP_WIDTH/2); // make it start in the middle of the ship
             bul->pos_y = game_state.ship.pos_y-(SHIP_HEIGHT/2); // make it start above the ship
-            bul->velo_y = -1; // towards the top of the screen
+            bul->velo_y = -3; // towards the top of the screen
             game_state.ship.num_bullets ++;
             new_bullet = 0;
         }
@@ -213,14 +213,14 @@ int main(){
             switch (packet.lr_arrows) {
                 case LEFT_ARROW:
                     if(ship->pos_x > 0)
-                        ship->velo_x = -1;
+                        ship->velo_x = -2;
 
                     printf("%d, %d \n", ship->pos_x, ship->pos_y);
                     break;
                     
                 case RIGHT_ARROW:
                     if(ship->pos_x < SCREEN_WIDTH-SHIP_WIDTH)
-                        ship->velo_x = 1;
+                        ship->velo_x = 2;
 
                     printf("%d, %d \n", ship->pos_x, ship->pos_y);
                     break;
@@ -233,14 +233,14 @@ int main(){
             switch (packet.ud_arrows) {
                 case UP_ARROW:
                     if (ship->pos_y < SCREEN_HEIGHT)
-                        ship->velo_y = -1;
+                        ship->velo_y = -2;
 
                     printf("%d, %d\n", ship->pos_x, ship->pos_y);
                     break;
                     
                 case DOWN_ARROW:
                     if (ship->pos_y > 0+SHIP_HEIGHT)
-                        ship->velo_y = 1;
+                        ship->velo_y = 2;
 
                     printf("%d, %d \n", ship->pos_x, ship->pos_y);
                     break;
@@ -252,8 +252,10 @@ int main(){
 
             switch (packet.buttons) {                
                 case Y_BUTTON:
-                    if (!prev_bullet && ship->num_bullets < MAX_BULLETS)
+                    if (!prev_bullet && ship->num_bullets < MAX_BULLETS){
                         new_bullet = 1; // do not allow them to hold the button to shoot
+                        prev_bullet = 1;
+                    }
 
                     printf("Bullet \n");
                     break;
@@ -265,18 +267,26 @@ int main(){
 
             switch (packet.bumpers) {
                 case LEFT_BUMPER:
-                    if (!prev_bullet && ship->num_bullets < MAX_BULLETS)
+                    if (!prev_bullet && ship->num_bullets < MAX_BULLETS){
                         new_bullet = 1; // do not allow them to hold the button to shoot
+                        prev_bullet = 1;
+                    }
+
                     break;
                     
                 case RIGHT_BUMPER:
-                    if (!prev_bullet && ship->num_bullets < MAX_BULLETS)
+                    if (!prev_bullet && ship->num_bullets < MAX_BULLETS){
                         new_bullet = 1; // do not allow them to hold the button to shoot
+                        prev_bullet = 1;
+                    }
+
                     break;
 
                 case LR_BUMPER:
-                    if (!prev_bullet && ship->num_bullets < MAX_BULLETS)
+                    if (!prev_bullet && ship->num_bullets < MAX_BULLETS){
                         new_bullet = 1; // do not allow them to hold the button to shoot
+                        prev_bullet = 1;
+                    }
                     break;
 
                 default:

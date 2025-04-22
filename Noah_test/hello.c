@@ -171,9 +171,9 @@ int enemy_movement(){
 
         if (enemy->active){
 
-            if(SCREEN_HEIGHT- bul->pos_y < 5) bul->active = 0;
 
             if (enemy->bul.active){
+
                 bul->pos_y += bul->velo_y;
 
                 if (abs(game_state.ship.pos_x - bul->pos_x) <= SHIP_WIDTH
@@ -182,6 +182,10 @@ int enemy_movement(){
                     bul->active = 0;
                     game_state.ship.lives -= 1;
                 }
+
+                if(bul->pos_y > 1275) bul->active = 0;
+
+                
             }
             else{
 

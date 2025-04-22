@@ -2,7 +2,6 @@
 #define _VGA_BALL_H
 
 #include "vga_ball.h"
-#include "vga_ball1.h"
 #include <linux/ioctl.h>
 
 /* 定义最大子弹数量 */

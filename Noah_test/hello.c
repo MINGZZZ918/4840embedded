@@ -169,35 +169,32 @@ int enemy_movement(){
         enemy = &game_state.enemies[i];
         bul = &enemy->bul;
 
+        if (enemy->bul.active){
+
+            bul->pos_y += bul->velo_y;
+
+            if (abs(game_state.ship.pos_x - bul->pos_x) <= SHIP_WIDTH
+            && abs(game_state.ship.pos_y - bul->pos_y) <= SHIP_HEIGHT){
+
+                bul->active = 0;
+                game_state.ship.lives -= 1;
+            }
+
+            if(bul->pos_y > SCREEN_HEIGHT) bul->active = 0;
+        }
+
+
         if (enemy->active){
 
+            num_left ++;
 
-            if (enemy->bul.active){
-
-                bul->pos_y += bul->velo_y;
-
-                if (abs(game_state.ship.pos_x - bul->pos_x) <= SHIP_WIDTH
-                && abs(game_state.ship.pos_y - bul->pos_y) <= SHIP_HEIGHT){
-
-                    bul->active = 0;
-                    game_state.ship.lives -= 1;
-                }
-
-                if(bul->pos_y > SCREEN_HEIGHT) bul->active = 0;
-
-                
-            }
-            else{
-
-                if (abs(game_state.ship.pos_x - enemy->pos_x) < 10){
+            if (abs(game_state.ship.pos_x - enemy->pos_x) < 10){
 
                     bul->active = 1;
                     bul->pos_x = enemy->pos_x+(ENEMY_WIDTH/2); // make it start in the middle of the ship
                     bul->pos_y = enemy->pos_y+(SHIP_HEIGHT+ (SHIP_HEIGHT/2)); // make it start above the ship
                     bul->velo_y = 3; // towards the top of the screen
                 }
-            }
-            num_left ++;
 
             // important!!! compare to whichever has the larger size
             if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH

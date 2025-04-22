@@ -167,7 +167,7 @@ int enemy_movement(){
     for (int i = 0; i < ENEMY_COUNT; i++){
 
         enemy = &game_state.enemies[i];
-        bul = &enemy->bul
+        bul = &enemy->bul;
 
         if (enemy->active){
 

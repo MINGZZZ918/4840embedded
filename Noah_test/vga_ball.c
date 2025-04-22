@@ -165,7 +165,7 @@ static void write_enemy_bullets(enemy enemies[])
     unsigned char active_bits = 0;
     int i;
     
-    for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
+    for (i = 0; i < ENEMY_COUNT; i++) {
         if (enemies[i].bul.active) {
             /* 写入每个子弹的位置 */
             iowrite8((unsigned char)(enemies[i].bul.pos_x & 0xFF), ENEMY_BULLET_X_L(dev.virtbase, i));

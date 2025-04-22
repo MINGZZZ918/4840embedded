@@ -316,7 +316,6 @@ int main(){
             ship_movement();
             bullet_movement(new_bullet);
             enemies_remaining = enemy_movement();
-            // enemies_remaining = enemy_movement();
 
             if(ship->lives <= 0){
                 printf("You lost =( \n");
@@ -325,10 +324,10 @@ int main(){
 
             update_hardware();
 
-            // if(!enemies_remaining){
-            //     printf("You Won!");
-            //     break;
-            // }
+            if(!enemies_remaining){
+                printf("You Won!");
+                break;
+            }
 
             usleep(16000);
         }    

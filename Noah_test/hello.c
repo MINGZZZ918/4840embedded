@@ -183,18 +183,16 @@ int enemy_movement(){
             if(bul->pos_y > SCREEN_HEIGHT) bul->active = 0;
         }
 
+        if (enemy->active){
 
-        else if (enemy->active){
+            if (!enemy->bul.active && abs(game_state.ship.pos_x - enemy->pos_x) < 10){
 
+                bul->active = 1;
+                bul->pos_x = enemy->pos_x+(ENEMY_WIDTH/2); // make it start in the middle of the ship
+                bul->pos_y = enemy->pos_y+(SHIP_HEIGHT+ (SHIP_HEIGHT/2)); // make it start above the ship
+                bul->velo_y = 3; // towards the top of the screen
+            }
             num_left ++;
-
-            if (abs(game_state.ship.pos_x - enemy->pos_x) < 10){
-
-                    bul->active = 1;
-                    bul->pos_x = enemy->pos_x+(ENEMY_WIDTH/2); // make it start in the middle of the ship
-                    bul->pos_y = enemy->pos_y+(SHIP_HEIGHT+ (SHIP_HEIGHT/2)); // make it start above the ship
-                    bul->velo_y = 3; // towards the top of the screen
-                }
 
             // important!!! compare to whichever has the larger size
             if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH

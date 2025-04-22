@@ -76,29 +76,16 @@ static gamestate game_state = {
 /**
  * Initialize game state
  */
-// void init_game_state() {
+void init_game_state() {
 
-//     for (int i = 0; i < MAX_BULLETS; i++) {
+    for (int i = 0; i < MAX_BULLETS; i++) {
 
-//         game_state.bullets[i].pos_x = 0;
-//         game_state.bullets[i].pos_y = 0;
-//         game_state.bullets[i].velo_y = 0;
-//         game_state.bullets[i].active = 0;
-//     }
-
-//     for (int i = 0; i < ENEMY_COUNT; i++) {
-
-//         game_state.enemies[i].pos_x = i * ENEMY_WIDTH;
-//         game_state.enemies[i].pos_y = 0;
-
-//         game_state.enemies[i].active = 0;
-
-//         game_state.enemies[i].bul.pos_x = 0;
-//         game_state.enemies[i].bul. pos_y = 0;
-//         game_state.enemies[i].bul.velo_y = 0;
-//         game_state.enemies[i].bul.active = 0;
-//     }
-// }
+        game_state.bullets[i].pos_x = 0;
+        game_state.bullets[i].pos_y = 0;
+        game_state.bullets[i].velo_y = 0;
+        game_state.bullets[i].active = 0;
+    }
+}
 
 /**
  * Update game state and send to the device
@@ -118,50 +105,35 @@ void ship_movement(){
     ship->pos_y += ship->velo_y;
 }
 
-// void bullet_movement(int new_bullet){
+void bullet_movement(int new_bullet){
 
-//     bullet *bul;
-//     enemy *enemy;
+    bullet *bul;
 
-//     for (int i = 0; i < MAX_BULLETS; i++) {
+    for (int i = 0; i < MAX_BULLETS; i++) {
 
-//         bul = &game_state.bullets[i];
+        bul = &game_state.bullets[i];
 
-//         if (bul->active){
+        if (bul->active){
 
-//             bul->pos_y += bul->velo_y;
-//             if (bul->pos_y == 0){ // top of screen
+            bul->pos_y += bul->velo_y;
+            if (bul->pos_y == 0){ // top of screen
 
-//                 bul->active = 0;
-//                 game_state.ship.num_bullets --;
-//                 continue;
-//             }
+                bul->active = 0;
+                game_state.ship.num_bullets --;
+                continue;
+            }
+        }
 
-//             for (int j = 0; j<ENEMY_COUNT; j++){ // checking to see if we hit an enemy
-
-//                 enemy = &game_state.enemies[j];
-
-//                 if (enemy->active && abs(enemy->pos_x - bul->pos_x) <= ENEMY_WIDTH
-//                     && abs(enemy->pos_y - bul->pos_y) <= ENEMY_HEIGHT){
-
-//                     enemy->active = 0;
-//                     bul->active = 0;
-//                     game_state.ship.num_bullets --;
-//                     break;
-//                 }
-//             }
-//         }
-
-//         else if (!bul->active && new_bullet) {
-//             bul->active = 1;
-//             bul->pos_x = game_state.ship.pos_x+(SHIP_WIDTH/2); // make it start in the middle of the ship
-//             bul->pos_y = game_state.ship.pos_y-(SHIP_HEIGHT/2); // make it start above the ship
-//             bul->velo_y = -1; // towards the top of the screen
-//             game_state.ship.num_bullets ++;
-//             new_bullet = 0;
-//         }
-//     }
-// }
+        else if (!bul->active && new_bullet) {
+            bul->active = 1;
+            bul->pos_x = game_state.ship.pos_x+(SHIP_WIDTH/2); // make it start in the middle of the ship
+            bul->pos_y = game_state.ship.pos_y-(SHIP_HEIGHT/2); // make it start above the ship
+            bul->velo_y = -1; // towards the top of the screen
+            game_state.ship.num_bullets ++;
+            new_bullet = 0;
+        }
+    }
+}
 
 // int enemy_movement(){
 
@@ -313,7 +285,7 @@ int main(){
             }
 
             ship_movement();
-            // bullet_movement(new_bullet);
+            bullet_movement(new_bullet);
             // enemies_remaining = enemy_movement();
 
             if(ship->lives <= 0){

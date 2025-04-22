@@ -305,7 +305,7 @@ int main(){
             }
 
             ship_movement();
-            bullet_movement();
+            bullet_movement(new_bullet);
             enemies_remaining = enemy_movement();
 
             if(ship->lives <= 0){
@@ -314,15 +314,13 @@ int main(){
             }
 
             if(!enemies_remaining){
-                printf("You Won!")
+                printf("You Won!");
                 break;
             }
 
             usleep(16000);
         }    
     }
-
-    return NULL;
 }
 
 

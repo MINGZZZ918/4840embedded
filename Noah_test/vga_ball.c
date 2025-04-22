@@ -18,7 +18,6 @@
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 #include "vga_ball.h"
-#include "vga_ball1.h"
 
 #define DRIVER_NAME "vga_ball"
 
@@ -253,7 +252,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
     for (i = 0; i < ENEMY_COUNT; i++) {
         enemies[i].pos_x = 0;
         enemies[i].pos_y = 0;
-        enemies[i].active = 0;
+        enemies[i].active = 0;`
     }
         
     /* Set initial values */

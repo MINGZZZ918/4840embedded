@@ -245,14 +245,14 @@ int main(){
                     if(ship->pos_x > 0)
                         ship->velo_x = -1;
 
-                    printf("%d \n", ship->pos_x)
+                    printf("%d, %d \n", ship->pos_x, ship->pos_y);
                     break;
                     
                 case RIGHT_ARROW:
                     if(ship->pos_x < SCREEN_WIDTH-SHIP_WIDTH)
                         ship->velo_x = 1;
 
-                    printf("%d \n", ship->pos_x)
+                    printf("%d, %d \n", ship->pos_x, ship->pos_y);
                     break;
 
                 default:
@@ -265,14 +265,14 @@ int main(){
                     if (ship->pos_y < SCREEN_HEIGHT)
                         ship->velo_y = -1;
 
-                    printf("%d \n", ship->pos_y)
+                    printf("%d, %d\n", ship->pos_x, ship->pos_y);
                     break;
                     
                 case DOWN_ARROW:
                     if (ship->pos_y > 0+SHIP_HEIGHT)
                         ship->velo_y = 1;
 
-                    printf("%d \n", ship->pos_y)
+                    printf("%d, %d \n", ship->pos_x, ship->pos_y);
                     break;
 
                 default:
@@ -285,7 +285,7 @@ int main(){
                     if (!prev_bullet && ship->num_bullets < MAX_BULLETS)
                         new_bullet = 1; // do not allow them to hold the button to shoot
 
-                    printf("Bullet \n")
+                    printf("Bullet \n");
                     break;
 
                 default:

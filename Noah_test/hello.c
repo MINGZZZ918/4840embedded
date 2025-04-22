@@ -321,6 +321,8 @@ int main(){
                 break;
             }
 
+            update_hardware();
+
             // if(!enemies_remaining){
             //     printf("You Won!");
             //     break;

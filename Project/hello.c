@@ -1,6 +1,6 @@
 /*
  * Userspace program for the VGA Ball game
- * Demonstrates a spaceship automatically firing multiple bullets
+ * Demonstrates a spaceship controllable with joystick
  */
 
 #include <stdio.h>
@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "vga_ball.h"
+#include "controller.h"  // 添加控制器头文件
 
 /* File descriptor for the VGA ball device */
 int vga_ball_fd;
@@ -26,7 +27,7 @@ int vga_ball_fd;
 #define SHIP_HEIGHT 16 // 与vga_ball.sv中一致的像素艺术飞船高度
 #define SHIP_INITIAL_X 200
 #define SHIP_INITIAL_Y 240
-#define SHIP_VERTICAL_SPEED 1 // 飞船垂直移动速度
+#define SHIP_VERTICAL_SPEED 4 // 飞船垂直移动速度
 #define SHIP_MIN_Y 50         // 飞船Y坐标最小值，确保不超出屏幕上边界
 #define SHIP_MAX_Y (SCREEN_HEIGHT - SHIP_HEIGHT - 50) // 飞船Y坐标最大值，确保不超出屏幕下边界
 
@@ -37,9 +38,9 @@ int vga_ball_fd;
 /* 敌人常量 */
 #define ENEMY_WIDTH 16
 #define ENEMY_HEIGHT 16
-#define ENEMY1_INITIAL_X 800
+#define ENEMY1_INITIAL_X 500
 #define ENEMY1_INITIAL_Y 150
-#define ENEMY2_INITIAL_X 800
+#define ENEMY2_INITIAL_X 500
 #define ENEMY2_INITIAL_Y 350
 #define ENEMY_BULLET_SIZE 4
 #define ENEMY_BULLET_SPEED 8
@@ -52,7 +53,12 @@ int vga_ball_fd;
 /* Game state */
 vga_ball_arg_t game_state;
 int bullet_cooldown = 0;
-int direction = 1; // 垂直移动方向: 1=向下, -1=向上
+
+/* 控制器变量 */
+struct libusb_device_handle *controller;
+uint8_t endpoint_address;
+controller_packet controller_input;
+int transferred;
 
 /* Array of background colors to cycle through */
 static const vga_ball_color_t colors[] = {
@@ -114,9 +120,6 @@ void update_hardware(void) {
     }
 }
 
-/**
- * Find an inactive bullet slot and fire a new bullet
- */
 /**
  * Find an inactive bullet slot and fire a new bullet
  */
@@ -247,6 +250,45 @@ void update_enemy_bullets(void) {
 }
 
 /**
+ * 读取控制器输入并更新飞船位置
+ */
+void update_ship_from_controller(void) {
+    // 从控制器读取输入
+    libusb_interrupt_transfer(controller, endpoint_address,
+        (unsigned char *) &controller_input, sizeof(controller_input), &transferred, 0);
+
+    // 如果读取成功
+    if (transferred == sizeof(controller_input)) {
+        // 输出控制器状态用于调试
+        printf("控制器上下值: %d, 按钮: %d, 摇杆: %d\n", 
+               controller_input.ud_arrows, 
+               controller_input.buttons, 
+               controller_input.bumpers);
+        
+        // 处理上下移动
+        if (controller_input.ud_arrows == 0x00) {
+            // 向上移动 - 屏幕坐标系中减小y值
+            if (game_state.ship.position.y > SHIP_MIN_Y) {
+                game_state.ship.position.y -= SHIP_VERTICAL_SPEED;
+            }
+            printf("向上移动: Y=%d\n", game_state.ship.position.y);
+        } 
+        else if (controller_input.ud_arrows == 0xff) {
+            // 向下移动 - 屏幕坐标系中增加y值
+            if (game_state.ship.position.y < SHIP_MAX_Y) {
+                game_state.ship.position.y += SHIP_VERTICAL_SPEED;
+            }
+            printf("向下移动: Y=%d\n", game_state.ship.position.y);
+        }
+        
+        // 处理射击按钮（Y按钮或肩部按钮）
+        if (controller_input.buttons == 0x8f || controller_input.bumpers > 0) {
+            fire_bullet();
+        }
+    }
+}
+
+/**
  * Main function - runs the game loop
  */
 int main(void) {
@@ -254,11 +296,18 @@ int main(void) {
     int frame_count = 0;
     int color_index = 0;
 
-    printf("VGA Ball Demo started\n");
+    printf("VGA Ball Demo带控制器已启动\n");
 
     /* Open the device file */
     if ((vga_ball_fd = open(filename, O_RDWR)) == -1) {
         fprintf(stderr, "Could not open %s\n", filename);
+        return EXIT_FAILURE;
+    }
+
+    /* 打开控制器 */
+    if ((controller = opencontroller(&endpoint_address)) == NULL) {
+        fprintf(stderr, "无法找到控制器\n");
+        close(vga_ball_fd);
         return EXIT_FAILURE;
     }
 
@@ -269,7 +318,7 @@ int main(void) {
     init_game_state();
     update_hardware();
     
-    printf("Starting animation, press Ctrl+C to exit...\n");
+    printf("开始动画，按Y按钮或肩部按钮发射子弹，上下摇杆移动飞船...\n");
     printf("添加了两个敌人，位置: (%d,%d) 和 (%d,%d)\n", 
            ENEMY1_INITIAL_X, ENEMY1_INITIAL_Y, 
            ENEMY2_INITIAL_X, ENEMY2_INITIAL_Y);
@@ -285,8 +334,8 @@ int main(void) {
             game_state.background = colors[color_index];
         }
         
-        /* Always try to fire bullet when cooldown allows */
-        fire_bullet();
+        /* 处理控制器输入更新飞船位置 */
+        update_ship_from_controller();
         
         /* 敌人尝试发射子弹 */
         enemy_fire_bullet(0);  // 敌人1
@@ -297,21 +346,6 @@ int main(void) {
         
         /* 更新敌人子弹 */
         update_enemy_bullets();
-        
-        /* 垂直方向飞船移动 - 确保平滑移动 */
-        if (direction > 0) {
-            game_state.ship.position.y += SHIP_VERTICAL_SPEED;
-            if (game_state.ship.position.y >= SHIP_MAX_Y) {
-                direction = -1;
-                printf("飞船改变方向: 向上\n");
-            }
-        } else {
-            game_state.ship.position.y -= SHIP_VERTICAL_SPEED;
-            if (game_state.ship.position.y <= SHIP_MIN_Y) {
-                direction = 1;
-                printf("飞船改变方向: 向下\n");
-            }
-        }
         
         /* Update the hardware */
         update_hardware();
@@ -347,6 +381,10 @@ int main(void) {
         /* Increment frame counter */
         frame_count++;
     }
+    
+    // 清理资源（在此示例中不会执行到）
+    libusb_close(controller);
+    close(vga_ball_fd);
     
     return 0;
 }

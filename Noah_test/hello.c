@@ -85,8 +85,8 @@ void init_game_state() {
 
     for (int i = 0; i < ENEMY_COUNT; i++) {
 
-        game_state.enemies[i].pos_x = i*ENEMY_WIDTH;
-        game_state.enemies[i].pos_y = 100;
+        game_state.enemies[i].pos_x = i*ENEMY_WIDTH*10;
+        game_state.enemies[i].pos_y = 50;
         game_state.enemies[i].active = 1;
     }
 }
@@ -112,6 +112,7 @@ void ship_movement(){
 void bullet_movement(int new_bullet){
 
     bullet *bul;
+    enemy *enemy;
 
     for (int i = 0; i < MAX_BULLETS; i++) {
 
@@ -125,6 +126,20 @@ void bullet_movement(int new_bullet){
                 bul->active = 0;
                 game_state.ship.num_bullets --;
                 continue;
+            }
+
+            for (int j = 0; j<ENEMY_COUNT; j++){ // checking to see if we hit an enemy
+
+                enemy = &game_state.enemies[j];
+
+                if (enemy->active && abs(enemy->pos_x - bul->pos_x) <= ENEMY_WIDTH
+                    && abs(enemy->pos_y - bul->pos_y) <= ENEMY_HEIGHT){
+
+                    enemy->active = 0;
+                    bul->active = 0;
+                    game_state.ship.num_bullets --;
+                    break;
+                }
             }
         }
 

@@ -69,7 +69,7 @@ static const vga_ball_object_t colors[] = {
 
 static vga_ball_arg_t game_state = {
 
-    .ship = {.position = {.x = 400, .y = 400 },.active = 1},
+    .ship = {.position = {.x = SHIP_INITIAL_X, .y = SHIP_INITIAL_Y },.active = 1},
     // .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_bullets = 0},
     .background = {.red = 0x00, .green = 0x00, .blue = 0x20}
 };

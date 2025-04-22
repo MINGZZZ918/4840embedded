@@ -63,7 +63,7 @@ struct vga_ball_dev {
     struct resource res; /* Resource: our registers */
     void __iomem *virtbase; /* Where registers can be accessed in memory */
     background_color background;
-    vga_ball_object_t ship;
+    spaceship ship;
 
 } dev;
 
@@ -81,7 +81,7 @@ static void write_background(background_color *background)
 /*
  * Write ship position
  */
- static void write_ship(vga_ball_object_t *ship)
+ static void write_ship(spaceship *ship)
  {
      iowrite8((unsigned char)(ship->position.x & 0xFF), SHIP_X_L(dev.virtbase));
      iowrite8((unsigned char)((ship->position.x >> 8) & 0x07), SHIP_X_H(dev.virtbase));

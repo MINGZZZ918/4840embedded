@@ -2,6 +2,7 @@
 #define _VGA_BALL_H
 
 #include "vga_ball.h"
+#include "vga_ball1.h"
 #include <linux/ioctl.h>
 
 /* 定义最大子弹数量 */
@@ -26,7 +27,7 @@ typedef struct {
 typedef struct {
     vga_ball_position_t position;
     unsigned char active;      // For bullet: 1 = active, 0 = inactive
-} vga_ball_object_t;
+} spaceship;
 
 /* 
  * Main argument structure for ioctl calls
@@ -34,7 +35,7 @@ typedef struct {
  */
 typedef struct {
     background_color background;
-    vga_ball_object_t ship;
+    spaceship ship;
 } vga_ball_arg_t;
 
 #define VGA_BALL_MAGIC 'v'

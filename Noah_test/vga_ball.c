@@ -18,6 +18,7 @@
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 #include "vga_ball.h"
+#include "vga_ball1.h"
 
 #define DRIVER_NAME "vga_ball"
 
@@ -132,6 +133,9 @@ static void write_bullets(bullet bullets[])
  */
 static void write_enemies(enemy enemies[])
 {
+
+    unsigned char active_bits = 0;
+
     /* 写入敌人1 */
     iowrite8((unsigned char)(enemies[0].pos_x & 0xFF), ENEMY1_X_L(dev.virtbase));
     iowrite8((unsigned char)((enemies[0].pos_x >> 8) & 0x07), ENEMY1_X_H(dev.virtbase));
@@ -145,7 +149,6 @@ static void write_enemies(enemy enemies[])
     iowrite8((unsigned char)((enemies[1].pos_y >> 8) & 0x03), ENEMY2_Y_H(dev.virtbase));
     
     /* 写入激活状态 */
-    unsigned char active_bits = 0;
     active_bits |= (enemies[0].active ? 1 : 0);
     active_bits |= (enemies[1].active ? 2 : 0);
     iowrite8(active_bits, ENEMY_ACTIVE(dev.virtbase));
@@ -163,7 +166,7 @@ static void update_game_state(gamestate *state)
     write_background(&state->background);
     write_ship(&state->ship);
     write_bullets(state->bullets);
-    write_enemies(state->enemies)
+    write_enemies(state->enemies);
 
 }
 
@@ -247,10 +250,10 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         bullets[i].active = 0;
     }
 
-    for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
-        enemy_bullets[i].pos_x = 0;
-        enemy_bullets[i].pos_y = 0;
-        enemy_bullets[i].active = 0;
+    for (i = 0; i < ENEMY_COUNT; i++) {
+        enemies[i].pos_x = 0;
+        enemies[i].pos_y = 0;
+        enemies[i].active = 0;
     }
         
     /* Set initial values */

@@ -183,7 +183,7 @@ static void write_enemy_bullets(enemy enemies[])
             iowrite8(0, ENEMY_BULLET_Y_H(dev.virtbase, i));
         }
         
-        dev.enemy_bullets[i].bul = enemy_bullets[i].bul;
+        dev.enemies[i].bul = enemies[i].bul;
     }
     
     /* 写入子弹活动状态位图 */

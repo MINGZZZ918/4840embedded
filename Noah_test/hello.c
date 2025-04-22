@@ -183,7 +183,7 @@ int enemy_movement(){
                     game_state.ship.lives -= 1;
                 }
 
-                if(bul->pos_y > 1275) bul->active = 0;
+                if(bul->pos_y > SCREEN_HEIGHT) bul->active = 0;
 
                 
             }
@@ -284,7 +284,7 @@ int main(){
 
             switch (packet.ud_arrows) {
                 case UP_ARROW:
-                    if (ship->pos_y < SCREEN_HEIGHT)
+                    if (ship->pos_y < SCREEN_HEIGHT - 5)
                         ship->velo_y = -2;
 
                     // printf("%d, %d\n", ship->pos_x, ship->pos_y);

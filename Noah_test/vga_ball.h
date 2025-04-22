@@ -24,7 +24,7 @@ typedef struct {
  * active field is used for bullet to determine if it is currently flying
  */
 typedef struct {
-    unsigned short x, y;
+    unsigned short pos_x, pos_y;
     int velo_x, velo_y, lives, num_bullets;
     unsigned char active;
 } spaceship;

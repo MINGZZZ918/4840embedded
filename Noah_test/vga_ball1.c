@@ -82,10 +82,10 @@ static void write_background(background_color *background)
  */
  static void write_ship(spaceship *ship)
  {
-     iowrite8((unsigned char)(ship->x & 0xFF), SHIP_X_L(dev.virtbase));
-     iowrite8((unsigned char)((ship->x >> 8) & 0x07), SHIP_X_H(dev.virtbase));
-     iowrite8((unsigned char)(ship->y & 0xFF), SHIP_Y_L(dev.virtbase));
-     iowrite8((unsigned char)((ship->y >> 8) & 0x03), SHIP_Y_H(dev.virtbase));
+     iowrite8((unsigned char)(ship->pos_x & 0xFF), SHIP_X_L(dev.virtbase));
+     iowrite8((unsigned char)((ship->pos_x >> 8) & 0x07), SHIP_X_H(dev.virtbase));
+     iowrite8((unsigned char)(ship->pos_y & 0xFF), SHIP_Y_L(dev.virtbase));
+     iowrite8((unsigned char)((ship->pos_y >> 8) & 0x03), SHIP_Y_H(dev.virtbase));
      dev.ship = *ship;
  }
 
@@ -141,7 +141,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
     background_color background = { 0x00, 0x00, 0x20 }; // Dark blue
-    spaceship ship = { .x = 400, .y = 400, .active = 1 };  // Ship starting position
+    spaceship ship = { .pos_x = 400, .pos_y = 400, .active = 1 };  // Ship starting position
     // bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
     // enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
 

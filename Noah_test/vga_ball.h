@@ -1,6 +1,7 @@
 #ifndef _VGA_BALL_H
 #define _VGA_BALL_H
 
+#include "vga_ball1.h"
 #include <linux/ioctl.h>
 
 /* 定义最大子弹数量 */
@@ -10,7 +11,7 @@
 /* Color structure */
 typedef struct {
     unsigned char red, green, blue;
-} vga_ball_color_t;
+} background_color;
 
 /* Position structure for ship and bullet */
 typedef struct {
@@ -23,9 +24,7 @@ typedef struct {
  * active field is used for bullet to determine if it is currently flying
  */
 typedef struct {
-    unsigned short pos_x, pos_y;
-    unsigned short velo_x, velo_y;
-    int lives, num_bullets;
+    vga_ball_position_t position;
     unsigned char active;      // For bullet: 1 = active, 0 = inactive
 } vga_ball_object_t;
 
@@ -34,7 +33,7 @@ typedef struct {
  * Contains all game state information
  */
 typedef struct {
-    vga_ball_color_t background;
+    background_color background;
     vga_ball_object_t ship;
 } vga_ball_arg_t;
 

@@ -190,7 +190,8 @@ int main(){
 
     spaceship *ship = &game_state.ship;
     controller_packet packet;
-    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, fire;
+    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining;
+    int bumpers = 0, buttons = 0;
 
     /* Open the device file */
     if ((vga_ball_fd = open(filename, O_RDWR)) == -1) {
@@ -276,13 +277,13 @@ int main(){
                         prev_bullet = 1;
                     }
 
+                    buttons = 1;
                     // printf("Bullet \n");
                     break;
 
                 default:
-                // have an issue here that it will set prev bullet, even when bumper is held
-                    prev_bullet = 0;
-                    printf("buttons \n");
+                    if (!bumpers) prev_bullet = 0;
+                    buttons = 0;
                     break;
             }
 
@@ -293,6 +294,8 @@ int main(){
                         prev_bullet = 1;
                     }
 
+                    bumpers = 1;
+
                     break;
                     
                 case RIGHT_BUMPER:
@@ -301,6 +304,8 @@ int main(){
                         prev_bullet = 1;
                     }
 
+                    bumpers = 1;
+
                     break;
 
                 case LR_BUMPER:
@@ -308,13 +313,13 @@ int main(){
                         new_bullet = 1; // do not allow them to hold the button to shoot
                         prev_bullet = 1;
                     }
+                    bumpers = 1;
                     break;
 
                 default:
-                    if (!new_bullet) {
-                        // prev_bullet = 0; // only reset bullets if the y button has not been pressed
-                        printf("bumpers\n");
-                    }
+                    if (!buttons) prev_bullet = 0; // only reset bullets if the y button has not been pressed
+                    bumpers = 0;
+                    // printf("bumpers\n");
                     break;
             }
 

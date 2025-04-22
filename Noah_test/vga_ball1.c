@@ -64,7 +64,6 @@ struct vga_ball_dev {
     void __iomem *virtbase; /* Where registers can be accessed in memory */
     background_color background;
     spaceship ship;
-
 } dev;
 
 /*
@@ -93,14 +92,14 @@ static void write_background(background_color *background)
 /*
 * Update all game state at once
 */
-static void update_game_state(vga_ball_arg_t *state)
+static void update_game_state(gamestate *state)
 {
     write_background(&state->background);
     write_ship(&state->ship);
 
 }
 
-static vga_ball_arg_t vb_arg;
+static gamestate vb_arg;
 
 /*
 * Handle ioctl() calls from userspace
@@ -110,7 +109,7 @@ static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 
     switch (cmd) {
         case VGA_BALL_UPDATE_GAME_STATE:
-            if (copy_from_user(&vb_arg, (vga_ball_arg_t *) arg, sizeof(vga_ball_arg_t)))
+            if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
                 return -EACCES;
             update_game_state(&vb_arg);
             break;

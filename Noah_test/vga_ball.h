@@ -2,6 +2,7 @@
 #define _VGA_BALL_H
 
 #include "vga_ball.h"
+#include "vga_ball1.h"
 #include <linux/ioctl.h>
 
 /* 定义最大子弹数量 */
@@ -36,7 +37,7 @@ typedef struct {
 typedef struct {
     background_color background;
     spaceship ship;
-} vga_ball_arg_t;
+} gamestate;
 
 #define VGA_BALL_MAGIC 'v'
 

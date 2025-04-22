@@ -184,7 +184,7 @@ int enemy_movement(){
         }
 
 
-        if (enemy->active){
+        else if (enemy->active){
 
             num_left ++;
 

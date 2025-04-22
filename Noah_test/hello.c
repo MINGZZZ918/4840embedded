@@ -190,7 +190,7 @@ int main(){
 
     spaceship *ship = &game_state.ship;
     controller_packet packet;
-    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining;
+    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, fire;
 
     /* Open the device file */
     if ((vga_ball_fd = open(filename, O_RDWR)) == -1) {
@@ -234,14 +234,14 @@ int main(){
                     if(ship->pos_x > 0)
                         ship->velo_x = -2;
 
-                    printf("%d, %d \n", ship->pos_x, ship->pos_y);
+                    // printf("%d, %d \n", ship->pos_x, ship->pos_y);
                     break;
                     
                 case RIGHT_ARROW:
                     if(ship->pos_x < SCREEN_WIDTH-SHIP_WIDTH)
                         ship->velo_x = 2;
 
-                    printf("%d, %d \n", ship->pos_x, ship->pos_y);
+                    // printf("%d, %d \n", ship->pos_x, ship->pos_y);
                     break;
 
                 default:
@@ -254,14 +254,14 @@ int main(){
                     if (ship->pos_y < SCREEN_HEIGHT)
                         ship->velo_y = -2;
 
-                    printf("%d, %d\n", ship->pos_x, ship->pos_y);
+                    // printf("%d, %d\n", ship->pos_x, ship->pos_y);
                     break;
                     
                 case DOWN_ARROW:
                     if (ship->pos_y > 0+SHIP_HEIGHT)
                         ship->velo_y = 2;
 
-                    printf("%d, %d \n", ship->pos_x, ship->pos_y);
+                    // printf("%d, %d \n", ship->pos_x, ship->pos_y);
                     break;
 
                 default:
@@ -276,11 +276,13 @@ int main(){
                         prev_bullet = 1;
                     }
 
-                    printf("Bullet \n");
+                    // printf("Bullet \n");
                     break;
 
                 default:
+                // have an issue here that it will set prev bullet, even when bumper is held
                     prev_bullet = 0;
+                    printf()
                     break;
             }
 
@@ -309,7 +311,10 @@ int main(){
                     break;
 
                 default:
-                    if (!new_bullet) prev_bullet = 0; // only reset bullets if the y button has not been pressed
+                    if (!new_bullet) {
+                        prev_bullet = 0; // only reset bullets if the y button has not been pressed
+                        printf("bumpers\n");
+                    }
                     break;
             }
 

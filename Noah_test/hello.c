@@ -214,7 +214,7 @@ int main(){
         exit(1);
     }
 
-    printf("Press A");
+    printf("Press A \n");
 
     while (start == 0){
         // recieve packets 
@@ -244,11 +244,15 @@ int main(){
                 case LEFT_ARROW:
                     if(ship->pos_x > 0)
                         ship->velo_x = -1;
+
+                    printf("%d \n", ship->pos_x)
                     break;
                     
                 case RIGHT_ARROW:
                     if(ship->pos_x < SCREEN_WIDTH-SHIP_WIDTH)
                         ship->velo_x = 1;
+
+                    printf("%d \n", ship->pos_x)
                     break;
 
                 default:
@@ -260,11 +264,15 @@ int main(){
                 case UP_ARROW:
                     if (ship->pos_y < SCREEN_HEIGHT)
                         ship->velo_y = -1;
+
+                    printf("%d \n", ship->pos_y)
                     break;
                     
                 case DOWN_ARROW:
                     if (ship->pos_y > 0+SHIP_HEIGHT)
                         ship->velo_y = 1;
+
+                    printf("%d \n", ship->pos_y)
                     break;
 
                 default:
@@ -276,6 +284,8 @@ int main(){
                 case Y_BUTTON:
                     if (!prev_bullet && ship->num_bullets < MAX_BULLETS)
                         new_bullet = 1; // do not allow them to hold the button to shoot
+
+                    printf("Bullet \n")
                     break;
 
                 default:
@@ -309,20 +319,16 @@ int main(){
             enemies_remaining = enemy_movement();
 
             if(ship->lives <= 0){
-                printf("You lost =(");
+                printf("You lost =( \n");
                 break;
             }
 
-            if(!enemies_remaining){
-                printf("You Won!");
-                break;
-            }
+            // if(!enemies_remaining){
+            //     printf("You Won!");
+            //     break;
+            // }
 
             usleep(16000);
         }    
     }
 }
-
-
-
-

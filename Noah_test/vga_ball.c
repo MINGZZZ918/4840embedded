@@ -65,7 +65,7 @@ struct vga_ball_dev {
     background_color background;
     spaceship ship;
     bullet bullets[MAX_BULLETS];
-    enemy enemies[2];
+    enemy enemies[ENEMY_COUNT];
 } dev;
 
 /*
@@ -197,6 +197,8 @@ static void update_game_state(gamestate *state)
     write_enemies(state->enemies);
     write_enemy_bullets(state->enemies);
 }
+
+static gamestate vb_arg;
 
 /*
 * Handle ioctl() calls from userspace

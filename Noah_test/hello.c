@@ -171,6 +171,8 @@ int enemy_movement(){
 
         if (enemy->active){
 
+            if(SCREEN_HEIGHT- bul->pos_y < 5) bul->active = 0;
+
             if (enemy->bul.active){
                 bul->pos_y += bul->velo_y;
 

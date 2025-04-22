@@ -1,87 +1,46 @@
 #ifndef _VGA_BALL_H
 #define _VGA_BALL_H
 
+#include "vga_ball.h"
 #include <linux/ioctl.h>
 
 /* 定义最大子弹数量 */
 #define MAX_BULLETS 5
-#define ENEMY_COUNT 39
-#define LIFE_COUNT 5
-// #define INPUT_QUEUE_SIZE 32
-
+#define MAX_ENEMY_BULLETS 6  // 每个敌人3颗子弹
 
 /* Color structure */
 typedef struct {
     unsigned char red, green, blue;
 } background_color;
 
-// typedef enum {
-//     LR_NONE,
-//     LEFT,
-//     RIGHT,
-
-//     UD_NONE,
-//     UP,
-//     DOWN,
-
-//     BUMPER_NONE,
-//     BUMPER_L,
-//     BUMPER_R,
-//     BUMPER_LR,
-//     START,
-//     SELECT,
-
-//     BUTTON_NONE,
-//     BUTTON_A,
-//     BUTTON_B,
-//     BUTTON_X,
-//     BUTTON_Y, 
-
-//     QUEUE_EMPTY
-// } event;
-
-// #ifndef __KERNEL__
-// typedef struct {
-//     event events[INPUT_QUEUE_SIZE]; // holds the events to handle before next frame
-//     int head; // current position in the queue 
-//     int tail;
-//     pthread_mutex_t lock; 
-// } input_queue;
-// #endif
-
+/* Position structure for ship and bullet */
 typedef struct {
-    unsigned short pos_x, pos_y;
-    unsigned short velo_x, velo_y;
-    int lives, num_bullets;
+    unsigned short x;  // x coordinate (0-1279)
+    unsigned short y;  // y coordinate (0-479)
+} vga_ball_position_t;
+
+/* 
+ * Game object structure with position and status
+ * active field is used for bullet to determine if it is currently flying
+ */
+typedef struct {
+    vga_ball_position_t position;
+    unsigned char active;      // For bullet: 1 = active, 0 = inactive
 } spaceship;
 
+/* 
+ * Main argument structure for ioctl calls
+ * Contains all game state information
+ */
 typedef struct {
-    unsigned short pos_x, pos_y;
-    unsigned short velo_y; // velo_x is always 0 on bullets
-    int active;
-} bullet;
-
-typedef struct {
-    unsigned short pos_x, pos_y;
-    // unsigned short velo_x, velo_y;
-    // int sprite; // different enemies have different visuals
-    // int moving; // if the enemy is currently moving towards the ship
-    bullet bul; // bullet structure for each enemy to shoot
-    int active;
-} enemy;
-
-
-typedef struct {
-    spaceship ship;
-    bullet bullets[MAX_BULLETS];
-    enemy enemies[ENEMY_COUNT];
     background_color background;
-} gamestate;
+    spaceship ship;
+} vga_ball_arg_t;
 
 #define VGA_BALL_MAGIC 'v'
 
 /* ioctls and their arguments */
-#define VGA_BALL_UPDATE_GAME_STATE   _IOW(VGA_BALL_MAGIC, 1, gamestate)
+#define VGA_BALL_UPDATE_GAME_STATE  _IOW(VGA_BALL_MAGIC, 1, vga_ball_arg_t)
 
 
 #endif /* _VGA_BALL_H */

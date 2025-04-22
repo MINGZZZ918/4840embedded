@@ -158,6 +158,41 @@ static void write_enemies(enemy enemies[])
 
 
 /*
+* Write enemy bullets properties
+*/
+static void write_enemy_bullets(enemy enemies[])
+{
+    unsigned char active_bits = 0;
+    int i;
+    
+    for (i = 0; i < MAX_ENEMY_BULLETS; i++) {
+        if (enemies[i].bul.active) {
+            /* 写入每个子弹的位置 */
+            iowrite8((unsigned char)(enemies[i].bul.pos_x & 0xFF), ENEMY_BULLET_X_L(dev.virtbase, i));
+            iowrite8((unsigned char)((enemies[i].bul.pos_x >> 8) & 0x07), ENEMY_BULLET_X_H(dev.virtbase, i));
+            iowrite8((unsigned char)(enemies[i].bul.pos_y & 0xFF), ENEMY_BULLET_Y_L(dev.virtbase, i));
+            iowrite8((unsigned char)((enemies[i].bul.pos_y >> 8) & 0x03), ENEMY_BULLET_Y_H(dev.virtbase, i));
+            
+            /* 设置活动状态位 */
+            active_bits |= (1 << i);
+        } else {
+            /* 对于非活动的子弹，将其位置重置为0 */
+            iowrite8(0, ENEMY_BULLET_X_L(dev.virtbase, i));
+            iowrite8(0, ENEMY_BULLET_X_H(dev.virtbase, i));
+            iowrite8(0, ENEMY_BULLET_Y_L(dev.virtbase, i));
+            iowrite8(0, ENEMY_BULLET_Y_H(dev.virtbase, i));
+        }
+        
+        dev.enemy_bullets[i].bul = enemy_bullets[i].bul;
+    }
+    
+    /* 写入子弹活动状态位图 */
+    iowrite8(active_bits, ENEMY_BULLET_ACTIVE(dev.virtbase));
+}
+
+
+
+/*
 * Update all game state at once
 */
 static void update_game_state(gamestate *state)
@@ -166,6 +201,7 @@ static void update_game_state(gamestate *state)
     write_ship(&state->ship);
     write_bullets(state->bullets);
     write_enemies(state->enemies);
+    write_enemy_bullets(state->enemies);
 
 }
 
@@ -253,6 +289,10 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         enemies[i].pos_x = 0;
         enemies[i].pos_y = 0;
         enemies[i].active = 0;
+
+        enemies[i].bul.pos_x = 0;
+        enemies[i].bul.pos_y = 0;
+        enemies[i].bul.active = 0;
     }
         
     /* Set initial values */

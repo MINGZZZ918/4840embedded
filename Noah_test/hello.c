@@ -116,7 +116,7 @@ void bullet_movement(int new_bullet){
         if (bul->active){
 
             bul->pos_y += bul->velo_y;
-            if (bul->pos_y == 0){ // top of screen
+            if (bul->pos_y < 5){ // top of screen
 
                 bul->active = 0;
                 game_state.ship.num_bullets --;

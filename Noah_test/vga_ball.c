@@ -64,7 +64,7 @@ struct vga_ball_dev {
     void __iomem *virtbase; /* Where registers can be accessed in memory */
     background_color background;
     spaceship ship;
-    bullet bulletsp[MAX_BULLETS];
+    bullet bullets[MAX_BULLETS];
 } dev;
 
 /*
@@ -212,8 +212,8 @@ static int __init vga_ball_probe(struct platform_device *pdev)
 
     /* Initialize all bullets to inactive state */
     for (i = 0; i < MAX_BULLETS; i++) {
-        bullets[i].position.x = 0;
-        bullets[i].position.y = 0;
+        bullets[i].pos_x = 0;
+        bullets[i].pos_y = 0;
         bullets[i].active = 0;
     }
         

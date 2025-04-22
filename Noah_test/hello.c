@@ -282,7 +282,7 @@ int main(){
                 default:
                 // have an issue here that it will set prev bullet, even when bumper is held
                     prev_bullet = 0;
-                    printf()
+                    printf("buttons \n")
                     break;
             }
 

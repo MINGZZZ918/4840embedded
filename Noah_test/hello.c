@@ -312,7 +312,7 @@ int main(){
 
                 default:
                     if (!new_bullet) {
-                        prev_bullet = 0; // only reset bullets if the y button has not been pressed
+                        // prev_bullet = 0; // only reset bullets if the y button has not been pressed
                         printf("bumpers\n");
                     }
                     break;

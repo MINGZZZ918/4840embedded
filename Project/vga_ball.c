@@ -49,6 +49,7 @@
 #define ENEMY_ACTIVE(x)    ((x)+36)
 
 /* 敌人子弹寄存器定义 */
+
 #define ENEMY_BULLET_BASE(x)   ((x)+37)
 #define ENEMY_BULLET_X_L(x,i)  (ENEMY_BULLET_BASE(x) + 4*(i))
 #define ENEMY_BULLET_X_H(x,i)  (ENEMY_BULLET_BASE(x) + 4*(i) + 1)
@@ -278,6 +279,8 @@ static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 
     return 0;
 }
+
+
 
 /* The operations our device knows how to do */
 static const struct file_operations vga_ball_fops = {

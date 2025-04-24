@@ -7,35 +7,39 @@
 /* 定义最大子弹数量 */
 #define MAX_BULLETS 5
 #define MAX_ENEMY_BULLETS 6  // 每个敌人3颗子弹
+#define ENEMY_COUNT 2
 
 /* Color structure */
 typedef struct {
     unsigned char red, green, blue;
 } background_color;
 
-/* Position structure for ship and bullet */
 typedef struct {
-    unsigned short x;  // x coordinate (0-1279)
-    unsigned short y;  // y coordinate (0-479)
-} vga_ball_position_t;
-
-/* 
- * Game object structure with position and status
- * active field is used for bullet to determine if it is currently flying
- */
-typedef struct {
-    unsigned short x, y;
+    unsigned short pos_x, pos_y;
     int velo_x, velo_y, lives, num_bullets;
     unsigned char active;
 } spaceship;
 
-/* 
- * Main argument structure for ioctl calls
- * Contains all game state information
- */
+typedef struct {
+    unsigned short pos_x, pos_y;
+    unsigned short velo_y; // velo_x is always 0 on bullets
+    int active;
+} bullet;
+
+typedef struct {
+    unsigned short pos_x, pos_y;
+    // unsigned short velo_x, velo_y;
+    // int sprite; // different enemies have different visuals
+    // int moving; // if the enemy is currently moving towards the ship
+    bullet bul; // bullet structure for each enemy to shoot
+    int active;
+} enemy;
+
 typedef struct {
     background_color background;
     spaceship ship;
+    bullet bullets[MAX_BULLETS];
+    enemy enemies[ENEMY_COUNT];
 } gamestate;
 
 #define VGA_BALL_MAGIC 'v'

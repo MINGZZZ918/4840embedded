@@ -21,9 +21,11 @@ color_palette = {
 }
 
 def parse_mif(filepath):
+    """
+    解析 MIF 文件，返回一个 {address: value} 的字典
+    """
     in_content = False
     data = {}
-
     with open(filepath, 'r') as f:
         for line in f:
             line = line.strip()
@@ -37,28 +39,32 @@ def parse_mif(filepath):
                     addr_part, val_part = line.split(':')
                     addr = int(addr_part.strip())
                     val_hex = val_part.strip().strip(';')
-                    val = int(val_hex, 16)
-                    data[addr] = val
-                except:
+                    data[addr] = int(val_hex, 16)
+                except ValueError:
                     pass
     return data
 
-def mif_to_image_color(mif_path, output_path, width=32, height=32):
+def mif16_to_png(mif_path, output_path):
+    """
+    将 16×16 MIF 转为 PNG。
+    默认图像尺寸为 16×16，超过部分用黑色填充（索引 0x0F）。
+    """
+    width = height = 16
     data = parse_mif(mif_path)
 
     img = Image.new('RGB', (width, height))
     pixels = img.load()
 
-    for i in range(width * height):
-        color_idx = data.get(i, 0x0F)
-        rgb = color_palette.get(color_idx, (0, 0, 0))
-        x = i % width
-        y = i // width
-        if y < height:
-            pixels[x, y] = rgb
+    for addr in range(width * height):
+        idx = data.get(addr, 0x0F)            # 默认黑色
+        rgb = color_palette.get(idx, (0,0,0))
+        x = addr % width
+        y = addr // width
+        pixels[x, y] = rgb
 
     img.save(output_path)
-    print(f"Saved: {output_path}")
+    print(f"Saved 16×16 image to: {output_path}")
 
 # 示例用法
-mif_to_image_color("1.mif", "2.png")
+if __name__ == "__main__":
+    mif16_to_png("1_16x16.mif", "out_16x16.png")

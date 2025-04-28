@@ -29,14 +29,25 @@ module vga_ball(
     // Background color
     logic [7:0]     background_r, background_g, background_b;
     
-    // 游戏对象数组，每个对象包含位置和精灵信息
+    // 游戏对象数组，每个对象包含位置和精灵信息（不懂）
     logic [11:0]    obj_x[MAX_OBJECTS]; // 12位x坐标
     logic [11:0]    obj_y[MAX_OBJECTS]; // 12位y坐标
     logic [5:0]     obj_sprite[MAX_OBJECTS]; // 6位精灵索引，所以最多是64个精灵（bullet+ship+enemy）
     logic           obj_active[MAX_OBJECTS]; // 活动状态位
     
     // 精灵渲染相关
+    localparam int SPRITE_SIZE      = SPRITE_WIDTH * SPRITE_HEIGHT; // 16*16=256
+    logic [11:0]    sprite_address;
     logic [23:0]    sprite_data;   // 模拟的精灵RGB数据
+
+    // ROM IP module
+        soc_system_sprite_map sprite_map_inst (
+        .address   (sprite_address),
+        .clk       (clk),
+        .clken     (1'b1),
+        .reset_req (1'b0),
+        .readdata  (sprite_data)
+    );
 
     // Instantiate VGA counter module
     vga_counters counters(.clk50(clk), .*);
@@ -96,13 +107,6 @@ module vga_ball(
         end
     end
 
-// // 精灵ROM实例化
-//     sprite_rom sprite_rom_inst(
-//         .clk(clk),
-//         .addr(sprite_addr),
-//         .data(sprite_data)
-//     );
-
     // 渲染逻辑 - 确定当前像素属于哪个对象
     logic [4:0] active_obj_idx;
     logic obj_visible;
@@ -131,42 +135,19 @@ module vga_ball(
         end
     end
     
-    // 为了示例，我们可以模拟精灵数据而不使用实际的ROM，example
-
+    //  用 ROM 真正打印 sprite
     always_comb begin
-        // 默认值
-        sprite_data = 24'h000000; // 黑色透明
-        
-        // 只有在相对坐标有效时才设置颜色
-        if (obj_visible && rel_x < SPRITE_WIDTH && rel_y < SPRITE_HEIGHT) begin
-            // 根据不同的精灵索引返回不同的颜色
-            case (obj_sprite[active_obj_idx])
-                SHIP_SPRITE_INDEX: begin
-                    // 飞船 - 红色
-                    sprite_data = 24'hE04020; // RGB格式
-                end
-                
-                // 敌人精灵 (索引1-16)
-                default: begin
-                    if (obj_sprite[active_obj_idx] >= ENEMY_SPRITE_START && 
-                        obj_sprite[active_obj_idx] < BULLET_SPRITE_START) begin
-                        // 敌人 - 绿色
-                        sprite_data = 24'h20E020;
-                    end
-                    else begin
-                        // 子弹 - 黄色
-                        sprite_data = 24'hFFFF00;
-                    end
-                end
-            endcase
-            
-            // 可以根据相对坐标添加更复杂的图案
-            // 例如，飞船中央添加白色窗户
-            if (obj_sprite[active_obj_idx] == SHIP_SPRITE_INDEX) begin
-                if ((rel_x > 4 && rel_x < 8) && (rel_y > 6 && rel_y < 10)) begin
-                    sprite_data = 24'hFFFFFF; // 白色窗户
-                end
-            end
+        // 默认透明
+        sprite_address = 12'd0;
+        // sprite_data 已由 ROM IP 更新
+
+        if (obj_visible) begin
+            // 计算这帧要读的 ROM 地址：
+            // base = sprite_index * 256
+            // offset = rel_y*16 + rel_x
+            sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE
+                           + rel_y * SPRITE_WIDTH
+                           + rel_x;
         end
     end
 

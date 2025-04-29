@@ -1,14 +1,14 @@
 /*
- * Avalon memory-mapped peripheral for VGA Ball Game
+ * Avalon memory-mapped peripheral for VGA Ball Game with line buffer
  */
 
 module vga_ball(
     input  logic        clk,
     input  logic        reset,
-    input  logic [31:0] writedata,  // 改为32位宽度
+    input  logic [31:0] writedata,
     input  logic        write,
     input  logic        chipselect,
-    input  logic [4:0]  address,    // 由于一次传32位，地址空间可以减小
+    input  logic [4:0]  address,
 
     output logic [7:0]  VGA_R, VGA_G, VGA_B,
     output logic        VGA_CLK, VGA_HS, VGA_VS,
@@ -23,8 +23,7 @@ module vga_ball(
     parameter SHIP_SPRITE_INDEX = 0;  // 飞船的精灵索引
     parameter ENEMY_SPRITE_START = 1; // 敌人精灵索引开始
     parameter BULLET_SPRITE_START = 17; // 子弹精灵索引开始
-    parameter HACTIVE1 = 10'd 640; // 子弹精灵索引开始, 640 or 1280? not sure，try to change it and figure out which one is correct
-
+    parameter HACTIVE1 = 10'd 640; // 活动显示区域宽度
 
     logic [10:0]    hcount;
     logic [9:0]     vcount;
@@ -41,37 +40,77 @@ module vga_ball(
     // 渲染顺序数组 - 存储对象ID，按渲染顺序排列（从后到前）
     logic [4:0]     render_order[MAX_OBJECTS];
     
-    // 当前行缓冲区 - 存储每个像素位置的对象ID和精灵索引
-    logic [4:0]     line_obj_id[HACTIVE1]; 
-    logic [5:0]     line_sprite_idx[HACTIVE1]; 
-    logic           line_valid[HACTIVE1]; 
-    /*
-    line_obj_id[HACTIVE]: Which game object (ship, enemy, bullet) should appear at this position
-    line_sprite_idx[HACTIVE]: Which sprite/graphic to use at this position
-    line_valid[HACTIVE]: Whether any sprite is present at this position
-    */
-
-    // 精灵渲染相关
-    logic [23:0]    sprite_data;   // 模拟的精灵RGB数据
-    
-    // 行缓冲更新控制
+    // 当前行缓冲区相关信号
     logic           new_line;      // 新行开始标志
     logic [10:0]    buffer_x;      // 当前正在处理的X坐标
+    logic           switch_buffer; // 缓冲区切换信号
+    
+    // 行缓冲区数据 line buffer data
+    
+    logic [5:0]     line_obj_id[HACTIVE1]; 
+    logic [5:0]     line_sprite_idx[HACTIVE1]; 
+    logic           line_valid[HACTIVE1];
+    
+    // 当前渲染状态
+    logic [3:0]     rel_x, rel_y;
+    logic [4:0]     current_obj_id;
+    logic [5:0]     current_sprite_idx;
+    logic           current_pixel_valid;
+    
+    // 行缓冲相关信号
+    logic [5:0]     tile_address_display, tile_address_draw;
+    logic [9:0]     pixel_address_display, pixel_address_draw;
+    logic [255:0]   tile_data_display, tile_data_draw;
+    logic [15:0]    pixel_data_display, pixel_data_draw;
+    logic           tile_wren_display, tile_wren_draw;
+    logic           pixel_wren_display, pixel_wren_draw;
+    logic [255:0]   tile_q_display, tile_q_draw;
+    logic [15:0]    pixel_q_display, pixel_q_draw;
+    
+    // 精灵数据生成
+    logic [23:0]    sprite_data;
     
     // VGA计数器模块实例化
     vga_counters counters(.clk50(clk), .*);
     
-    // 检测新行开始
+    // 行缓冲模块实例化
+    linebuffer lb_inst(
+        .clk(clk),
+        .reset(reset),
+        .switch(switch_buffer),
+        .address_tile_display(tile_address_display),
+        .address_pixel_display(pixel_address_display),
+        .address_tile_draw(tile_address_draw),
+        .address_pixel_draw(pixel_address_draw),
+        .data_tile_display(tile_data_display),
+        .data_pixel_display(pixel_data_display),
+        .data_tile_draw(tile_data_draw),
+        .data_pixel_draw(pixel_data_draw),
+        .wren_tile_display(tile_wren_display),
+        .wren_pixel_display(pixel_wren_display),
+        .wren_tile_draw(tile_wren_draw),
+        .wren_pixel_draw(pixel_wren_draw),
+        .q_tile_display(tile_q_display),
+        .q_pixel_display(pixel_q_display),
+        .q_tile_draw(tile_q_draw),
+        .q_pixel_draw(pixel_q_draw)
+    );
+    
+    // 检测新行开始和帧结束(用于缓冲区切换)
     always_ff @(posedge clk) begin
         if (reset) begin
             new_line <= 1'b0;
+            switch_buffer <= 1'b0;
         end else begin
             // 当水平计数器返回到起点时，表示新行开始
             new_line <= (hcount == 0); 
+            
+            // 在帧结束时切换缓冲区（垂直消隐期间）
+            switch_buffer <= (vcount == 0) && (hcount == 0);
         end
     end
 
-    // Register update logic
+    // Register update logic - 处理从Avalon总线来的写入
     always_ff @(posedge clk) begin
         if (reset) begin
             // 初始化背景色
@@ -97,22 +136,15 @@ module vga_ball(
             obj_active[0] <= 1'b1;
             
             // 初始化敌人
-            obj_x[1] <= 12'd800;
+            obj_x[1] <= 12'd500;
             obj_y[1] <= 12'd150;
             obj_sprite[1] <= ENEMY_SPRITE_START;
             obj_active[1] <= 1'b1;
             
-            obj_x[2] <= 12'd800;
+            obj_x[2] <= 12'd500;
             obj_y[2] <= 12'd350;
             obj_sprite[2] <= ENEMY_SPRITE_START;
             obj_active[2] <= 1'b1;
-            
-            // 初始化行缓冲区
-            for (int x = 0; x < HACTIVE1; x++) begin
-                line_obj_id[x] <= 5'd0;
-                line_sprite_idx[x] <= 6'd0;
-                line_valid[x] <= 1'b0;
-            end
             
             buffer_x <= 11'd0;
         end 
@@ -130,29 +162,34 @@ module vga_ball(
                         obj_y[obj_idx] <= writedata[19:8];      // 接下来12位是y坐标
                         obj_sprite[obj_idx] <= writedata[7:2];  // 接下来6位是精灵索引
                         obj_active[obj_idx] <= writedata[1];    // 接下来1位是活动状态
-                        // 最低位保留，不使用
                     end
                 end
             endcase
         end
     end
 
-    // 行缓冲区填充逻辑 - 每次新行开始时启动
+    // 行缓冲区填充逻辑 - 在绘制缓冲区中准备下一帧
     always_ff @(posedge clk) begin
         if (reset) begin
             buffer_x <= 11'd0;
+            pixel_wren_draw <= 1'b0;
+            tile_wren_draw <= 1'b0;
         end 
         else if (new_line) begin
             // 新行开始，重置缓冲区扫描位置
             buffer_x <= 11'd0;
-            
-            // 清除行缓冲区
-            for (int x = 0; x < HACTIVE1; x++) begin
-                line_valid[x] <= 1'b0;
-            end
+            pixel_wren_draw <= 1'b0;
         end
         else if (buffer_x < HACTIVE1) begin
-            // 填充行缓冲区
+            // 为当前像素位置找到最上层的对象
+            logic pixel_found;
+            logic [4:0] found_obj_id;
+            logic [5:0] found_sprite_idx;
+            
+            pixel_found = 1'b0;
+            found_obj_id = 5'd0;
+            found_sprite_idx = 6'd0;
+            
             // 检查所有对象，按渲染顺序（从后到前）
             for (int i = 0; i < MAX_OBJECTS; i++) begin
                 int obj_idx = render_order[i];
@@ -164,47 +201,72 @@ module vga_ball(
                     vcount >= obj_y[obj_idx] && 
                     vcount < obj_y[obj_idx] + SPRITE_HEIGHT) begin
                     
-                    // 在行缓冲区中记录该位置显示的对象
-                    line_obj_id[buffer_x] <= obj_idx;
-                    line_sprite_idx[buffer_x] <= obj_sprite[obj_idx];
-                    line_valid[buffer_x] <= 1'b1;
-                    
-                    // 找到了此位置要显示的对象（最高优先级），无需检查其他对象
-                    break;
+                    pixel_found = 1'b1;
+                    found_obj_id = obj_idx;
+                    found_sprite_idx = obj_sprite[obj_idx];
+                    break;  // 找到了最上层对象，停止搜索
                 end
             end
             
-            // 移动到下一个水平位置
-            buffer_x <= buffer_x + 11'd1;
+            // 将像素信息写入绘制缓冲区
+            pixel_address_draw <= buffer_x;
+            
+            // 如果找到对象，则存储其ID和精灵索引
+            if (pixel_found) begin
+                // 将对象信息编码为16位数据存储在像素缓冲区中
+                // 格式: [5:0] sprite_idx, [10:6] obj_id, [15:11] 未使用/标志位
+                pixel_data_draw <= {5'b00000, found_obj_id, found_sprite_idx};
+            end else begin
+                // 使用特殊值表示背景像素
+                pixel_data_draw <= 16'h0000;
+            }
+            
+            pixel_wren_draw <= 1'b1;  // 启用写入
+            buffer_x <= buffer_x + 11'd1;  // 移动到下一列
+        end else begin
+            // 行扫描完成，停止写入
+            pixel_wren_draw <= 1'b0;
         end
     end
 
-    // 当前扫描位置的精灵数据
-    logic [3:0] rel_x, rel_y;
-    logic [4:0] current_obj_id;
-    logic [5:0] current_sprite_idx;
-    logic       current_pixel_valid;
-    
-    // 获取当前扫描位置的精灵信息
+    // 显示逻辑 - 从显示缓冲区读取数据并渲染到VGA
     always_comb begin
-        if (hcount[10:1] < HACTIVE1 && line_valid[hcount[10:1]]) begin
-            current_obj_id = line_obj_id[hcount[10:1]];
-            current_sprite_idx = line_sprite_idx[hcount[10:1]];
+        // 设置显示缓冲区读取地址
+        pixel_address_display = hcount[10:1] < HACTIVE1 ? hcount[10:1] : 10'd0;
+        pixel_wren_display = 1'b0;  // 显示时不写入
+        pixel_data_display = 16'd0;
+        
+        // 瓦片缓冲区暂时不使用
+        tile_address_display = 6'd0;
+        tile_address_draw = 6'd0;
+        tile_wren_display = 1'b0;
+        tile_wren_draw = 1'b0;
+        tile_data_display = 256'd0;
+        tile_data_draw = 256'd0;
+        
+        // 从缓冲区读取数据
+        logic [15:0] pixel_info = pixel_q_display;
+        logic [4:0] obj_id = pixel_info[10:6];
+        logic [5:0] sprite_idx = pixel_info[5:0];
+        logic is_background = (pixel_info == 16'h0000);
+        
+        // 计算精灵内相对坐标
+        if (!is_background && hcount[10:1] < HACTIVE1) begin
+            rel_x = hcount[10:1] - obj_x[obj_id][11:0];
+            rel_y = vcount - obj_y[obj_id][11:0];
+            current_obj_id = obj_id;
+            current_sprite_idx = sprite_idx;
             current_pixel_valid = 1'b1;
-            
-            // 计算精灵内相对坐标
-            rel_x = hcount[10:1] - obj_x[current_obj_id][11:0];
-            rel_y = vcount - obj_y[current_obj_id][11:0];
         end else begin
+            rel_x = 4'd0;
+            rel_y = 4'd0;
             current_obj_id = 5'd0;
             current_sprite_idx = 6'd0;
             current_pixel_valid = 1'b0;
-            rel_x = 4'd0;
-            rel_y = 4'd0;
         end
     end
     
-    // 为了示例，我们可以模拟精灵数据而不使用实际的ROM
+    // 精灵数据生成 - 基于精灵索引和相对坐标生成颜色
     always_comb begin
         // 默认值
         sprite_data = 24'h000000; // 黑色透明
@@ -216,9 +278,14 @@ module vga_ball(
                 SHIP_SPRITE_INDEX: begin
                     // 飞船 - 红色
                     sprite_data = 24'hE04020; // RGB格式
+                    
+                    // 飞船中央添加白色窗户
+                    if ((rel_x > 4 && rel_x < 8) && (rel_y > 6 && rel_y < 10)) begin
+                        sprite_data = 24'hFFFFFF; // 白色窗户
+                    end
                 end
                 
-                // 敌人精灵 (索引1-16)
+                // 敌人精灵
                 default: begin
                     if (current_sprite_idx >= ENEMY_SPRITE_START && 
                         current_sprite_idx < BULLET_SPRITE_START) begin
@@ -231,18 +298,10 @@ module vga_ball(
                     end
                 end
             endcase
-            
-            // 可以根据相对坐标添加更复杂的图案
-            // 例如，飞船中央添加白色窗户
-            if (current_sprite_idx == SHIP_SPRITE_INDEX) begin
-                if ((rel_x > 4 && rel_x < 8) && (rel_y > 6 && rel_y < 10)) begin
-                    sprite_data = 24'hFFFFFF; // 白色窗户
-                end
-            end
         end
     end
 
-    // VGA output logic
+    // VGA输出逻辑
     always_comb begin
         {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h00, 8'h00}; // 默认黑色
         
@@ -265,9 +324,6 @@ module vga_ball(
         end
     end
 endmodule
-
-// VGA timing generator module
-// [保持原有的vga_counters模块不变]
 
 // VGA timing generator module
 module vga_counters(

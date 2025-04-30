@@ -46,5 +46,6 @@ typedef struct {
 #define VGA_BALL_WRITE_OBJECTS      _IOW(VGA_BALL_MAGIC, 3, vga_ball_arg_t)
 #define VGA_BALL_READ_OBJECTS       _IOR(VGA_BALL_MAGIC, 4, vga_ball_arg_t)
 #define VGA_BALL_UPDATE_GAME_STATE  _IOW(VGA_BALL_MAGIC, 5, vga_ball_arg_t)
+#define VGA_BALL_SET_RANDOM_BG      _IOW(VGA_BALL_MAGIC, 6, int)
 
 #endif /* _VGA_BALL_H */

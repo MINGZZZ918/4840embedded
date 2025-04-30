@@ -22,6 +22,7 @@
 /* Device registers */
 #define BG_COLOR(x)      (x)
 #define OBJECT_DATA(x,i) ((x) + 1 + (i))  // 每个对象占用一个32位地址空间
+#define RANDOM_BG_CTRL(x) ((x) + 21)      // 随机背景控制寄存器地址
 
 /*
  * Information about our device
@@ -31,6 +32,7 @@ struct vga_ball_dev {
     void __iomem *virtbase; /* Where registers can be accessed in memory */
     vga_ball_color_t background;
     vga_ball_object_t objects[MAX_OBJECTS];
+    int use_random_bg; /* 控制是否使用随机背景 */
 } dev;
 
 /*
@@ -43,6 +45,17 @@ static void write_background(vga_ball_color_t *background)
                      background->blue;
     iowrite32(color_data, BG_COLOR(dev.virtbase));
     dev.background = *background;
+}
+
+/*
+ * Set random background mode
+ */
+static void set_random_background(int enable)
+{
+    iowrite32(enable & 0x1, RANDOM_BG_CTRL(dev.virtbase));
+    dev.use_random_bg = enable;
+    printk(KERN_INFO "VGA Ball: Random background %s\n", 
+           enable ? "enabled" : "disabled");
 }
 
 /*
@@ -90,6 +103,7 @@ static void update_game_state(vga_ball_arg_t *state)
 static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
     vga_ball_arg_t vb_arg;
+    int random_bg_enable;
 
     switch (cmd) {
         case VGA_BALL_WRITE_BACKGROUND:
@@ -120,6 +134,12 @@ static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
             if (copy_from_user(&vb_arg, (vga_ball_arg_t *) arg, sizeof(vga_ball_arg_t)))
                 return -EACCES;
             update_game_state(&vb_arg);
+            break;
+            
+        case VGA_BALL_SET_RANDOM_BG:
+            if (copy_from_user(&random_bg_enable, (int *) arg, sizeof(int)))
+                return -EACCES;
+            set_random_background(random_bg_enable);
             break;
 
         default:

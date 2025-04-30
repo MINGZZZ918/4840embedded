@@ -50,6 +50,10 @@ vga_ball_arg_t game_state;
 int bullet_cooldown = 0;
 int enemy_cooldowns[2] = {0, 0};
 
+/* LFSR随机背景控制 */
+int use_random_bg = 0;  // 默认不使用随机背景
+int last_random_bg_toggle = 0; // 上次切换随机背景的时间
+
 /* 控制器变量 */
 struct libusb_device_handle *controller;
 uint8_t endpoint_address;
@@ -112,6 +116,20 @@ void init_game_state(void) {
     for (i = ENEMY_BULLET_START_INDEX; i < MAX_OBJECTS; i++) {
         game_state.objects[i].sprite_idx = ENEMY_BULLET_SPRITE;
     }
+}
+
+/**
+ * 设置随机背景模式
+ */
+void set_random_background_mode(int enable) {
+    use_random_bg = enable;
+    
+    if (ioctl(vga_ball_fd, VGA_BALL_SET_RANDOM_BG, &use_random_bg)) {
+        perror("ioctl(VGA_BALL_SET_RANDOM_BG) failed");
+        return;
+    }
+    
+    printf("随机背景模式: %s\n", use_random_bg ? "开启" : "关闭");
 }
 
 /**
@@ -289,13 +307,24 @@ void update_ship_from_controller(void) {
         if (controller_input.buttons == 0x8f || controller_input.bumpers > 0) {
             fire_bullet();
         }
+        
+        // 处理随机背景切换（X按钮）
+        if (controller_input.buttons == 0x4f) {
+            // 确保不会因为按钮持续按下而频繁切换
+            int current_time = time(NULL);
+            if (current_time - last_random_bg_toggle >= 1) { // 至少间隔1秒
+                use_random_bg = !use_random_bg;
+                set_random_background_mode(use_random_bg);
+                last_random_bg_toggle = current_time;
+            }
+        }
     }
 }
 
 /**
  * Main function - runs the game loop
  */
-int main(void) {
+int main(int argc, char *argv[]) {
     static const char filename[] = "/dev/vga_ball";
     int frame_count = 0;
     int color_index = 0;
@@ -306,6 +335,14 @@ int main(void) {
     if ((vga_ball_fd = open(filename, O_RDWR)) == -1) {
         fprintf(stderr, "Could not open %s\n", filename);
         return EXIT_FAILURE;
+    }
+
+    /* 处理命令行参数 */
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--random-bg") == 0) {
+            use_random_bg = 1;
+            printf("启用随机背景模式\n");
+        }
     }
 
     /* 打开控制器 */
@@ -322,7 +359,11 @@ int main(void) {
     init_game_state();
     update_hardware();
     
+    /* 设置随机背景模式 */
+    set_random_background_mode(use_random_bg);
+    
     printf("开始动画，按Y按钮或肩部按钮发射子弹，上下摇杆移动飞船...\n");
+    printf("按X按钮切换随机背景模式\n");
     printf("添加了两个敌人，位置: (%d,%d) 和 (%d,%d)\n", 
            ENEMY1_INITIAL_X, ENEMY1_INITIAL_Y, 
            ENEMY2_INITIAL_X, ENEMY2_INITIAL_Y);
@@ -333,7 +374,7 @@ int main(void) {
         if (bullet_cooldown > 0) bullet_cooldown--;
         
         /* Periodically change background color */
-        if (frame_count % 120 == 0) {
+        if (frame_count % 120 == 0 && !use_random_bg) {
             color_index = (color_index + 1) % COLOR_COUNT;
             game_state.background = colors[color_index];
         }
@@ -356,9 +397,10 @@ int main(void) {
         
         /* Print debug information */
         if (frame_count % 60 == 0) { // 每秒显示一次状态
-            printf("飞船位置: x=%d, y=%d\n", 
+            printf("飞船位置: x=%d, y=%d, 随机背景: %s\n", 
                    game_state.objects[SHIP_INDEX].x, 
-                   game_state.objects[SHIP_INDEX].y);
+                   game_state.objects[SHIP_INDEX].y,
+                   use_random_bg ? "开启" : "关闭");
             
             // 打印活动子弹数量
             int active_bullet_count = 0;

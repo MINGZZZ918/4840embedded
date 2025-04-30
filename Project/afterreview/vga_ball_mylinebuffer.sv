@@ -19,7 +19,7 @@ module vga_ball(
     // 常量定义
     parameter MAX_OBJECTS = 20;    // 飞船(1) + 敌人(2) + 玩家子弹(5) + 敌人子弹(6) + 预留(6)
     parameter SPRITE_WIDTH = 16;   // 所有精灵标准宽度
-    parameter SPRITE_HEIGHT = 16;  // 所有精灵标准高度
+    parameter SPRITE_HEIGHT = 16;  // 所有精灵标准高
     parameter SHIP_SPRITE_INDEX = 0;  // 飞船的精灵索引
     parameter ENEMY_SPRITE_START = 1; // 敌人精灵索引开始
     parameter BULLET_SPRITE_START = 17; // 子弹精灵索引开始
@@ -65,6 +65,51 @@ module vga_ball(
     logic           row_start;      // 当前行开始绘制的标志
     logic [9:0]     draw_x, draw_y; // 当前正在绘制的像素位置
     
+    // LFSR相关信号和模块
+    logic           use_lfsr_bg;    // 是否使用LFSR背景
+    logic           lfsr_enable;    // LFSR更新使能
+    logic [19:0]    lfsr_counter;   // LFSR更新频率控制
+    logic [7:0]     lfsr_red, lfsr_green, lfsr_blue; // LFSR输出
+    
+    // LFSR模块实例化
+    lfsr_8bit lfsr_r(
+        .clk(clk),
+        .reset(reset),
+        .enable(lfsr_enable),
+        .lfsr_out(lfsr_red)
+    );
+    
+    lfsr_8bit lfsr_g(
+        .clk(clk),
+        .reset(reset),
+        .enable(lfsr_enable),
+        .lfsr_out(lfsr_green)
+    );
+    
+    lfsr_8bit lfsr_b(
+        .clk(clk),
+        .reset(reset),
+        .enable(lfsr_enable),
+        .lfsr_out(lfsr_blue)
+    );
+    
+    // LFSR更新频率控制
+    always_ff @(posedge clk) begin
+        if (reset) begin
+            lfsr_counter <= 20'd0;
+            lfsr_enable <= 1'b0;
+        end else begin
+            // 每约100万个时钟周期更新一次LFSR (约每秒1-2次)
+            if (lfsr_counter >= 20'd999999) begin
+                lfsr_counter <= 20'd0;
+                lfsr_enable <= 1'b1;
+            end else begin
+                lfsr_counter <= lfsr_counter + 20'd1;
+                lfsr_enable <= 1'b0;
+            end
+        end
+    end
+
     // VGA计数器模块实例化
     vga_counters counters(.clk50(clk), .*);
     
@@ -160,6 +205,9 @@ module vga_ball(
             obj_y[2] <= 12'd350;
             obj_sprite[2] <= ENEMY_SPRITE_START;
             obj_active[2] <= 1'b1;
+            
+            // 默认不使用LFSR背景
+            use_lfsr_bg <= 1'b0;
         end 
         else if (chipselect && write) begin
             case (address)
@@ -167,6 +215,8 @@ module vga_ball(
                 5'd0: {background_r, background_g, background_b} <= writedata[23:0];
                 
                 // 对象数据更新 - 地址1到MAX_OBJECTS对应各个对象
+                5'd21: use_lfsr_bg <= writedata[0]; // 新增：LFSR背景控制寄存器
+                
                 default: begin
                     if (address >= 5'd1 && address <= 5'd1 + MAX_OBJECTS - 1) begin
                         int obj_idx = address - 5'd1;
@@ -301,8 +351,14 @@ module vga_ball(
         {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h00, 8'h00}; // 默认黑色
         
         if (VGA_BLANK_n) begin
-            // 背景色
-            {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
+            // 根据设置选择背景色
+            if (use_lfsr_bg) begin
+                // 使用LFSR生成的随机背景色，但保持蓝色主调
+                {VGA_R, VGA_G, VGA_B} = {lfsr_red >> 3, lfsr_green >> 3, lfsr_blue >> 1};
+            end else {
+                // 使用静态背景色
+                {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
+            }
             
             // 如果当前像素属于某个对象且对象是可见的，则显示对象的像素
             if (current_pixel_valid) begin
@@ -313,11 +369,41 @@ module vga_ball(
                 
                 // 如果像素是透明色(全黑)，显示背景
                 if (sprite_data == 24'h0) begin
-                    {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
+                    if (use_lfsr_bg) begin
+                        {VGA_R, VGA_G, VGA_B} = {lfsr_red >> 3, lfsr_green >> 3, lfsr_blue >> 1};
+                    end else {
+                        {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
+                    }
                 end
             end
         end
     end
+endmodule
+
+// LFSR 8位随机数生成器模块
+module lfsr_8bit(
+    input  logic       clk,
+    input  logic       reset,
+    input  logic       enable,
+    output logic [7:0] lfsr_out
+);
+    logic [7:0] lfsr_reg;
+    logic feedback;
+    
+    // 多项式: x^8 + x^6 + x^5 + x^4 + 1 (一个常用的8位LFSR多项式)
+    assign feedback = lfsr_reg[7] ^ lfsr_reg[5] ^ lfsr_reg[4] ^ lfsr_reg[3];
+    
+    always_ff @(posedge clk) begin
+        if (reset) begin
+            // 初始化为非零值
+            lfsr_reg <= 8'h01;
+        end else if (enable) begin
+            // 移位并反馈
+            lfsr_reg <= {lfsr_reg[6:0], feedback};
+        end
+    end
+    
+    assign lfsr_out = lfsr_reg;
 endmodule
 
 // VGA timing generator module

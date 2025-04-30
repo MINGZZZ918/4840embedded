@@ -1,4 +1,8 @@
-if you want to use random bg for vga_ballmybuffer.sv,
+vga_ball.sv contians suggestion 1 and 2.
+vga_ballmylinebuffer.sv is my method to use linebuffer
+vga_ballromlinebuffer.sv is bubble bubble method to use line buffer.
+
+if you want to use lfsr to generate random bg for vga_ballmylinebuffer.sv,
 please use
 ./hello --random-bg
 

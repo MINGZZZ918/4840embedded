@@ -179,7 +179,9 @@ module vga_ball(
     always_comb begin
         sprite_on      = 1'b0;
         sprite_address = '0;
-        sprite_r = sprite_g = sprite_b = 8'd0;
+        sprite_r = 8'd0;
+        sprite_g = 8'd0;
+        sprite_b = 8'd0;
 
         if ( actual_hcount >= ship_x &&
              actual_hcount <  ship_x + SHIP_WIDTH &&

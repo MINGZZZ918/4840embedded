@@ -161,7 +161,7 @@ module vga_ball(
                 6'd36: enemy_active      <= writedata[1:0];
                 // 敌人子弹激活位图
                 6'd61: enemy_bullet_active <= writedata[MAX_ENEMY_BULLETS-1:0];
-                // 其余寄存器……
+                // 其余寄存器
                 default: ;
             endcase
         end

@@ -7,12 +7,7 @@
    <irq preferredWidth="34" />
   </columns>
  </systemtable>
-<<<<<<< HEAD
  <library
    expandedCategories="Library/Processors and Peripherals/Hard Processor Components,Library,Library/Processors and Peripherals,Project,Library/Processors and Peripherals/Hard Processor Systems" />
  <window width="1224" height="800" x="128" y="309" />
-=======
- <library expandedCategories="Project/Other,Library,Project" />
- <window width="1512" height="955" x="0" y="27" />
->>>>>>> e9fc629bc53b4a17688fe9c82358ae1f5f148d3f
 </preferences>

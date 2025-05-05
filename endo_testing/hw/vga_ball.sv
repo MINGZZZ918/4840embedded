@@ -353,4 +353,5 @@ module vga_counters(
     assign VGA_BLANK_n= !(hcount[10] & (hcount[9] | hcount[8])) &
                         !(vcount[9] | (vcount[8:5] == 4'b1111));
     assign VGA_CLK    = hcount[0];
+    
 endmodule

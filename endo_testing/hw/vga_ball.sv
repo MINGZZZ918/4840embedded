@@ -62,6 +62,7 @@ module vga_ball(
 
     logic [11:0]    rom_address;
     logic [31:0]    rom_q;
+    
     rom_sprites_altsyncram rom_sprites (
         .address_a(rom_address),
         .clock0(clk),

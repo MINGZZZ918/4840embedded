@@ -1,357 +1,223 @@
-/*
- * Avalon memory-mapped peripheral for VGA Ball Game (with ROM-based sprites)
- */
-
 module vga_ball(
     input  logic        clk,
     input  logic        reset,
-
-    // Avalon-MM write interface
-    input  logic [7:0]  writedata,
+    input  logic [31:0] writedata,  // 改为32位宽度
     input  logic        write,
     input  logic        chipselect,
-    input  logic [5:0]  address,
+    input  logic [4:0]  address,    // 由于一次传32位，地址空间可以减小
 
-    // VGA outputs
     output logic [7:0]  VGA_R, VGA_G, VGA_B,
     output logic        VGA_CLK, VGA_HS, VGA_VS,
-                        VGA_BLANK_n, VGA_SYNC_n
+                        VGA_BLANK_n,
+    output logic        VGA_SYNC_n
 );
 
-    // ----------------------------------------------------------------
-    // Parameters
-    // ----------------------------------------------------------------
-    parameter MAX_BULLETS        = 5;
-    parameter MAX_ENEMY_BULLETS  = 6;
-    parameter IMAGE_WIDTH        = 64;
-    parameter IMAGE_HEIGHT       = 64;
-    parameter SHIP_WIDTH         = 16;
-    parameter SHIP_HEIGHT        = 16;
-    parameter BULLET_SIZE        = 4;
-    parameter ENEMY_WIDTH        = 16;
-    parameter ENEMY_HEIGHT       = 16;
-    parameter ENEMY_BULLET_SIZE  = 4;
-
-    // ----------------------------------------------------------------
-    // Internal signals
-    // ----------------------------------------------------------------
+    // 常量定义
+    parameter MAX_OBJECTS = 20;    // 飞船(1) + 敌人(2) + 玩家子弹(5) + 敌人子弹(6) + 预留(6)，可以增加改成敌人
+    parameter SPRITE_WIDTH = 16;   // 所有精灵标准宽度
+    parameter SPRITE_HEIGHT = 16;  // 所有精灵标准高度
+    parameter SHIP_SPRITE_INDEX = 0;  // 飞船的精灵索引
+    parameter ENEMY_SPRITE_START = 1; // 敌人精灵索引开始，预设十六个敌人
+    parameter BULLET_SPRITE_START = 17; // 子弹精灵索引开始 ，可以增加 MAX_OBJECTS来增加 bullet 数量
     logic [10:0]    hcount;
     logic [9:0]     vcount;
 
+    // Background color
     logic [7:0]     background_r, background_g, background_b;
-
-    logic [10:0]    ship_x;
-    logic [9:0]     ship_y;
-
-    logic [10:0]    bullet_x[MAX_BULLETS];
-    logic [9:0]     bullet_y[MAX_BULLETS];
-    logic [MAX_BULLETS-1:0] bullet_active;
-
-    logic [10:0]    enemy_x[2];
-    logic [9:0]     enemy_y[2];
-    logic [1:0]     enemy_active;
-
-    logic [10:0]    enemy_bullet_x[MAX_ENEMY_BULLETS];
-    logic [9:0]     enemy_bullet_y[MAX_ENEMY_BULLETS];
-    logic [MAX_ENEMY_BULLETS-1:0] enemy_bullet_active;
-
-    logic [10:0]    image_x;
-    logic [9:0]     image_y;
-    logic           image_display;
-    logic [7:0]     image_data[IMAGE_HEIGHT][IMAGE_WIDTH][3];
-
-    logic [11:0]    rom_address;
-    logic [31:0]    rom_q;
     
-    rom_sprites_altsyncram rom_sprites (
-        .address_a(rom_address),
-        .clock0(clk),
-        .q_a(rom_q)
+    // 游戏对象数组，每个对象包含位置和精灵信息（不懂）
+    logic [11:0]    obj_x[MAX_OBJECTS]; // 12位x坐标
+    logic [11:0]    obj_y[MAX_OBJECTS]; // 12位y坐标
+    logic [5:0]     obj_sprite[MAX_OBJECTS]; // 6位精灵索引，所以最多是64个精灵（bullet+ship+enemy）
+    logic           obj_active[MAX_OBJECTS]; // 活动状态位
+    
+    // 精灵渲染相关
+    localparam int SPRITE_SIZE      = SPRITE_WIDTH * SPRITE_HEIGHT; // 16*16=256
+    logic [11:0]    sprite_address;
+    logic [23:0]    sprite_data;   // 模拟的精灵RGB数据
+    
+    sprite_images rom_sprites (
+        .address(sprite_address),
+        .clock(clk),
+        .q(sprite_data)
     );
+    // Instantiate VGA counter module
+    vga_counters counters(.clk50(clk), .*);
 
-    logic [10:0]    actual_hcount;
-    logic [9:0]     actual_vcount;
-    assign actual_hcount = {1'b0, hcount[10:1]};
-    assign actual_vcount = vcount;
-
-    // ----------------------------------------------------------------
-    // Reset & Avalon-MM write logic
-    // ----------------------------------------------------------------
-    always_ff @(posedge clk) begin
+    // Register update logic
+    always_ff @(posedge clk) begin //initialize
         if (reset) begin
+            // 初始化背景色
             background_r <= 8'h00;
             background_g <= 8'h00;
-            background_b <= 8'h20;
-
-            ship_x <= 11'd200;
-            ship_y <= 10'd240;
-
-            for (int i = 0; i < MAX_BULLETS; i++) begin
-                bullet_x[i] <= 11'd0;
-                bullet_y[i] <= 10'd0;
+            background_b <= 8'h20;  // 深蓝色背景
+            
+            // 初始化所有对象
+            for (int i = 0; i < MAX_OBJECTS; i++) begin
+                obj_x[i] <= 12'd0;
+                obj_y[i] <= 12'd0;
+                obj_sprite[i] <= 6'd0;
+                obj_active[i] <= 1'b0;
             end
-            bullet_active <= '0;
+            
+            // 初始化玩家飞船
+            obj_x[0] <= 12'd200;
+            obj_y[0] <= 12'd240;
+            obj_sprite[0] <= SHIP_SPRITE_INDEX;
+            obj_active[0] <= 1'b1;
+            
+            // 初始化敌人
+            obj_x[1] <= 12'd800;
+            obj_y[1] <= 12'd150;
+            obj_sprite[1] <= ENEMY_SPRITE_START;
+            obj_active[1] <= 1'b1;
+            
+            obj_x[2] <= 12'd800;
+            obj_y[2] <= 12'd350;
+            obj_sprite[2] <= ENEMY_SPRITE_START;
+            obj_active[2] <= 1'b1;
+        end 
 
-            enemy_x[0] <= 11'd800;
-            enemy_x[1] <= 11'd800;
-            enemy_y[0] <= 10'd150;
-            enemy_y[1] <= 10'd350;
-            enemy_active <= 2'b11;
-
-            for (int i = 0; i < MAX_ENEMY_BULLETS; i++) begin
-                enemy_bullet_x[i] <= 11'd0;
-                enemy_bullet_y[i] <= 10'd0;
-            end
-            enemy_bullet_active <= '0;
-
-            image_x <= 11'd100;
-            image_y <= 10'd100;
-            image_display <= 1'b0;
-            for (int i = 0; i < IMAGE_HEIGHT; i++)
-                for (int j = 0; j < IMAGE_WIDTH; j++) begin
-                    image_data[i][j][0] <= 8'd0;
-                    image_data[i][j][1] <= 8'd0;
-                    image_data[i][j][2] <= 8'd0;
-                end
-        end
         else if (chipselect && write) begin
             case (address)
-                6'd0: background_r <= writedata;
-                6'd1: background_g <= writedata;
-                6'd2: background_b <= writedata;
-                6'd3: ship_x[7:0] <= writedata;
-                6'd4: ship_x[10:8] <= writedata[2:0];
-                6'd5: ship_y[7:0] <= writedata;
-                6'd6: ship_y[9:8] <= writedata[1:0];
-                6'd27: bullet_active <= writedata[MAX_BULLETS-1:0];
-                6'd28: enemy_x[0][7:0] <= writedata;
-                6'd29: enemy_x[0][10:8] <= writedata[2:0];
-                6'd30: enemy_y[0][7:0] <= writedata;
-                6'd31: enemy_y[0][9:8] <= writedata[1:0];
-                6'd32: enemy_x[1][7:0] <= writedata;
-                6'd33: enemy_x[1][10:8] <= writedata[2:0];
-                6'd34: enemy_y[1][7:0] <= writedata;
-                6'd35: enemy_y[1][9:8] <= writedata[1:0];
-                6'd36: enemy_active <= writedata[1:0];
-                6'd61: enemy_bullet_active <= writedata[MAX_ENEMY_BULLETS-1:0];
-                6'd62: image_x[7:0] <= writedata;
-                6'd63: image_x[10:8] <= writedata[2:0];
+                // 设置背景色 - 使用一个32位写入
+                5'd0: {background_r, background_g, background_b} <= writedata[23:0];
+                
+                // 对象数据更新 - 地址1到MAX_OBJECTS对应各个对象
                 default: begin
-                    // Player bullet positions
-                    if (address >= 6'd7 && address < 6'd7 + 4*MAX_BULLETS) begin
-                        int player_idx;
-                        int player_reg;
-                        player_idx = (address - 6'd7) / 4;
-                        player_reg = (address - 6'd7) % 4;
-                        case (player_reg)
-                            0: bullet_x[player_idx][7:0] <= writedata;
-                            1: bullet_x[player_idx][10:8] <= writedata[2:0];
-                            2: bullet_y[player_idx][7:0] <= writedata;
-                            3: bullet_y[player_idx][9:8] <= writedata[1:0];
-                        endcase
-                    end
-                    // Enemy bullet positions
-                    else if (address >= 6'd37 && address < 6'd37 + 4*MAX_ENEMY_BULLETS) begin
-                        int enemy_idx;
-                        int enemy_reg;
-                        enemy_idx = (address - 6'd37) / 4;
-                        enemy_reg = (address - 6'd37) % 4;
-                        case (enemy_reg)
-                            0: enemy_bullet_x[enemy_idx][7:0] <= writedata;
-                            1: enemy_bullet_x[enemy_idx][10:8] <= writedata[2:0];
-                            2: enemy_bullet_y[enemy_idx][7:0] <= writedata;
-                            3: enemy_bullet_y[enemy_idx][9:8] <= writedata[1:0];
-                        endcase
+                    if (address >= 5'd1 && address <= 5'd1 + MAX_OBJECTS - 1) begin //最先打印的是 bg，然后先传 ship，再传敌人，再传子弹
+                        int obj_idx = address - 5'd1;
+                        // 解析32位数据
+                        obj_x[obj_idx] <= writedata[31:20];     // 高12位是x坐标
+                        obj_y[obj_idx] <= writedata[19:8];      // 接下来12位是y坐标
+                        obj_sprite[obj_idx] <= writedata[7:2];  // 接下来6位是精灵索引
+                        obj_active[obj_idx] <= writedata[1];    // 接下来1位是活动状态
+                        // 最低位保留，不使用
                     end
                 end
             endcase
         end
     end
 
-    // ----------------------------------------------------------------
-    // Sprite & image on-screen detection
-    // ----------------------------------------------------------------
-    // Ship display
-    logic         ship_on;
-    logic [3:0]   rel_x, rel_y;
+    // 渲染逻辑 - 确定当前像素属于哪个对象
+    logic [4:0] active_obj_idx;
+    logic obj_visible;
+    logic [3:0] rel_x, rel_y;
+    
     always_comb begin
-        ship_on = 0;
-        rel_x = 0; rel_y = 0;
-        if (actual_hcount >= ship_x && actual_hcount < ship_x + SHIP_WIDTH &&
-            actual_vcount >= ship_y && actual_vcount < ship_y + SHIP_HEIGHT) begin
-            rel_x = actual_hcount - ship_x;
-            rel_y = actual_vcount - ship_y;
-            if (rel_x < SHIP_WIDTH && rel_y < SHIP_HEIGHT)
-                ship_on = 1;
+        obj_visible = 1'b0;
+        active_obj_idx = 5'd0;
+        rel_x = 4'd0;
+        rel_y = 4'd0;
+        
+        // 从高优先级到低优先级检查对象（最后绘制的对象优先级最高）
+        for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
+            if (obj_active[i] && 
+                hcount[10:1] >= obj_x[i] && 
+                hcount[10:1] < obj_x[i] + SPRITE_WIDTH &&
+                vcount >= obj_y[i] && 
+                vcount < obj_y[i] + SPRITE_HEIGHT) begin
+                
+                active_obj_idx = i[4:0];
+                rel_x = hcount[10:1] - obj_x[i][11:0];
+                rel_y = vcount - obj_y[i][11:0];
+                obj_visible = 1'b1;
+                break;  // 找到显示对象，退出循环
+            end
+        end
+    end
+    
+    //  用 ROM 真正打印 sprite
+    always_comb begin
+        // 默认透明
+        sprite_address = 12'd0;
+        // sprite_data 已由 ROM IP 更新
+
+        if (obj_visible) begin
+            // 计算这帧要读的 ROM 地址：
+            // base = sprite_index * 256
+            // offset = rel_y*16 + rel_x
+            sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE
+                           + rel_y * SPRITE_WIDTH
+                           + rel_x;
         end
     end
 
-    // Enemy display
-    logic         enemy_on;
-    logic [3:0]   enemy_rel_x, enemy_rel_y;
-    logic [0:0]   current_enemy;
+    // VGA output logic
     always_comb begin
-        enemy_on = 0;
-        enemy_rel_x = 0; enemy_rel_y = 0;
-        current_enemy = 0;
-        for (int i = 0; i < 2; i++) begin
-            if (enemy_active[i] &&
-                actual_hcount >= enemy_x[i] && actual_hcount < enemy_x[i] + ENEMY_WIDTH &&
-                actual_vcount >= enemy_y[i] && actual_vcount < enemy_y[i] + ENEMY_HEIGHT) begin
-                enemy_rel_x = actual_hcount - enemy_x[i];
-                enemy_rel_y = actual_vcount - enemy_y[i];
-                if (enemy_rel_x < ENEMY_WIDTH && enemy_rel_y < ENEMY_HEIGHT) begin
-                    enemy_on = 1;
-                    current_enemy = i;
+        {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h00, 8'h00}; // 默认黑色
+        
+        if (VGA_BLANK_n) begin
+            // 背景色
+            {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
+            
+            // 如果当前像素属于某个对象且对象是可见的，则显示对象的像素
+            if (obj_visible) begin
+                // 从sprite_data中获取RGB值
+                VGA_R = sprite_data[23:16]; // 高8位是R，sprite_data就是 readdate
+                VGA_G = sprite_data[15:8];  // 中8位是G
+                VGA_B = sprite_data[7:0];   // 低8位是B
+                
+                // 如果像素是透明色(全黑)，显示背景
+                if (sprite_data == 24'h0) begin
+                    {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
                 end
             end
         end
     end
-
-    // Bullets (unchanged)
-    logic bullet_on;
-    always_comb begin
-        bullet_on = 0;
-        for (int i = 0; i < MAX_BULLETS; i++) begin
-            if (bullet_active[i] &&
-                actual_hcount >= bullet_x[i] && actual_hcount < bullet_x[i] + BULLET_SIZE &&
-                actual_vcount >= bullet_y[i] && actual_vcount < bullet_y[i] + BULLET_SIZE &&
-                bullet_x[i] < 11'd1280)
-                bullet_on = 1;
-        end
-    end
-
-    logic enemy_bullet_on;
-    always_comb begin
-        enemy_bullet_on = 0;
-        for (int i = 0; i < MAX_ENEMY_BULLETS; i++) begin
-            if (enemy_bullet_active[i] &&
-                actual_hcount >= enemy_bullet_x[i] && actual_hcount < enemy_bullet_x[i] + ENEMY_BULLET_SIZE &&
-                actual_vcount >= enemy_bullet_y[i] && actual_vcount < enemy_bullet_y[i] + ENEMY_BULLET_SIZE)
-                enemy_bullet_on = 1;
-        end
-    end
-
-    // Image display (unchanged)
-    logic image_on;
-    logic [7:0] image_pixel_r, image_pixel_g, image_pixel_b;
-    logic [5:0] img_x, img_y;
-    always_comb begin
-        image_on = 0;
-        img_x = 0; img_y = 0;
-        image_pixel_r = 0; image_pixel_g = 0; image_pixel_b = 0;
-        if (image_display &&
-            actual_hcount >= image_x && actual_hcount < image_x + IMAGE_WIDTH &&
-            actual_vcount >= image_y && actual_vcount < image_y + IMAGE_HEIGHT) begin
-            img_x = actual_hcount - image_x;
-            img_y = actual_vcount - image_y;
-            if (img_x < IMAGE_WIDTH && img_y < IMAGE_HEIGHT) begin
-                image_pixel_r = image_data[img_y][img_x][0];
-                image_pixel_g = image_data[img_y][img_x][1];
-                image_pixel_b = image_data[img_y][img_x][2];
-                if (|{image_pixel_r, image_pixel_g, image_pixel_b})
-                    image_on = 1;
-            end
-        end
-    end
-
-    // ----------------------------------------------------------------
-    // Sprite ROM address & pixel extraction
-    // ----------------------------------------------------------------
-    logic [7:0] sprite_pixel_r, sprite_pixel_g, sprite_pixel_b;
-    always_comb begin
-        rom_address = 12'd0;
-        sprite_pixel_r = 8'd0;
-        sprite_pixel_g = 8'd0;
-        sprite_pixel_b = 8'd0;
-
-        // Ship uses sprite index 0
-        if (ship_on) begin
-            rom_address = rel_y * SHIP_WIDTH + rel_x;
-            sprite_pixel_r = rom_q[23:16];
-            sprite_pixel_g = rom_q[15:8];
-            sprite_pixel_b = rom_q[7:0];
-        end
-        // Enemy uses sprite index = 1 + current_enemy
-        else if (enemy_on) begin
-            rom_address = 12'd256 + current_enemy * 12'd256 + enemy_rel_y * ENEMY_WIDTH + enemy_rel_x;
-            sprite_pixel_r = rom_q[23:16];
-            sprite_pixel_g = rom_q[15:8];
-            sprite_pixel_b = rom_q[7:0];
-        end
-    end
-
-    // ----------------------------------------------------------------
-    // VGA output & layering
-    // ----------------------------------------------------------------
-    always_comb begin
-        {VGA_R, VGA_G, VGA_B} = 24'h000000;
-        if (VGA_BLANK_n) begin
-            // Background
-            {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
-
-            // Image
-            if (image_on)
-                {VGA_R, VGA_G, VGA_B} = {image_pixel_r, image_pixel_g, image_pixel_b};
-
-            // Enemy sprite
-            if (enemy_on)
-                {VGA_R, VGA_G, VGA_B} = {sprite_pixel_r, sprite_pixel_g, sprite_pixel_b};
-
-            // Ship sprite
-            if (ship_on)
-                {VGA_R, VGA_G, VGA_B} = {sprite_pixel_r, sprite_pixel_g, sprite_pixel_b};
-
-            // Player bullet
-            if (bullet_on)
-                {VGA_R, VGA_G, VGA_B} = {8'hFF, 8'hFF, 8'h00};
-
-            // Enemy bullet
-            if (enemy_bullet_on)
-                {VGA_R, VGA_G, VGA_B} = {8'hFF, 8'h40, 8'h00};
-        end
-    end
-
 endmodule
 
-// VGA timing generator unchanged
+// VGA timing generator module
 module vga_counters(
     input logic        clk50, reset,
-    output logic [10:0] hcount,
-    output logic [9:0]  vcount,
+    output logic [10:0] hcount,  // hcount是像素列，hcount[10:1]是实际显示的像素位置
+    output logic [9:0]  vcount,  // vcount是像素行
     output logic        VGA_CLK, VGA_HS, VGA_VS, VGA_BLANK_n, VGA_SYNC_n
 );
-    parameter HACTIVE      = 11'd1280,
-              HFRONT_PORCH = 11'd32,
-              HSYNC        = 11'd192,
-              HBACK_PORCH  = 11'd96,
-              HTOTAL       = HACTIVE + HFRONT_PORCH + HSYNC + HBACK_PORCH;
-    parameter VACTIVE      = 10'd480,
-              VFRONT_PORCH = 10'd10,
-              VSYNC        = 10'd2,
-              VBACK_PORCH  = 10'd33,
-              VTOTAL       = VACTIVE + VFRONT_PORCH + VSYNC + VBACK_PORCH;
 
-    logic endOfLine, endOfField;
+    // Parameters for hcount
+    parameter HACTIVE      = 11'd 1280,
+              HFRONT_PORCH = 11'd 32,
+              HSYNC        = 11'd 192,
+              HBACK_PORCH  = 11'd 96,   
+              HTOTAL       = HACTIVE + HFRONT_PORCH + HSYNC + HBACK_PORCH; // 1600
+    
+    // Parameters for vcount
+    parameter VACTIVE      = 10'd 480,
+              VFRONT_PORCH = 10'd 10,
+              VSYNC        = 10'd 2,
+              VBACK_PORCH  = 10'd 33,
+              VTOTAL       = VACTIVE + VFRONT_PORCH + VSYNC + VBACK_PORCH; // 525
+
+    logic endOfLine;
+    
     always_ff @(posedge clk50 or posedge reset)
-        if (reset) hcount <= 0;
+        if (reset)          hcount <= 0;
         else if (endOfLine) hcount <= 0;
-        else hcount <= hcount + 1;
-    assign endOfLine = (hcount == HTOTAL - 1);
+        else                hcount <= hcount + 11'd 1;
 
+    assign endOfLine = hcount == HTOTAL - 1;
+        
+    logic endOfField;
+    
     always_ff @(posedge clk50 or posedge reset)
-        if (reset) vcount <= 0;
-        else if (endOfLine) begin
+        if (reset)          vcount <= 0;
+        else if (endOfLine)
             if (endOfField) vcount <= 0;
-            else vcount <= vcount + 1;
-        end
-    assign endOfField = (vcount == VTOTAL - 1);
+            else            vcount <= vcount + 10'd 1;
 
-    assign VGA_HS     = !((hcount[10:8] == 3'b101) & !(hcount[7:5] == 3'b111));
-    assign VGA_VS     = !(vcount[9:1] == (VACTIVE + VFRONT_PORCH) / 2);
-    assign VGA_SYNC_n = 1'b0;
-    assign VGA_BLANK_n= !(hcount[10] & (hcount[9] | hcount[8])) &
-                        !(vcount[9] | (vcount[8:5] == 4'b1111));
-    assign VGA_CLK    = hcount[0];
+    assign endOfField = vcount == VTOTAL - 1;
+
+    // Horizontal sync: from 0x520 to 0x5DF (0x57F)
+    assign VGA_HS = !( (hcount[10:8] == 3'b101) & !(hcount[7:5] == 3'b111));
+    assign VGA_VS = !( vcount[9:1] == (VACTIVE + VFRONT_PORCH) / 2);
+
+    assign VGA_SYNC_n = 1'b0; // For putting sync on the green signal; unused
+    
+    // Horizontal active: 0 to 1279     Vertical active: 0 to 479
+    assign VGA_BLANK_n = !( hcount[10] & (hcount[9] | hcount[8]) ) &
+                        !( vcount[9] | (vcount[8:5] == 4'b1111) );
+
+    assign VGA_CLK = hcount[0]; // 25 MHz clock: rising edge sensitive
     
 endmodule

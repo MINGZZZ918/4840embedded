@@ -35,48 +35,39 @@ module vga_ball(
     // ----------------------------------------------------------------
     // Internal signals
     // ----------------------------------------------------------------
-    // VGA scan counters
     logic [10:0]    hcount;
     logic [9:0]     vcount;
 
-    // Background color
     logic [7:0]     background_r, background_g, background_b;
 
-    // Ship position
     logic [10:0]    ship_x;
     logic [9:0]     ship_y;
 
-    // Player bullets
     logic [10:0]    bullet_x[MAX_BULLETS];
     logic [9:0]     bullet_y[MAX_BULLETS];
     logic [MAX_BULLETS-1:0] bullet_active;
 
-    // Enemies (2)
     logic [10:0]    enemy_x[2];
     logic [9:0]     enemy_y[2];
     logic [1:0]     enemy_active;
 
-    // Enemy bullets
     logic [10:0]    enemy_bullet_x[MAX_ENEMY_BULLETS];
     logic [9:0]     enemy_bullet_y[MAX_ENEMY_BULLETS];
     logic [MAX_ENEMY_BULLETS-1:0] enemy_bullet_active;
 
-    // Arbitrary image data (unchanged)
     logic [10:0]    image_x;
     logic [9:0]     image_y;
     logic           image_display;
     logic [7:0]     image_data[IMAGE_HEIGHT][IMAGE_WIDTH][3];
 
-    // ROM-based sprites interface
     logic [11:0]    rom_address;
     logic [31:0]    rom_q;
     rom_sprites_altsyncram rom_sprites (
         .address_a(rom_address),
         .clock0(clk),
-        .q_a(q_a)
+        .q_a(rom_q)
     );
 
-    // Derived pixel coordinates
     logic [10:0]    actual_hcount;
     logic [9:0]     actual_vcount;
     assign actual_hcount = {1'b0, hcount[10:1]};
@@ -87,45 +78,39 @@ module vga_ball(
     // ----------------------------------------------------------------
     always_ff @(posedge clk) begin
         if (reset) begin
-            // Background
             background_r <= 8'h00;
             background_g <= 8'h00;
             background_b <= 8'h20;
 
-            // Ship default position
             ship_x <= 11'd200;
             ship_y <= 10'd240;
 
-            // Clear bullets
             for (int i = 0; i < MAX_BULLETS; i++) begin
                 bullet_x[i] <= 11'd0;
                 bullet_y[i] <= 10'd0;
             end
             bullet_active <= '0;
 
-            // Enemies
             enemy_x[0] <= 11'd800;
             enemy_x[1] <= 11'd800;
             enemy_y[0] <= 10'd150;
             enemy_y[1] <= 10'd350;
             enemy_active <= 2'b11;
 
-            // Enemy bullets
             for (int i = 0; i < MAX_ENEMY_BULLETS; i++) begin
                 enemy_bullet_x[i] <= 11'd0;
                 enemy_bullet_y[i] <= 10'd0;
             end
             enemy_bullet_active <= '0;
 
-            // Image data init
             image_x <= 11'd100;
             image_y <= 10'd100;
             image_display <= 1'b0;
             for (int i = 0; i < IMAGE_HEIGHT; i++)
                 for (int j = 0; j < IMAGE_WIDTH; j++) begin
-                    image_data[i][j][0] <= 8'd0; // R
-                    image_data[i][j][1] <= 8'd0; // G
-                    image_data[i][j][2] <= 8'd0; // B
+                    image_data[i][j][0] <= 8'd0;
+                    image_data[i][j][1] <= 8'd0;
+                    image_data[i][j][2] <= 8'd0;
                 end
         end
         else if (chipselect && write) begin
@@ -137,11 +122,7 @@ module vga_ball(
                 6'd4: ship_x[10:8] <= writedata[2:0];
                 6'd5: ship_y[7:0] <= writedata;
                 6'd6: ship_y[9:8] <= writedata[1:0];
-
-                // Bullet flags
                 6'd27: bullet_active <= writedata[MAX_BULLETS-1:0];
-
-                // Enemy pos/status
                 6'd28: enemy_x[0][7:0] <= writedata;
                 6'd29: enemy_x[0][10:8] <= writedata[2:0];
                 6'd30: enemy_y[0][7:0] <= writedata;
@@ -151,35 +132,34 @@ module vga_ball(
                 6'd34: enemy_y[1][7:0] <= writedata;
                 6'd35: enemy_y[1][9:8] <= writedata[1:0];
                 6'd36: enemy_active <= writedata[1:0];
-
-                // Enemy bullet flags
                 6'd61: enemy_bullet_active <= writedata[MAX_ENEMY_BULLETS-1:0];
-
-                // Image x
                 6'd62: image_x[7:0] <= writedata;
                 6'd63: image_x[10:8] <= writedata[2:0];
-
                 default: begin
                     // Player bullet positions
                     if (address >= 6'd7 && address < 6'd7 + 4*MAX_BULLETS) begin
-                        int idx = (address - 6'd7) / 4;
-                        int reg = (address - 6'd7) % 4;
-                        case (reg)
-                            0: bullet_x[idx][7:0] <= writedata;
-                            1: bullet_x[idx][10:8] <= writedata[2:0];
-                            2: bullet_y[idx][7:0] <= writedata;
-                            3: bullet_y[idx][9:8] <= writedata[1:0];
+                        int player_idx;
+                        int player_reg;
+                        player_idx = (address - 6'd7) / 4;
+                        player_reg = (address - 6'd7) % 4;
+                        case (player_reg)
+                            0: bullet_x[player_idx][7:0] <= writedata;
+                            1: bullet_x[player_idx][10:8] <= writedata[2:0];
+                            2: bullet_y[player_idx][7:0] <= writedata;
+                            3: bullet_y[player_idx][9:8] <= writedata[1:0];
                         endcase
                     end
                     // Enemy bullet positions
                     else if (address >= 6'd37 && address < 6'd37 + 4*MAX_ENEMY_BULLETS) begin
-                        int eidx = (address - 6'd37) / 4;
-                        int ereg = (address - 6'd37) % 4;
-                        case (ereg)
-                            0: enemy_bullet_x[eidx][7:0] <= writedata;
-                            1: enemy_bullet_x[eidx][10:8] <= writedata[2:0];
-                            2: enemy_bullet_y[eidx][7:0] <= writedata;
-                            3: enemy_bullet_y[eidx][9:8] <= writedata[1:0];
+                        int enemy_idx;
+                        int enemy_reg;
+                        enemy_idx = (address - 6'd37) / 4;
+                        enemy_reg = (address - 6'd37) % 4;
+                        case (enemy_reg)
+                            0: enemy_bullet_x[enemy_idx][7:0] <= writedata;
+                            1: enemy_bullet_x[enemy_idx][10:8] <= writedata[2:0];
+                            2: enemy_bullet_y[enemy_idx][7:0] <= writedata;
+                            3: enemy_bullet_y[enemy_idx][9:8] <= writedata[1:0];
                         endcase
                     end
                 end
@@ -333,10 +313,7 @@ module vga_ball(
 
 endmodule
 
-
-// ------------------------------------------------------------------------
-// VGA timing generator (unchanged)
-// ------------------------------------------------------------------------
+// VGA timing generator unchanged
 module vga_counters(
     input logic        clk50, reset,
     output logic [10:0] hcount,

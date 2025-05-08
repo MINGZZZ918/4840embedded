@@ -126,9 +126,6 @@ static gamestate vb_arg;
 */
 static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
-
-    int random_bg_enable;
-
     switch (cmd) {
         case VGA_BALL_UPDATE_GAME_STATE:
             if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))

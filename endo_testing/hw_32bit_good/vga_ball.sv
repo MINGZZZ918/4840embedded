@@ -25,6 +25,18 @@ module vga_ball(
     logic [10:0]    hcount;
     logic [9:0]     vcount;
 
+    // === Line-buffer 控制信号 ===
+    logic        vga_frame_start, row_start;
+    logic        pixel_we;
+    logic [9:0]  draw_x, draw_y;
+    logic        current_buffer, draw_buffer;
+    parameter HACTIVE = 11'd640;
+    parameter VACTIVE = 10'd480;
+
+    // 双缓冲数组：存每个像素的对象标志和精灵索引
+    logic [11:0] buf0 [0:HACTIVE-1][0:VACTIVE-1];
+    logic [11:0] buf1 [0:HACTIVE-1][0:VACTIVE-1];
+
     // Background color
     logic [7:0]     background_r, background_g, background_b;
     
@@ -104,6 +116,53 @@ module vga_ball(
     assign sprite_data = rom_data[23:0];
     // Instantiate VGA counter module
     vga_counters counters(.clk50(clk), .*);
+
+    // --- 帧/行 起始脉冲 ---
+    always_ff @(posedge clk) begin
+        if (reset) begin
+            vga_frame_start <= 0;
+            row_start       <= 0;
+        end else begin
+            vga_frame_start <= (hcount == 0) && (vcount == 0);
+            row_start       <= (hcount == 0);
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if (reset) begin
+            current_buffer <= 0;
+            draw_buffer    <= 1;
+        end else if (vga_frame_start) begin
+            current_buffer <= ~current_buffer;
+            draw_buffer    <= ~draw_buffer;
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if (reset) begin
+            draw_x   <= 0;
+            draw_y   <= 0;
+            pixel_we <= 0;
+        end else if (vga_frame_start) begin
+            draw_x   <= 0;
+            draw_y   <= 0;
+            pixel_we <= 1;
+        end else if (pixel_we) begin
+            if (draw_x < HACTIVE-1) begin
+                draw_x <= draw_x + 1;
+            end else begin
+                draw_x <= 0;
+                if (draw_y < VACTIVE-1) begin
+                    draw_y <= draw_y + 1;
+                end else begin
+                    pixel_we <= 0;
+                end
+            end
+        end
+    end
+
+
+
 
     // Register update logic
     always_ff @(posedge clk) begin
@@ -292,8 +351,6 @@ module vga_ball(
         end
     end
 
-
-
     // 敌人显示逻辑
     logic enemy_on;
     logic [1:0] enemy_pixel_value;
@@ -402,44 +459,90 @@ module vga_ball(
         end
     end
 
-    // VGA output logic
-    always_comb begin
-        {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h00, 8'h00}; // 默认黑色
-        
-        if (VGA_BLANK_n) begin
-            // 背景色
-            {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
-            
-            // 图片显示 (优先级高于背景，低于其他游戏对象)
-            if (image_on) begin
-                {VGA_R, VGA_G, VGA_B} = sprite_data;
-            end
-            
-            // 敌人显示
-            if (enemy_on) begin
-                {VGA_R, VGA_G, VGA_B} = sprite_data;
-            end
-            
-            // 飞船显示 (优先级高于敌人)
+    // ------------------------------------------------------------------
+    // Step 5: 行缓冲（line buffer）写入逻辑
+    // ------------------------------------------------------------------
+    always_ff @(posedge clk) begin
+        if (reset) begin
+            // nothing
+        end
+        else if (pixel_we) begin
+            // 1) 先计算 pixel_data：优先级 ship > enemy > bullet > enemy_bullet > image
+            logic [11:0] pixel_data = 12'h000;  
+
+            // 飞船（sprite_idx=0, obj_id=0）
             if (ship_on) begin
-                {VGA_R, VGA_G, VGA_B} = sprite_data;
+                pixel_data = {1'b1, 6'd0, 5'd0};
             end
-            
-            // 玩家子弹显示 (优先级高于飞船)
-            if (bullet_on) begin
-                {VGA_R, VGA_G, VGA_B} = sprite_data;
+            // 敌人（sprite_idx=1, obj_id=current_enemy）
+            else if (enemy_on) begin
+                pixel_data = {1'b1, 6'd1, current_enemy};
             end
-            
-            // 敌人子弹显示 (与玩家子弹同优先级)
-            if (enemy_bullet_on) begin
-                {VGA_R, VGA_G, VGA_B} = sprite_data;
+            // 玩家子弹（sprite_idx=2, obj_id=i）
+            else if (bullet_on) begin
+                for (int i = 0; i < MAX_BULLETS; i++) begin
+                    if (bullet_active[i] &&
+                        actual_hcount >= bullet_x[i] && actual_hcount < bullet_x[i] + BULLET_SIZE &&
+                        actual_vcount >= bullet_y[i] && actual_vcount < bullet_y[i] + BULLET_SIZE) begin
+                        pixel_data = {1'b1, 6'd2, i[4:0]};
+                        break;
+                    end
+                end
+            end
+            // 敌人子弹（sprite_idx=3, obj_id=j）
+            else if (enemy_bullet_on) begin
+                for (int j = 0; j < MAX_ENEMY_BULLETS; j++) begin
+                    if (enemy_bullet_active[j] &&
+                        actual_hcount >= enemy_bullet_x[j] && actual_hcount < enemy_bullet_x[j] + ENEMY_BULLET_SIZE &&
+                        actual_vcount >= enemy_bullet_y[j] && actual_vcount < enemy_bullet_y[j] + ENEMY_BULLET_SIZE) begin
+                        pixel_data = {1'b1, 6'd3, j[4:0]};
+                        break;
+                    end
+                end
+            end
+            // 图片（sprite_idx=4, obj_id=0）
+            else if (image_on) begin
+                pixel_data = {1'b1, 6'd4, 5'd0};
+            end
+
+            // 2) 写入到当前绘制缓冲区
+            if (draw_buffer == 1'b0) begin
+                buf0[draw_x][draw_y] <= pixel_data;
+            end else begin
+                buf1[draw_x][draw_y] <= pixel_data;
+            end
+        end
+    end
+
+
+    always_comb begin
+        logic [23:0] pixel_rgb;
+        // 默认全黑
+        VGA_R = 8'h00; VGA_G = 8'h00; VGA_B = 8'h00;
+
+        if (VGA_BLANK_n) begin
+            // 1) 先把背景色给上
+            {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
+
+            // 2) 如果在有效显示区域，就从当前缓冲区读
+            if (hcount < HACTIVE && vcount < VACTIVE) begin
+                if (current_buffer == 1'b0)
+                    pixel_rgb = buf0[hcount][vcount];  // bufX 存的就是 24-bit RGB
+                else
+                    pixel_rgb = buf1[hcount][vcount];
+            end else
+                pixel_rgb = 24'h000000;
+
+            // 3) 如果读到的是非背景像素，就覆盖输出
+            if (pixel_rgb != 24'h000000) begin
+                VGA_R = pixel_rgb[23:16];
+                VGA_G = pixel_rgb[15:8];
+                VGA_B = pixel_rgb[ 7:0];
             end
         end
     end
 
 endmodule
-
-
 
 // VGA timing generator module
 module vga_counters(
@@ -450,7 +553,7 @@ module vga_counters(
 );
 
     // Parameters for hcount
-    parameter HACTIVE      = 11'd 1280,
+    parameter HACTIVE      = 11'd 640,
               HFRONT_PORCH = 11'd 32,
               HSYNC        = 11'd 192,
               HBACK_PORCH  = 11'd 96,   

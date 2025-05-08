@@ -67,6 +67,41 @@ module vga_ball(
     // 0=黑色(透明), 1=绿色, 2=白色, 3=红色
     logic [1:0] enemy_pattern[16][16]; // 2位宽，支持4种颜色
     
+
+    //test
+    logic [7:0] rom_r, rom_g, rom_b;
+
+    assign {rom_r, rom_g, rom_b} = sprite_data;
+    logic [7:0] sprite_address;
+    logic [31:0] rom_data;
+    parameter ROM_X = 100;  // 固定显示位置
+    parameter ROM_Y = 100;
+
+    logic rom_on;
+    logic [3:0] rom_rel_x, rom_rel_y;
+    assign rom_on = (actual_hcount >= ROM_X && actual_hcount < ROM_X + 16 &&
+                    actual_vcount >= ROM_Y && actual_vcount < ROM_Y + 16);
+
+    assign rom_rel_x = actual_hcount - ROM_X;
+    assign rom_rel_y = actual_vcount - ROM_Y;
+
+    soc_system_rom_sprites sprite_images (
+        .address(sprite_address),
+        .clk(clk),
+        .readdata(rom_data),
+                // 以下是固定赋值
+        .byteenable (4'b1111),          // 使能全部字节
+        .chipselect (1'b1),             // 始终使能 ROM
+        .clken      (1'b1),             // 时钟使能开
+        .debugaccess(1'b0),             // 禁止调试访问
+        .freeze     (1'b0),             // 无冻结逻辑
+        .reset      (1'b0),             // 不复位
+        .reset_req  (1'b0),             // 无 reset 请求
+        .write      (1'b0),             // 不写入
+        .writedata  (32'b0)             // 写数据无效
+    );
+    logic [23:0] sprite_data;
+    assign sprite_data = rom_data[23:0];
     // Instantiate VGA counter module
     vga_counters counters(.clk50(clk), .*);
 
@@ -122,73 +157,6 @@ module vga_ball(
                 end
             end
             
-            // 上部 - 设置为红色(1)和白色(2)
-            ship_pattern[2][7] <= 2'b01; ship_pattern[2][8] <= 2'b01;
-            ship_pattern[3][6] <= 2'b01; ship_pattern[3][7] <= 2'b01; 
-            ship_pattern[3][8] <= 2'b01; ship_pattern[3][9] <= 2'b01;
-            
-            // 中部 - 主体为红色(1)，窗户为白色(2)，引擎为蓝色(3)
-            // 行4
-            ship_pattern[4][2] <= 2'b01; ship_pattern[4][3] <= 2'b01; ship_pattern[4][4] <= 2'b01;
-            ship_pattern[4][5] <= 2'b01; ship_pattern[4][6] <= 2'b01; ship_pattern[4][7] <= 2'b01;
-            ship_pattern[4][8] <= 2'b01; ship_pattern[4][9] <= 2'b01; ship_pattern[4][10] <= 2'b01;
-            ship_pattern[4][11] <= 2'b01; ship_pattern[4][12] <= 2'b01;
-            
-            // 行5
-            ship_pattern[5][1] <= 2'b01; ship_pattern[5][2] <= 2'b01; ship_pattern[5][3] <= 2'b01;
-            ship_pattern[5][4] <= 2'b01; ship_pattern[5][5] <= 2'b01; ship_pattern[5][6] <= 2'b01;
-            ship_pattern[5][7] <= 2'b10; ship_pattern[5][8] <= 2'b01; ship_pattern[5][9] <= 2'b01;
-            ship_pattern[5][10] <= 2'b01; ship_pattern[5][11] <= 2'b01; ship_pattern[5][12] <= 2'b01;
-            ship_pattern[5][13] <= 2'b01;
-            
-            // 行6
-            ship_pattern[6][0] <= 2'b01; ship_pattern[6][1] <= 2'b01; ship_pattern[6][2] <= 2'b01;
-            ship_pattern[6][3] <= 2'b01; ship_pattern[6][4] <= 2'b01; ship_pattern[6][5] <= 2'b01;
-            ship_pattern[6][6] <= 2'b01; ship_pattern[6][7] <= 2'b01; ship_pattern[6][8] <= 2'b01;
-            ship_pattern[6][9] <= 2'b01; ship_pattern[6][10] <= 2'b01; ship_pattern[6][11] <= 2'b01;
-            ship_pattern[6][12] <= 2'b01; ship_pattern[6][13] <= 2'b01; ship_pattern[6][14] <= 2'b11;
-            
-            // 行7
-            ship_pattern[7][0] <= 2'b01; ship_pattern[7][1] <= 2'b01; ship_pattern[7][2] <= 2'b01;
-            ship_pattern[7][3] <= 2'b01; ship_pattern[7][4] <= 2'b01; ship_pattern[7][5] <= 2'b01;
-            ship_pattern[7][6] <= 2'b01; ship_pattern[7][7] <= 2'b01; ship_pattern[7][8] <= 2'b01;
-            ship_pattern[7][9] <= 2'b01; ship_pattern[7][10] <= 2'b01; ship_pattern[7][11] <= 2'b01;
-            ship_pattern[7][12] <= 2'b01; ship_pattern[7][13] <= 2'b01; ship_pattern[7][14] <= 2'b11;
-            ship_pattern[7][15] <= 2'b11;
-            
-            // 行8
-            ship_pattern[8][0] <= 2'b01; ship_pattern[8][1] <= 2'b01; ship_pattern[8][2] <= 2'b01;
-            ship_pattern[8][3] <= 2'b01; ship_pattern[8][4] <= 2'b01; ship_pattern[8][5] <= 2'b01;
-            ship_pattern[8][6] <= 2'b01; ship_pattern[8][7] <= 2'b01; ship_pattern[8][8] <= 2'b01;
-            ship_pattern[8][9] <= 2'b01; ship_pattern[8][10] <= 2'b01; ship_pattern[8][11] <= 2'b01;
-            ship_pattern[8][12] <= 2'b01; ship_pattern[8][13] <= 2'b01; ship_pattern[8][14] <= 2'b11;
-            ship_pattern[8][15] <= 2'b11;
-            
-            // 行9
-            ship_pattern[9][0] <= 2'b01; ship_pattern[9][1] <= 2'b01; ship_pattern[9][2] <= 2'b01;
-            ship_pattern[9][3] <= 2'b01; ship_pattern[9][4] <= 2'b01; ship_pattern[9][5] <= 2'b01;
-            ship_pattern[9][6] <= 2'b01; ship_pattern[9][7] <= 2'b01; ship_pattern[9][8] <= 2'b01;
-            ship_pattern[9][9] <= 2'b01; ship_pattern[9][10] <= 2'b01; ship_pattern[9][11] <= 2'b01;
-            ship_pattern[9][12] <= 2'b01; ship_pattern[9][13] <= 2'b01; ship_pattern[9][14] <= 2'b11;
-            
-            // 行10
-            ship_pattern[10][1] <= 2'b01; ship_pattern[10][2] <= 2'b01; ship_pattern[10][3] <= 2'b01;
-            ship_pattern[10][4] <= 2'b01; ship_pattern[10][5] <= 2'b01; ship_pattern[10][6] <= 2'b01;
-            ship_pattern[10][7] <= 2'b10; ship_pattern[10][8] <= 2'b01; ship_pattern[10][9] <= 2'b01;
-            ship_pattern[10][10] <= 2'b01; ship_pattern[10][11] <= 2'b01; ship_pattern[10][12] <= 2'b01;
-            ship_pattern[10][13] <= 2'b01;
-            
-            // 行11
-            ship_pattern[11][2] <= 2'b01; ship_pattern[11][3] <= 2'b01; ship_pattern[11][4] <= 2'b01;
-            ship_pattern[11][5] <= 2'b01; ship_pattern[11][6] <= 2'b01; ship_pattern[11][7] <= 2'b01;
-            ship_pattern[11][8] <= 2'b01; ship_pattern[11][9] <= 2'b01; ship_pattern[11][10] <= 2'b01;
-            ship_pattern[11][11] <= 2'b01; ship_pattern[11][12] <= 2'b01;
-            
-            // 下部
-            ship_pattern[12][6] <= 2'b01; ship_pattern[12][7] <= 2'b01; ship_pattern[12][8] <= 2'b01;
-            ship_pattern[12][9] <= 2'b01;
-            ship_pattern[13][7] <= 2'b01; ship_pattern[13][8] <= 2'b01;
-
             // 初始化敌人像素艺术模式 - 全部初始化为0
             for (int y = 0; y < 16; y++) begin
                 for (int x = 0; x < 16; x++) begin
@@ -307,33 +275,24 @@ module vga_ball(
 
     always_comb begin
         ship_on = 0;
-        ship_pixel_value = 0;
         rel_x = 0;
         rel_y = 0;
-        
-        // 只有当像素坐标在飞船区域内时才显示飞船
-        // 通过直接比较整个坐标来确保唯一性
-        if (actual_hcount >= ship_x[10:0] && 
-            actual_hcount < ship_x[10:0] + SHIP_WIDTH &&
-            actual_vcount >= ship_y && 
-            actual_vcount < ship_y + SHIP_HEIGHT) begin
+        sprite_address = 8'd0;  // 默认值，避免 latch
+
+        if (actual_hcount >= ship_x && actual_hcount < ship_x + SHIP_WIDTH &&
+            actual_vcount >= ship_y && actual_vcount < ship_y + SHIP_HEIGHT) begin
             
-            // 计算当前像素在飞船图案中的相对位置
-            rel_x = actual_hcount - ship_x[10:0];
+            rel_x = actual_hcount - ship_x;
             rel_y = actual_vcount - ship_y;
             
-            // 确保相对坐标在有效范围内
             if (rel_x < SHIP_WIDTH && rel_y < SHIP_HEIGHT) begin
-                // 获取这个位置上的像素值
-                ship_pixel_value = ship_pattern[rel_y][rel_x];
-                
-                // 如果像素值不为0，则飞船在此位置显示
-                if (ship_pixel_value != 0) begin
-                    ship_on = 1;
-                end
+                sprite_address = rel_y * 16 + rel_x;
+                ship_on = (rom_data[23:0] != 24'h000000);  // 判断是否非透明像素
             end
         end
     end
+
+
 
     // 敌人显示逻辑
     logic enemy_on;
@@ -453,39 +412,27 @@ module vga_ball(
             
             // 图片显示 (优先级高于背景，低于其他游戏对象)
             if (image_on) begin
-                {VGA_R, VGA_G, VGA_B} = {image_pixel_r, image_pixel_g, image_pixel_b};
+                {VGA_R, VGA_G, VGA_B} = sprite_data;
             end
             
             // 敌人显示
             if (enemy_on) begin
-                // 根据敌人的像素值选择颜色
-                case (enemy_pixel_value)
-                    2'b01: {VGA_R, VGA_G, VGA_B} = {8'h20, 8'hE0, 8'h20}; // 绿色
-                    2'b10: {VGA_R, VGA_G, VGA_B} = {8'hFF, 8'hFF, 8'hFF}; // 白色
-                    2'b11: {VGA_R, VGA_G, VGA_B} = {8'hFF, 8'h20, 8'h20}; // 红色
-                    default: {VGA_R, VGA_G, VGA_B} = {8'h00, 8'hFF, 8'h00}; // 默认绿色
-                endcase
+                {VGA_R, VGA_G, VGA_B} = sprite_data;
             end
             
             // 飞船显示 (优先级高于敌人)
             if (ship_on) begin
-                // 根据船的像素值选择颜色
-                case (ship_pixel_value)
-                    2'b01: {VGA_R, VGA_G, VGA_B} = {8'hE0, 8'h40, 8'h20}; // 红色
-                    2'b10: {VGA_R, VGA_G, VGA_B} = {8'hFF, 8'hFF, 8'hFF}; // 白色
-                    2'b11: {VGA_R, VGA_G, VGA_B} = {8'h40, 8'hA0, 8'hFF}; // 蓝色
-                    default: {VGA_R, VGA_G, VGA_B} = {8'hFF, 8'hFF, 8'hFF}; // 默认白色
-                endcase
+                {VGA_R, VGA_G, VGA_B} = sprite_data;
             end
             
             // 玩家子弹显示 (优先级高于飞船)
             if (bullet_on) begin
-                {VGA_R, VGA_G, VGA_B} = {8'hFF, 8'hFF, 8'h00};  // 黄色子弹
+                {VGA_R, VGA_G, VGA_B} = sprite_data;
             end
             
             // 敌人子弹显示 (与玩家子弹同优先级)
             if (enemy_bullet_on) begin
-                {VGA_R, VGA_G, VGA_B} = {8'hFF, 8'h40, 8'h00};  // 橙色子弹
+                {VGA_R, VGA_G, VGA_B} = sprite_data;
             end
         end
     end

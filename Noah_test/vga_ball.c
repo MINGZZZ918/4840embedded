@@ -166,7 +166,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
     game_state.bullets = { 0 };    // All bullets initially inactive
     game_state.enemies = { 0 };     // All enemies initially inactive
 
-    int i, ret;
+    int ret;
 
     /* Register ourselves as a misc device */
     ret = misc_register(&vga_ball_misc_device);
@@ -193,8 +193,8 @@ static int __init vga_ball_probe(struct platform_device *pdev)
     }
         
     /* Set initial values */
-    write_background(&background);
-    write_all(&ship, bullets, enemies);
+    write_background(&game_state.background);
+    write_all(&game_state.ship, game_state.bullets, game_state.enemies);
     return 0;
 
 out_release_mem_region:

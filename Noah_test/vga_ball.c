@@ -21,8 +21,6 @@
 
 #define DRIVER_NAME "vga_ball"
 
-#define MAX_OBJECTS 20
-
 /* Device registers */
 #define BG_COLOR(x)      (x)
 #define OBJECT_DATA(x,i) ((x) + 1 + (i))
@@ -58,8 +56,6 @@ static void write_background(background_color *background)
  */
 static void write_object(int index, unsigned short x, unsigned short y, char sprite_idx, char active)
 {
-    // if (index < 0 || index >= MAX_OBJECTS)
-    //     return;
         
     // 构建32位对象数据
     u32 obj_data = ((u32)(x & 0xFFF) << 20) |   // x位置 (12位)

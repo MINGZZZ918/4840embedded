@@ -82,6 +82,9 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
     write_object(0,  ship->pos_x,  ship->pos_y, ship->sprite, ship->active);
     dev.ship = *ship;
 
+    printk(KERN_INFO "%d, %d \n", game_state->ship.pos_x, game_state->ship.pos_y);
+
+
     for (i = 0; i < MAX_BULLETS; i++) {
 
         bul = &bullets[i];
@@ -117,7 +120,6 @@ static void update_game_state(gamestate *game_state)
 
     write_all(&game_state->ship, game_state->bullets, game_state->enemies);
 
-    printk(KERN_INFO "%d, %d \n", game_state->ship.pos_x, game_state->ship.pos_y);
 }
 
 
@@ -161,12 +163,12 @@ static struct miscdevice vga_ball_misc_device = {
 static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
-    game_state.background = { 0x00, 0x00, 0x20 }; // Dark blue
-    game_state.ship = {.pos_x = 300, .pos_y = 300, .velo_x = 0, .velo_y = 0, .lives = 0, .num_bullets = 0, .sprite = 0, .active = 1};
-    game_state.bullets = { 0 };    // All bullets initially inactive
-    game_state.enemies = { 0 };     // All enemies initially inactive
+    background_color background = { 0x00, 0x00, 0x20 }; // Dark blue
+    spaceship ship = { 0 };
+    bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
+    enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
 
-    int ret;
+    int i, ret;
 
     /* Register ourselves as a misc device */
     ret = misc_register(&vga_ball_misc_device);
@@ -193,8 +195,8 @@ static int __init vga_ball_probe(struct platform_device *pdev)
     }
         
     /* Set initial values */
-    write_background(&game_state.background);
-    write_all(&game_state.ship, game_state.bullets, game_state.enemies);
+    write_background(&background);
+    write_all(&ship, bullets, enemies);
     return 0;
 
 out_release_mem_region:

@@ -117,7 +117,7 @@ static void update_game_state(gamestate *game_state)
 
     write_all(&game_state->ship, game_state->bullets, game_state->enemies);
 
-    printk(KERN_INFO "%d, &d \n", game_state->ship.pos_x, game_state->ship.pos_y);
+    printk(KERN_INFO "%d, %d \n", game_state->ship.pos_x, game_state->ship.pos_y);
 }
 
 

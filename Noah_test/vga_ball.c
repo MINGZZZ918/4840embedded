@@ -81,6 +81,10 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
     write_object(0,  ship->pos_x,  ship->pos_y, ship->sprite, ship->active);
     dev.ship = *ship;
 
+    printk(KERN_INFO "%d, %d, %d" ship->pos_x, ship->pos_y, ship->active);
+
+
+
     for (i = 0; i < MAX_BULLETS; i++) {
 
         bul = &bullets[i];

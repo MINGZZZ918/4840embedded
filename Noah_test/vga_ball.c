@@ -125,9 +125,6 @@ static gamestate vb_arg;
 */
 static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
-
-    int random_bg_enable;
-
     switch (cmd) {
         case VGA_BALL_UPDATE_GAME_STATE:
             if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
@@ -162,7 +159,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
     background_color background = { 0x00, 0x00, 0x20 }; // Dark blue
-    spaceship ship = { 0 };  // Ship starting position
+    spaceship ship = { .pos_x = 300, .pos_y = 400, .active = 1};  // Ship starting position
     bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
     enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
 

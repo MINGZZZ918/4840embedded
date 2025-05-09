@@ -25,7 +25,8 @@
 
 /* Device registers */
 #define BG_COLOR(x)      (x)
-#define OBJECT_DATA(x,i) ((x) + 1 + (i))
+#define RANDOM_BG_CTRL(x) ((x) + 1)
+#define OBJECT_DATA(x,i) ((x) + 2 + (i))
 
 /*
 * Information about our device
@@ -37,6 +38,7 @@ struct vga_ball_dev {
     spaceship ship;
     bullet bullets[MAX_BULLETS];
     enemy enemies[ENEMY_COUNT];
+    int use_random_bg; /* 控制是否使用随机背景 */
 } dev;
 
 /*
@@ -50,6 +52,18 @@ static void write_background(background_color *background)
 
     iowrite32(color_data, BG_COLOR(dev.virtbase));
     dev.background = *background;
+}
+
+/*
+* Set random background mode
+*/
+static void set_random_background(int enable)
+{
+    iowrite32(enable & 0x1, RANDOM_BG_CTRL(dev.virtbase));
+    dev.use_random_bg = enable;
+
+    printk(KERN_INFO "VGA Ball: Random background %s\n", 
+        enable ? "enabled" : "disabled");
 }
 
 
@@ -70,6 +84,8 @@ static void write_object(int index, unsigned short x, unsigned short y, char spr
     iowrite32(obj_data, OBJECT_DATA(dev.virtbase, index));
 }
 
+
+
 /*
  * Write all objects
  */
@@ -86,9 +102,6 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 
         bul = &bullets[i];
         write_object(i+1,  bul->pos_x,  bul->pos_y, bul->sprite, bul->active);
-
-        printk(KERN_INFO "%d, %d \n", ship->pos_x, ship->pos_y);
-
         
         dev.bullets[i] = bullets[i];
     }
@@ -130,11 +143,19 @@ static gamestate vb_arg;
 static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
 
+    int random_bg_enable;
+
     switch (cmd) {
         case VGA_BALL_UPDATE_GAME_STATE:
             if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
                 return -EACCES;
             update_game_state(&vb_arg);
+            break;
+
+        case VGA_BALL_SET_RANDOM_BG:
+            if (copy_from_user(&random_bg_enable, (int *) arg, sizeof(int)))
+                return -EACCES;
+            set_random_background(random_bg_enable);
             break;
 
         default:
@@ -143,7 +164,6 @@ static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 
     return 0;
 }
-
 
 /* The operations our device knows how to do */
 static const struct file_operations vga_ball_fops = {
@@ -195,29 +215,12 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         goto out_release_mem_region;
     }
 
-    // /* Initialize all bullets to inactive state */
-    // for (i = 0; i < MAX_BULLETS; i++) {
-    //     bullets[i].pos_x = 0;
-    //     bullets[i].pos_y = 0;
-    //     bullets[i].sprite = 0;
-    //     bullets[i].active = 0;
-    // }
-
-    // for (i = 0; i < ENEMY_COUNT; i++) {
-    //     enemies[i].pos_x = 0;
-    //     enemies[i].pos_y = 0;
-    //     enemies[i].sprite = 0;
-    //     enemies[i].active = 0;
-
-    //     enemies[i].bul.pos_x = 0;
-    //     enemies[i].bul.pos_y = 0;
-    //     enemies[i].bul.sprite = 0;
-    //     enemies[i].bul.active = 0;
-    // }
         
     /* Set initial values */
     write_background(&background);
     write_all(&ship, bullets, enemies);
+
+
     return 0;
 
 out_release_mem_region:

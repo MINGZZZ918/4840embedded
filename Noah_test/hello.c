@@ -246,8 +246,6 @@ int main(){
 
     init_game_state();
     update_hardware();
-
-
     // for (;;){       
 
     //     new_bullet = 0;

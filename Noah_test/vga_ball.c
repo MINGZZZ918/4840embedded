@@ -84,7 +84,6 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
     printk(KERN_INFO "%d, %d, %d", ship->pos_x, ship->pos_y, ship->active);
 
 
-
     for (i = 0; i < MAX_BULLETS; i++) {
 
         bul = &bullets[i];
@@ -163,7 +162,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
     background_color background = { 0x00, 0x00, 0x20 }; // Dark blue
-    spaceship ship = { .pos_x = 300, .pos_y = 400, .active = 1};  // Ship starting position
+    spaceship ship = { .pos_x = 200, .pos_y = 200, .velo_x = 0, .velo_y = 0, .lives = 5, .num_bullets = 0, .sprite = 0, .active = 1};  // Ship starting position
     bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
     enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
 

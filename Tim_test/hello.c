@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h> 
@@ -63,6 +64,11 @@ static const background_color colors[] = {
     { 0x00, 0x00, 0x40 },  // Medium blue
     { 0x20, 0x20, 0x40 }   // Blue-purple
 };
+
+static int kill_count = 0;
+static double fire_us = 16000;
+static bool shield_active = false;
+static time_t shield_end = 0;
 
 static gamestate game_state = {
 
@@ -142,6 +148,19 @@ void bullet_movement(int new_bullet){
                     enemy->active = 0;
                     bul->active = 0;
                     game_state.ship.num_bullets --;
+
+                    kill_count++;
+                    if (kill_count % 5 == 0){
+                        fire_us = fire_us * 0.9;
+                        shield_active = true;
+                        shield_end = time(NULL) + 5;
+
+                    }
+
+                    if (kill_count % 10 == 0){
+                        game_state.ship.lives += 1;
+                    }
+
                     break;
                 }
             }
@@ -163,11 +182,16 @@ int enemy_movement(){
     enemy *enemy;
     int num_left = 0;
     bullet *bul;
+    time_t curr_time = time(NULL);
 
     for (int i = 0; i < ENEMY_COUNT; i++){
 
         enemy = &game_state.enemies[i];
         bul = &enemy->bul;
+
+        if (shield_active && curr_time >= shield_end) {
+            shield_active = false;
+        }
 
         if (enemy->bul.active){
 
@@ -175,9 +199,11 @@ int enemy_movement(){
 
             if (abs(game_state.ship.pos_x - bul->pos_x) <= SHIP_WIDTH
             && abs(game_state.ship.pos_y - bul->pos_y) <= SHIP_HEIGHT){
-
+                
                 bul->active = 0;
-                game_state.ship.lives -= 1;
+                if (!shield_active){
+                    game_state.ship.lives -= 1;
+                }
             }
 
             if(bul->pos_y > SCREEN_HEIGHT) bul->active = 0;
@@ -199,8 +225,10 @@ int enemy_movement(){
             && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
 
                 enemy->active = 0;
-                game_state.ship.lives -= 1;
                 num_left --;
+                if (shield_active == false){
+                    game_state.ship.lives -= 1;
+                }
             }
         }
     }
@@ -366,7 +394,7 @@ int main(){
                 break;
             }
 
-            usleep(16000);
+            usleep((useconds_t) fire_us);
         }    
     }
 

@@ -21,8 +21,6 @@
 
 #define DRIVER_NAME "vga_ball"
 
-#define MAX_OBJECTS 20
-
 /* Device registers */
 #define BG_COLOR(x)      (x)
 #define OBJECT_DATA(x,i) ((x) + 1 + (i))
@@ -70,6 +68,7 @@ static void write_object(int index, unsigned short x, unsigned short y, char spr
     iowrite32(obj_data, OBJECT_DATA(dev.virtbase, index));
 }
 
+
 /*
  * Write all objects
  */
@@ -82,13 +81,14 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
     write_object(0,  ship->pos_x,  ship->pos_y, ship->sprite, ship->active);
     dev.ship = *ship;
 
+    printk(KERN_INFO "%d, %d, %d", ship->pos_x, ship->pos_y, ship->active);
+
+
+
     for (i = 0; i < MAX_BULLETS; i++) {
 
         bul = &bullets[i];
         write_object(i+1,  bul->pos_x,  bul->pos_y, bul->sprite, bul->active);
-
-        printk(KERN_INFO "%d, %d \n", ship->pos_x, ship->pos_y);
-
         
         dev.bullets[i] = bullets[i];
     }
@@ -163,11 +163,11 @@ static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
     background_color background = { 0x00, 0x00, 0x20 }; // Dark blue
-    spaceship ship = { 0 };  // Ship starting position
+    spaceship ship = { .pos_x = 300, .pos_y = 400, .active = 1};  // Ship starting position
     bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
     enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
 
-    int i, ret;
+    int ret;
 
     /* Register ourselves as a misc device */
     ret = misc_register(&vga_ball_misc_device);
@@ -193,29 +193,12 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         goto out_release_mem_region;
     }
 
-    // /* Initialize all bullets to inactive state */
-    // for (i = 0; i < MAX_BULLETS; i++) {
-    //     bullets[i].pos_x = 0;
-    //     bullets[i].pos_y = 0;
-    //     bullets[i].sprite = 0;
-    //     bullets[i].active = 0;
-    // }
-
-    // for (i = 0; i < ENEMY_COUNT; i++) {
-    //     enemies[i].pos_x = 0;
-    //     enemies[i].pos_y = 0;
-    //     enemies[i].sprite = 0;
-    //     enemies[i].active = 0;
-
-    //     enemies[i].bul.pos_x = 0;
-    //     enemies[i].bul.pos_y = 0;
-    //     enemies[i].bul.sprite = 0;
-    //     enemies[i].bul.active = 0;
-    // }
         
     /* Set initial values */
     write_background(&background);
     write_all(&ship, bullets, enemies);
+
+
     return 0;
 
 out_release_mem_region:

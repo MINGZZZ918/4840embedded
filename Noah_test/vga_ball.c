@@ -161,10 +161,10 @@ static struct miscdevice vga_ball_misc_device = {
 static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
-    background_color background = { 0x00, 0x00, 0x20 }; // Dark blue
-    spaceship ship = {.pos_x = 300, .pos_y = 300, .velo_x = 0, .velo_y = 0, .lives = 0, .num_bullets = 0, .sprite = 0, .active = 1};
-    bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
-    enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
+    game_state.background = { 0x00, 0x00, 0x20 }; // Dark blue
+    game_state.ship = {.pos_x = 300, .pos_y = 300, .velo_x = 0, .velo_y = 0, .lives = 0, .num_bullets = 0, .sprite = 0, .active = 1};
+    game_state.bullets = { 0 };    // All bullets initially inactive
+    game_state.enemies = { 0 };     // All enemies initially inactive
 
     int i, ret;
 
@@ -191,26 +191,6 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         ret = -ENOMEM;
         goto out_release_mem_region;
     }
-
-    // /* Initialize all bullets to inactive state */
-    // for (i = 0; i < MAX_BULLETS; i++) {
-    //     bullets[i].pos_x = 0;
-    //     bullets[i].pos_y = 0;
-    //     bullets[i].sprite = 0;
-    //     bullets[i].active = 0;
-    // }
-
-    // for (i = 0; i < ENEMY_COUNT; i++) {
-    //     enemies[i].pos_x = 0;
-    //     enemies[i].pos_y = 0;
-    //     enemies[i].sprite = 0;
-    //     enemies[i].active = 0;
-
-    //     enemies[i].bul.pos_x = 0;
-    //     enemies[i].bul.pos_y = 0;
-    //     enemies[i].bul.sprite = 0;
-    //     enemies[i].bul.active = 0;
-    // }
         
     /* Set initial values */
     write_background(&background);

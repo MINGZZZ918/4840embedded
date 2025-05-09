@@ -291,20 +291,26 @@ module vga_ball(
     assign actual_vcount = vcount;
 
     always_comb begin
-        ship_on = 0;
-        rel_x = 0;
-        rel_y = 0;
-        sprite_address = 8'd0;  // 默认值，避免 latch
+        // 默认值
+        ship_on        = 1'b0;
+        rel_x          = 4'd0;
+        rel_y          = 4'd0;
+        sprite_address = 8'd0;
 
-        if (actual_hcount >= ship_x && actual_hcount < ship_x + SHIP_WIDTH &&
-            actual_vcount >= ship_y && actual_vcount < ship_y + SHIP_HEIGHT) begin
-            
+        if (rom_on) begin
+            // ROM 区域优先：用 rom_rel_x/rom_rel_y
+            rel_x          = rom_rel_x;
+            rel_y          = rom_rel_y;
+            sprite_address = rel_y * 16 + rel_x;
+        end
+        else if (actual_hcount >= ship_x && actual_hcount < ship_x + SHIP_WIDTH &&
+                 actual_vcount >= ship_y && actual_vcount < ship_y + SHIP_HEIGHT) begin
+            // 飞船区域
             rel_x = actual_hcount - ship_x;
             rel_y = actual_vcount - ship_y;
-            
             if (rel_x < SHIP_WIDTH && rel_y < SHIP_HEIGHT) begin
-                sprite_address = rel_y * 16 + rel_x;
-                ship_on = 1;  // 判断是否非透明像素
+                sprite_address = rel_y * SHIP_WIDTH + rel_x;
+                ship_on        = 1'b1;
             end
         end
     end
@@ -420,36 +426,39 @@ module vga_ball(
     end
 
     // VGA output logic
+    // VGA 输出，优先级：ROM 图像 > 自定义图片 > 敌人 > 飞船 > 子弹 > 背景
     always_comb begin
-        {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h00, 8'h00}; // 默认黑色
-        
+        // 默认全黑
+        {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h00, 8'h00};
+
         if (VGA_BLANK_n) begin
-            // 背景色
-            {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
-            
-            // 图片显示 (优先级高于背景，低于其他游戏对象)
-            if (image_on) begin
+            // ROM 区域显示
+            if (rom_on) begin
                 {VGA_R, VGA_G, VGA_B} = sprite_data;
             end
-            
+            // 你原来的 image 显示
+            else if (image_on) begin
+                {VGA_R, VGA_G, VGA_B} = {image_pixel_r, image_pixel_g, image_pixel_b};
+            end
             // 敌人显示
-            if (enemy_on) begin
+            else if (enemy_on) begin
                 {VGA_R, VGA_G, VGA_B} = sprite_data;
             end
-            
-            // 飞船显示 (优先级高于敌人)
-            if (ship_on) begin
+            // 飞船显示
+            else if (ship_on) begin
                 {VGA_R, VGA_G, VGA_B} = sprite_data;
             end
-            
-            // 玩家子弹显示 (优先级高于飞船)
-            if (bullet_on) begin
+            // 玩家子弹
+            else if (bullet_on) begin
                 {VGA_R, VGA_G, VGA_B} = sprite_data;
             end
-            
-            // 敌人子弹显示 (与玩家子弹同优先级)
-            if (enemy_bullet_on) begin
+            // 敌人子弹
+            else if (enemy_bullet_on) begin
                 {VGA_R, VGA_G, VGA_B} = sprite_data;
+            end
+            // 其余区域显示背景色
+            else begin
+                {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
             end
         end
     end

@@ -5,7 +5,7 @@
 
 /* 定义最大子弹数量 */
 #define MAX_BULLETS 5
-#define ENEMY_COUNT 39
+#define ENEMY_COUNT 2
 #define LIFE_COUNT 5
 // #define INPUT_QUEUE_SIZE 32
 

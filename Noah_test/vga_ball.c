@@ -129,6 +129,7 @@ static gamestate vb_arg;
 */
 static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
+
     switch (cmd) {
         case VGA_BALL_UPDATE_GAME_STATE:
             if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
@@ -142,6 +143,7 @@ static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 
     return 0;
 }
+
 
 /* The operations our device knows how to do */
 static const struct file_operations vga_ball_fops = {

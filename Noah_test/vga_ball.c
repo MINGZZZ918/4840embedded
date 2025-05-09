@@ -86,6 +86,9 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 
         bul = &bullets[i];
         write_object(i+1,  bul->pos_x,  bul->pos_y, bul->sprite, bul->active);
+
+        printk(KERN_INFO "%d, %d \n", ship->pos_x, ship->pos_y);
+
         
         dev.bullets[i] = bullets[i];
     }
@@ -190,25 +193,25 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         goto out_release_mem_region;
     }
 
-    /* Initialize all bullets to inactive state */
-    for (i = 0; i < MAX_BULLETS; i++) {
-        bullets[i].pos_x = 0;
-        bullets[i].pos_y = 0;
-        bullets[i].sprite = 0;
-        bullets[i].active = 0;
-    }
+    // /* Initialize all bullets to inactive state */
+    // for (i = 0; i < MAX_BULLETS; i++) {
+    //     bullets[i].pos_x = 0;
+    //     bullets[i].pos_y = 0;
+    //     bullets[i].sprite = 0;
+    //     bullets[i].active = 0;
+    // }
 
-    for (i = 0; i < ENEMY_COUNT; i++) {
-        enemies[i].pos_x = 0;
-        enemies[i].pos_y = 0;
-        enemies[i].sprite = 0;
-        enemies[i].active = 0;
+    // for (i = 0; i < ENEMY_COUNT; i++) {
+    //     enemies[i].pos_x = 0;
+    //     enemies[i].pos_y = 0;
+    //     enemies[i].sprite = 0;
+    //     enemies[i].active = 0;
 
-        enemies[i].bul.pos_x = 0;
-        enemies[i].bul.pos_y = 0;
-        enemies[i].bul.sprite = 0;
-        enemies[i].bul.active = 0;
-    }
+    //     enemies[i].bul.pos_x = 0;
+    //     enemies[i].bul.pos_y = 0;
+    //     enemies[i].bul.sprite = 0;
+    //     enemies[i].bul.active = 0;
+    // }
         
     /* Set initial values */
     write_background(&background);

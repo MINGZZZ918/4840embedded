@@ -21,12 +21,9 @@
 
 #define DRIVER_NAME "vga_ball"
 
-#define MAX_OBJECTS 20
-
 /* Device registers */
 #define BG_COLOR(x)      (x)
-#define RANDOM_BG_CTRL(x) ((x) + 1)
-#define OBJECT_DATA(x,i) ((x) + 2 + (i))
+#define OBJECT_DATA(x,i) ((x) + 1 + (i))
 
 /*
 * Information about our device
@@ -38,7 +35,6 @@ struct vga_ball_dev {
     spaceship ship;
     bullet bullets[MAX_BULLETS];
     enemy enemies[ENEMY_COUNT];
-    int use_random_bg; /* 控制是否使用随机背景 */
 } dev;
 
 /*
@@ -52,18 +48,6 @@ static void write_background(background_color *background)
 
     iowrite32(color_data, BG_COLOR(dev.virtbase));
     dev.background = *background;
-}
-
-/*
-* Set random background mode
-*/
-static void set_random_background(int enable)
-{
-    iowrite32(enable & 0x1, RANDOM_BG_CTRL(dev.virtbase));
-    dev.use_random_bg = enable;
-
-    printk(KERN_INFO "VGA Ball: Random background %s\n", 
-        enable ? "enabled" : "disabled");
 }
 
 
@@ -83,7 +67,6 @@ static void write_object(int index, unsigned short x, unsigned short y, char spr
                 
     iowrite32(obj_data, OBJECT_DATA(dev.virtbase, index));
 }
-
 
 
 /*
@@ -152,12 +135,6 @@ static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
             update_game_state(&vb_arg);
             break;
 
-        case VGA_BALL_SET_RANDOM_BG:
-            if (copy_from_user(&random_bg_enable, (int *) arg, sizeof(int)))
-                return -EACCES;
-            set_random_background(random_bg_enable);
-            break;
-
         default:
             return -EINVAL;
     }
@@ -189,7 +166,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
     bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
     enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
 
-    int i, ret;
+    int ret;
 
     /* Register ourselves as a misc device */
     ret = misc_register(&vga_ball_misc_device);

@@ -60,7 +60,6 @@ typedef struct {
 typedef struct {
     unsigned short pos_x, pos_y;
     unsigned short velo_y; // velo_x is always 0 on bullets
-    char sprite;
     int active;
 } bullet;
 

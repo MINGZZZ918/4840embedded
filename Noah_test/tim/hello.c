@@ -163,8 +163,8 @@ int enemy_movement(){
     int rand_enemy = rand() % ENEMY_COUNT;
 
     enemy *enemy;
-    int num_left = 0, new_x, new_y;
-    float mag;
+    int num_left = 0;
+    float mag, new_x, new_y;
     bullet *bul;
     spaceship *ship;
 
@@ -188,7 +188,6 @@ int enemy_movement(){
             enemy->pos_y += enemy->velo_y;
 
 
-
             new_x = ship->pos_x - enemy->pos_x;
             new_y = ship->pos_y - enemy->pos_y;
 
@@ -199,8 +198,9 @@ int enemy_movement(){
             new_y = (new_y * 2) / mag;  // 2 is the desired magnitude
 
             // Assigning the new velocity to the enemy
-            enemy->velo_x = -new_x;
-            enemy->velo_y = -new_y;
+            enemy->velo_x = (int)-new_x;
+            enemy->velo_y = (int)-new_y;
+
 
 
 

@@ -84,10 +84,6 @@ static void write_background(background_color *background)
  */
 static void write_ship(spaceship *ship)
 {
-
-    printk(KERN_INFO "%d, %d \n", ship->pos_x, ship->pos_y);
-
-
     iowrite8((unsigned char)(ship->pos_x & 0xFF), SHIP_X_L(dev.virtbase));
     iowrite8((unsigned char)((ship->pos_x >> 8) & 0x07), SHIP_X_H(dev.virtbase));
     iowrite8((unsigned char)(ship->pos_y & 0xFF), SHIP_Y_L(dev.virtbase));
@@ -280,6 +276,23 @@ static int __init vga_ball_probe(struct platform_device *pdev)
     if (dev.virtbase == NULL) {
         ret = -ENOMEM;
         goto out_release_mem_region;
+    }
+
+    /* Initialize all bullets to inactive state */
+    for (i = 0; i < MAX_BULLETS; i++) {
+        bullets[i].pos_x = 0;
+        bullets[i].pos_y = 0;
+        bullets[i].active = 0;
+    }
+
+    for (i = 0; i < ENEMY_COUNT; i++) {
+        enemies[i].pos_x = 0;
+        enemies[i].pos_y = 0;
+        enemies[i].active = 0;
+
+        enemies[i].bul.pos_x = 0;
+        enemies[i].bul.pos_y = 0;
+        enemies[i].bul.active = 0;
     }
         
     /* Set initial values */

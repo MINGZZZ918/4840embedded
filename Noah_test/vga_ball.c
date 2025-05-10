@@ -247,7 +247,7 @@ static struct miscdevice vga_ball_misc_device = {
 static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
-    background_color background = { 0x00, 0x00, 0x20 }; // Dark blue
+    background_color background = { 0xFF, 0xFF, 0xFF }; // Dark blue
     spaceship ship = { .pos_x = 400, .pos_y = 400};  // Ship starting position
     bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
     enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive

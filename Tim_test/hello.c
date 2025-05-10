@@ -48,6 +48,7 @@
 #define LEFT_BUMPER 0x01
 #define RIGHT_BUMPER 0x02
 #define LR_BUMPER 0x03
+#define MAX_POWERUP 3
 
 #define NO_INPUT 0x7f // ??????????????????
 
@@ -66,14 +67,16 @@ static const background_color colors[] = {
 };
 
 static int kill_count = 0;
-static double fire_us = 16000;
+static int last_kill_count = 0;
+static int bullet_speed = 3;
 static bool shield_active = false;
 static time_t shield_end = 0;
+static time_t bullet_speed_end = 0;
 
 static gamestate game_state = {
 
-    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_bullets = 0},
-    .background = {.red = 0x00, .green = 0x00, .blue = 0x20}
+    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_bullets = 0, .sprite = 0, .active = 1},
+    .background = {.red = 0xFF, .green = 0xFF, .blue = 0xFF}
 };
 
 /**
@@ -148,19 +151,7 @@ void bullet_movement(int new_bullet){
                     enemy->active = 0;
                     bul->active = 0;
                     game_state.ship.num_bullets --;
-
-                    kill_count++;
-                    if (kill_count % 5 == 0){
-                        fire_us = fire_us * 0.9;
-                        shield_active = true;
-                        shield_end = time(NULL) + 5;
-
-                    }
-
-                    if (kill_count % 10 == 0){
-                        game_state.ship.lives += 1;
-                    }
-
+                    kill_count ++;
                     break;
                 }
             }
@@ -170,7 +161,7 @@ void bullet_movement(int new_bullet){
             bul->active = 1;
             bul->pos_x = game_state.ship.pos_x+(SHIP_WIDTH/2); // make it start in the middle of the ship
             bul->pos_y = game_state.ship.pos_y-(SHIP_HEIGHT/2); // make it start above the ship
-            bul->velo_y = -3; // towards the top of the screen
+            bul->velo_y = -bullet_speed; // towards the top of the screen
             game_state.ship.num_bullets ++;
             new_bullet = 0;
         }
@@ -182,16 +173,11 @@ int enemy_movement(){
     enemy *enemy;
     int num_left = 0;
     bullet *bul;
-    time_t curr_time = time(NULL);
 
     for (int i = 0; i < ENEMY_COUNT; i++){
 
         enemy = &game_state.enemies[i];
         bul = &enemy->bul;
-
-        if (shield_active && curr_time >= shield_end) {
-            shield_active = false;
-        }
 
         if (enemy->bul.active){
 
@@ -199,7 +185,7 @@ int enemy_movement(){
 
             if (abs(game_state.ship.pos_x - bul->pos_x) <= SHIP_WIDTH
             && abs(game_state.ship.pos_y - bul->pos_y) <= SHIP_HEIGHT){
-                
+
                 bul->active = 0;
                 if (!shield_active){
                     game_state.ship.lives -= 1;
@@ -226,7 +212,7 @@ int enemy_movement(){
 
                 enemy->active = 0;
                 num_left --;
-                if (shield_active == false){
+                if (!shield_active){
                     game_state.ship.lives -= 1;
                 }
             }
@@ -236,6 +222,45 @@ int enemy_movement(){
     return num_left;
 }
 
+void apply_power_up(){
+    time_t current_time = time(NULL);
+
+    if (shield_active && current_time >= shield_end) {
+        shield_active = false;
+    }
+
+    if (bullet_speed > 3 && current_time >= bullet_speed_end){
+        bullet_speed = 3;
+    }
+
+    if (kill_count != last_kill_count) {
+
+        if (kill_count/5 > last_kill_count/5) {
+            int i = rand() % 3;
+
+            switch (i){
+                case 0:
+                    shield_active = true;
+                    shield_end = current_time + 5;
+                    break;
+
+                case 1:
+                    bullet_speed = 4;
+                    bullet_speed_end = current_time + 5;
+                    break;
+                
+                case 2:
+                    game_state.ship.lives++;
+                    break;
+
+                default:
+                    break;
+            }
+        }
+        last_kill_count = kill_count;
+    }
+}
+
 struct libusb_device_handle *controller;
 
 uint8_t endpoint_address;
@@ -243,6 +268,7 @@ uint8_t endpoint_address;
 
 int main(){
 
+    srand((unsigned)time(NULL));
     spaceship *ship = &game_state.ship;
     controller_packet packet;
     int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining;
@@ -380,6 +406,7 @@ int main(){
 
             ship_movement();
             bullet_movement(new_bullet);
+            apply_power_up();
             enemies_remaining = enemy_movement();
 
             if(ship->lives <= 0){
@@ -394,7 +421,7 @@ int main(){
                 break;
             }
 
-            usleep((useconds_t) fire_us);
+            usleep(16000);
         }    
     }
 

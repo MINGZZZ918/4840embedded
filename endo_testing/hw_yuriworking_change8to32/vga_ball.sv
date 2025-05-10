@@ -5,7 +5,7 @@
 module vga_ball#(
     parameter MAX_OBJECTS = 10, 
     parameter SPRITE_WIDTH = 16,
-    parameter SPRITE_HEIGHT = 16,
+    parameter SPRITE_HEIGHT = 16
 )(
     input  logic        clk,
     input  logic        reset,
@@ -83,7 +83,7 @@ module vga_ball#(
             // Example: 默认放置船和两个敌人
             obj_x[0]      <= 12'd200;                  // ship
             obj_y[0]      <= 12'd240;
-            obj_sprite[0] <= SHIP_SPRITE_INDEX;
+            obj_sprite[0] <= 0;
             obj_active[0] <= 1'b1;
 
             // obj_x[1]      <= 12'd800;                  // enemy #1
@@ -107,11 +107,11 @@ module vga_ball#(
                 default: begin
                     if (address >= 5'd1
                      && address <  5'd1 + MAX_OBJECTS) begin
-                        int obj_idx = address - 5'd1;
-                        obj_x[obj_idx]      <= writedata[31:20];
-                        obj_y[obj_idx]      <= writedata[19:8];
-                        obj_sprite[obj_idx] <= writedata[7:2];
-                        obj_active[obj_idx] <= writedata[1];
+                        // int obj_idx = address - 5'd1;
+                        obj_x[address - 5'd1]      <= writedata[31:20];
+                        obj_y[address - 5'd1]      <= writedata[19:8];
+                        obj_sprite[address - 5'd1] <= writedata[7:2];
+                        obj_active[address - 5'd1] <= writedata[1];
                     end
                 end
             endcase
@@ -162,21 +162,8 @@ module vga_ball#(
             // 背景色
             {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
             
-            // 图片显示 (优先级高于背景，低于其他游戏对象)
-            if (image_on) begin
-                {VGA_R, VGA_G, VGA_B} = sprite_data;
-            end
-            
-            // 敌人显示
-            if (enemy_on) begin
-                {VGA_R, VGA_G, VGA_B} = sprite_data;
-            end
-            
-            // 飞船显示 (优先级高于敌人)
-            if (ship_on) begin
-                {VGA_R, VGA_G, VGA_B} = sprite_data;
-            end
-            
+            {VGA_R, VGA_G, VGA_B} = sprite_data;
+
         end
     end
 

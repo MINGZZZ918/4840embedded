@@ -248,11 +248,11 @@ static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
     background_color background = { 0xFF, 0xFF, 0xFF }; // Dark blue
-    spaceship ship = { .pos_x = 400, .pos_y = 400};  // Ship starting position
+    spaceship ship = { 0 };  // Ship starting position
     bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
     enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
 
-    int i, ret;
+    int ret;
 
     /* Register ourselves as a misc device */
     ret = misc_register(&vga_ball_misc_device);
@@ -278,22 +278,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         goto out_release_mem_region;
     }
 
-    /* Initialize all bullets to inactive state */
-    for (i = 0; i < MAX_BULLETS; i++) {
-        bullets[i].pos_x = 0;
-        bullets[i].pos_y = 0;
-        bullets[i].active = 0;
-    }
 
-    for (i = 0; i < ENEMY_COUNT; i++) {
-        enemies[i].pos_x = 0;
-        enemies[i].pos_y = 0;
-        enemies[i].active = 0;
-
-        enemies[i].bul.pos_x = 0;
-        enemies[i].bul.pos_y = 0;
-        enemies[i].bul.active = 0;
-    }
         
     /* Set initial values */
     write_background(&background);

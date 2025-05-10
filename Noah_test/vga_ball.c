@@ -84,7 +84,7 @@ static void write_ship(spaceship *ship)
 static void update_game_state(gamestate *game_state)
 {
     write_background(&game_state->background);
-    write_all(&game_state->ship);
+    write_ship(&game_state->ship);
 }
 
 
@@ -159,7 +159,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         
     /* Set initial values */
     write_background(&background);
-    write_all(&ship);
+    write_ship(&ship);
 
 
     return 0;

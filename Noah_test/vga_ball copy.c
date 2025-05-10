@@ -68,10 +68,8 @@ static void write_object(unsigned short x, unsigned short y, char sprite_idx, ch
 /*
  * Write all objects
  */
-static void write_ship(spaceship *ship)
+static void write_all(spaceship *ship)
 {
-    int i;
-
     write_object (ship->pos_x,  ship->pos_y, ship->sprite, ship->active);
     dev.ship = *ship;
 

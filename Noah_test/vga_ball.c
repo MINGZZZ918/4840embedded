@@ -278,22 +278,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         goto out_release_mem_region;
     }
 
-    /* Initialize all bullets to inactive state */
-    for (i = 0; i < MAX_BULLETS; i++) {
-        bullets[i].pos_x = 0;
-        bullets[i].pos_y = 0;
-        bullets[i].active = 0;
-    }
 
-    for (i = 0; i < ENEMY_COUNT; i++) {
-        enemies[i].pos_x = 0;
-        enemies[i].pos_y = 0;
-        enemies[i].active = 0;
-
-        enemies[i].bul.pos_x = 0;
-        enemies[i].bul.pos_y = 0;
-        enemies[i].bul.active = 0;
-    }
         
     /* Set initial values */
     write_background(&background);

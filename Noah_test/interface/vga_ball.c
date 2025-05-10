@@ -163,7 +163,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
     background_color background = { 0xFF, 0x0FF, 0xFF }; // Dark blue
-    spaceship ship = { .pos_x = 240, .pos_y = 200, .active = 1};  // Ship starting position
+    spaceship ship = { .pos_x = 240, .pos_y = 200, .active = 0};  // Ship starting position
     bullet bullets[MAX_BULLETS] = { 0 };
     enemy enemies[ENEMY_COUNT] = { 0 };
 

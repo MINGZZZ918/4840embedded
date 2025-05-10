@@ -55,6 +55,7 @@
 
 /* File descriptor for the VGA ball device */
 static int vga_ball_fd;
+static int enemy_moving = 0;
 
 static const char filename[] = "/dev/vga_ball";
 
@@ -160,11 +161,20 @@ int enemy_movement(){
     enemy *enemy;
     int num_left = 0;
     bullet *bul;
+    spaceship *ship;
 
     for (int i = 0; i < ENEMY_COUNT; i++){
 
         enemy = &game_state.enemies[i];
         bul = &enemy->bul;
+
+        if (enemy_moving == 0){
+            if (enemy->pos_y > ship->pos_y){
+                enemy->velo_y = 1;
+            }
+
+            continue;
+        }
 
         if (enemy->bul.active){
 

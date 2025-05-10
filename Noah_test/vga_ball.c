@@ -22,8 +22,39 @@
 #define DRIVER_NAME "vga_ball"
 
 /* Device registers */
-#define BG_COLOR(x)      (x)
-#define OBJECT_DATA(x) ((x) + 1)
+#define BG_RED(x)         (x)
+#define BG_GREEN(x)       ((x)+1)
+#define BG_BLUE(x)        ((x)+2)
+#define SHIP_X_L(x)       ((x)+3)
+#define SHIP_X_H(x)       ((x)+4)
+#define SHIP_Y_L(x)       ((x)+5)
+#define SHIP_Y_H(x)       ((x)+6)
+/* 子弹寄存器的定义，我们为每个子弹使用4个寄存器 */
+#define BULLET_BASE(x)    ((x)+7)
+#define BULLET_X_L(x,i)   (BULLET_BASE(x) + 4*(i))
+#define BULLET_X_H(x,i)   (BULLET_BASE(x) + 4*(i) + 1)
+#define BULLET_Y_L(x,i)   (BULLET_BASE(x) + 4*(i) + 2)
+#define BULLET_Y_H(x,i)   (BULLET_BASE(x) + 4*(i) + 3)
+#define BULLET_ACTIVE(x)  ((x)+27)  // 固定地址，对应vga_ball.sv中的27偏移量
+
+/* 敌人寄存器定义 */
+#define ENEMY1_X_L(x)      ((x)+28)
+#define ENEMY1_X_H(x)      ((x)+29)
+#define ENEMY1_Y_L(x)      ((x)+30)
+#define ENEMY1_Y_H(x)      ((x)+31)
+#define ENEMY2_X_L(x)      ((x)+32)
+#define ENEMY2_X_H(x)      ((x)+33)
+#define ENEMY2_Y_L(x)      ((x)+34)
+#define ENEMY2_Y_H(x)      ((x)+35)
+#define ENEMY_ACTIVE(x)    ((x)+36)
+
+/* 敌人子弹寄存器定义 */
+#define ENEMY_BULLET_BASE(x)   ((x)+37)
+#define ENEMY_BULLET_X_L(x,i)  (ENEMY_BULLET_BASE(x) + 4*(i))
+#define ENEMY_BULLET_X_H(x,i)  (ENEMY_BULLET_BASE(x) + 4*(i) + 1)
+#define ENEMY_BULLET_Y_L(x,i)  (ENEMY_BULLET_BASE(x) + 4*(i) + 2)
+#define ENEMY_BULLET_Y_H(x,i)  (ENEMY_BULLET_BASE(x) + 4*(i) + 3)
+#define ENEMY_BULLET_ACTIVE(x) ((x)+61)
 
 /*
 * Information about our device
@@ -33,6 +64,8 @@ struct vga_ball_dev {
     void __iomem *virtbase; /* Where registers can be accessed in memory */
     background_color background;
     spaceship ship;
+    bullet bullets[MAX_BULLETS];
+    enemy enemies[ENEMY_COUNT];
 } dev;
 
 /*
@@ -40,57 +73,136 @@ struct vga_ball_dev {
 */
 static void write_background(background_color *background)
 {
-    u32 color_data = ((u32)background->red << 16) | 
-                        ((u32)background->green << 8) | 
-                        background->blue;
-
-    iowrite32(color_data, BG_COLOR(dev.virtbase));
+    iowrite8(background->red, BG_RED(dev.virtbase));
+    iowrite8(background->green, BG_GREEN(dev.virtbase));
+    iowrite8(background->blue, BG_BLUE(dev.virtbase));
     dev.background = *background;
 }
 
-
 /*
- * Write object data
+ * Write ship position
  */
-static void write_object(unsigned short x, unsigned short y, char sprite_idx, char active)
+static void write_ship(spaceship *ship)
 {
-        
-    // 构建32位对象数据
-    u32 obj_data = ((u32)(x & 0xFFF) << 20) |   // x位置 (12位)
-                ((u32)(y & 0xFFF) << 8) |    // y位置 (12位)
-                ((u32)(sprite_idx & 0x3F) << 2) | // 精灵索引 (6位)
-                ((u32)(active & 0x1) << 1);  // 活动状态 (1位)
-                
-    iowrite32(obj_data, OBJECT_DATA(dev.virtbase));
-
-
-    for (int i = 31; i >= 0; i--) {
-        // Print the bit at each position (either 0 or 1)
-        printk(KERN_INFO "%d", (obj_data >> i) & 1);
-        if (i % 4 == 0) printk(KERN_INFO " ");
-    }
-    printk(KERN_INFO "\n");
-}
-
-
-/*
- * Write all objects
- */
-static void write_all(spaceship *ship)
-{
-    write_object (ship->pos_x,  ship->pos_y, ship->sprite, ship->active);
+    iowrite8((unsigned char)(ship->pos_x & 0xFF), SHIP_X_L(dev.virtbase));
+    iowrite8((unsigned char)((ship->pos_x >> 8) & 0x07), SHIP_X_H(dev.virtbase));
+    iowrite8((unsigned char)(ship->pos_y & 0xFF), SHIP_Y_L(dev.virtbase));
+    iowrite8((unsigned char)((ship->pos_y >> 8) & 0x03), SHIP_Y_H(dev.virtbase));
     dev.ship = *ship;
-
-    printk(KERN_INFO "%d, %d, %d", ship->pos_x, ship->pos_y, ship->active);
 }
+
+
+/*
+ * Write bullets properties
+ */
+static void write_bullets(bullet bullets[])
+{
+    unsigned char active_bits = 0;
+    int i;
+    
+    for (i = 0; i < MAX_BULLETS; i++) {
+        // 仅当子弹活动时才更新其位置
+        if (bullets[i].active) {
+            // 写入每个子弹的位置
+            iowrite8((unsigned char)(bullets[i].pos_x & 0xFF), BULLET_X_L(dev.virtbase, i));
+            iowrite8((unsigned char)((bullets[i].pos_x >> 8) & 0x07), BULLET_X_H(dev.virtbase, i));
+            iowrite8((unsigned char)(bullets[i].pos_y & 0xFF), BULLET_Y_L(dev.virtbase, i));
+            iowrite8((unsigned char)((bullets[i].pos_y >> 8) & 0x03), BULLET_Y_H(dev.virtbase, i));
+            
+            // 设置活动状态位
+            active_bits |= (1 << i);
+        } else {
+            // 对于非活动的子弹，将其位置重置为0
+            iowrite8(0, BULLET_X_L(dev.virtbase, i));
+            iowrite8(0, BULLET_X_H(dev.virtbase, i));
+            iowrite8(0, BULLET_Y_L(dev.virtbase, i));
+            iowrite8(0, BULLET_Y_H(dev.virtbase, i));
+        }
+        
+        dev.bullets[i] = bullets[i];
+    }
+    
+    // 写入子弹活动状态位图
+    iowrite8(active_bits, BULLET_ACTIVE(dev.virtbase));
+}
+
+
+/*
+ * Write enemies properties
+ */
+static void write_enemies(enemy enemies[])
+{
+
+    unsigned char active_bits = 0;
+
+    /* 写入敌人1 */
+    iowrite8((unsigned char)(enemies[0].pos_x & 0xFF), ENEMY1_X_L(dev.virtbase));
+    iowrite8((unsigned char)((enemies[0].pos_x >> 8) & 0x07), ENEMY1_X_H(dev.virtbase));
+    iowrite8((unsigned char)(enemies[0].pos_y & 0xFF), ENEMY1_Y_L(dev.virtbase));
+    iowrite8((unsigned char)((enemies[0].pos_y >> 8) & 0x03), ENEMY1_Y_H(dev.virtbase));
+    
+    /* 写入敌人2 */
+    iowrite8((unsigned char)(enemies[1].pos_x & 0xFF), ENEMY2_X_L(dev.virtbase));
+    iowrite8((unsigned char)((enemies[1].pos_x >> 8) & 0x07), ENEMY2_X_H(dev.virtbase));
+    iowrite8((unsigned char)(enemies[1].pos_y & 0xFF), ENEMY2_Y_L(dev.virtbase));
+    iowrite8((unsigned char)((enemies[1].pos_y >> 8) & 0x03), ENEMY2_Y_H(dev.virtbase));
+    
+    /* 写入激活状态 */
+    active_bits |= (enemies[0].active ? 1 : 0);
+    active_bits |= (enemies[1].active ? 2 : 0);
+    iowrite8(active_bits, ENEMY_ACTIVE(dev.virtbase));
+    
+    dev.enemies[0] = enemies[0];
+    dev.enemies[1] = enemies[1];
+}
+
+
+/*
+* Write enemy bullets properties
+*/
+static void write_enemy_bullets(enemy enemies[])
+{
+    unsigned char active_bits = 0;
+    int i;
+    
+    for (i = 0; i < ENEMY_COUNT; i++) {
+        if (enemies[i].bul.active) {
+            /* 写入每个子弹的位置 */
+            iowrite8((unsigned char)(enemies[i].bul.pos_x & 0xFF), ENEMY_BULLET_X_L(dev.virtbase, i));
+            iowrite8((unsigned char)((enemies[i].bul.pos_x >> 8) & 0x07), ENEMY_BULLET_X_H(dev.virtbase, i));
+            iowrite8((unsigned char)(enemies[i].bul.pos_y & 0xFF), ENEMY_BULLET_Y_L(dev.virtbase, i));
+            iowrite8((unsigned char)((enemies[i].bul.pos_y >> 8) & 0x03), ENEMY_BULLET_Y_H(dev.virtbase, i));
+            
+            /* 设置活动状态位 */
+            active_bits |= (1 << i);
+        } else {
+            /* 对于非活动的子弹，将其位置重置为0 */
+            iowrite8(0, ENEMY_BULLET_X_L(dev.virtbase, i));
+            iowrite8(0, ENEMY_BULLET_X_H(dev.virtbase, i));
+            iowrite8(0, ENEMY_BULLET_Y_L(dev.virtbase, i));
+            iowrite8(0, ENEMY_BULLET_Y_H(dev.virtbase, i));
+        }
+        
+        dev.enemies[i].bul = enemies[i].bul;
+    }
+    
+    /* 写入子弹活动状态位图 */
+    iowrite8(active_bits, ENEMY_BULLET_ACTIVE(dev.virtbase));
+}
+
+
 
 /*
 * Update all game state at once
 */
-static void update_game_state(gamestate *game_state)
+static void update_game_state(gamestate *state)
 {
-    write_background(&game_state->background);
-    write_all(&game_state->ship);
+    write_background(&state->background);
+    write_ship(&state->ship);
+    write_bullets(state->bullets);
+    write_enemies(state->enemies);
+    write_enemy_bullets(state->enemies);
+
 }
 
 
@@ -101,6 +213,7 @@ static gamestate vb_arg;
 */
 static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
+
     switch (cmd) {
         case VGA_BALL_UPDATE_GAME_STATE:
             if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
@@ -134,8 +247,11 @@ static struct miscdevice vga_ball_misc_device = {
 static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
-    background_color background = { 0xFF, 0x0FF, 0xFF }; // Dark blue
-    spaceship ship = { .pos_x = 240, pos_y = 200, active = 1};  // Ship starting position
+    background_color background = { 0xFF, 0xFF, 0xFF }; // Dark blue
+    spaceship ship = { 0 };  // Ship starting position
+    bullet bullets[MAX_BULLETS] = { 0 };    // All bullets initially inactive
+    enemy enemies[ENEMY_COUNT] = { 0 };     // All enemies initially inactive
+
     int ret;
 
     /* Register ourselves as a misc device */
@@ -162,11 +278,13 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         goto out_release_mem_region;
     }
 
+
         
     /* Set initial values */
     write_background(&background);
-    write_all(&ship);
-
+    write_ship(&ship);
+    write_bullets(bullets);
+    write_enemies(enemies);
 
     return 0;
 

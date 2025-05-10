@@ -5,7 +5,7 @@
 
 /* 定义最大子弹数量 */
 #define MAX_BULLETS 5
-#define ENEMY_COUNT 39
+#define ENEMY_COUNT 10
 #define LIFE_COUNT 5
 // #define INPUT_QUEUE_SIZE 32
 
@@ -53,20 +53,23 @@ typedef struct {
     unsigned short pos_x, pos_y;
     unsigned short velo_x, velo_y;
     int lives, num_bullets;
+    char sprite;
+    int active;
 } spaceship;
 
 typedef struct {
     unsigned short pos_x, pos_y;
     unsigned short velo_y; // velo_x is always 0 on bullets
+    char sprite;
     int active;
 } bullet;
 
 typedef struct {
     unsigned short pos_x, pos_y;
     // unsigned short velo_x, velo_y;
-    // int sprite; // different enemies have different visuals
     // int moving; // if the enemy is currently moving towards the ship
     bullet bul; // bullet structure for each enemy to shoot
+    char sprite; // different enemies have different visuals
     int active;
 } enemy;
 

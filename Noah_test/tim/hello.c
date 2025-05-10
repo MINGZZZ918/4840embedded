@@ -20,7 +20,8 @@
 #include "controller.h"
 
 
-#define SCREEN_WIDTH 1280
+// #define SCREEN_WIDTH 1280
+#define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 
 #define COLOR_COUNT 5
@@ -32,6 +33,8 @@
 
 #define ENEMY_WIDTH 16
 #define ENEMY_HEIGHT 16
+
+#define ENEMY_SPACE 44
 
 #define LIFE_COUNT 5
 
@@ -52,6 +55,7 @@
 
 /* File descriptor for the VGA ball device */
 static int vga_ball_fd;
+static int enemy_moving = 0;
 
 static const char filename[] = "/dev/vga_ball";
 
@@ -67,7 +71,9 @@ static const background_color colors[] = {
 static gamestate game_state = {
 
     .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_bullets = 0, .sprite = 0, .active = 1},
-    .background = {.red = 0xFF, .green = 0xFF, .blue = 0xFF}
+    .background = {.red = 0xFF, .green = 0xFF, .blue = 0xFF},
+    .bullets = { 0 },
+    .enemies = { 0 }
 };
 
 /**
@@ -75,17 +81,9 @@ static gamestate game_state = {
  */
 void init_game_state() {
 
-    for (int i = 0; i < MAX_BULLETS; i++) {
-
-        game_state.bullets[i].pos_x = 0;
-        game_state.bullets[i].pos_y = 0;
-        game_state.bullets[i].velo_y = 0;
-        game_state.bullets[i].active = 0;
-    }
-
     for (int i = 0; i < ENEMY_COUNT; i++) {
 
-        game_state.enemies[i].pos_x = i*ENEMY_WIDTH+50;
+        game_state.enemies[i].pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
         game_state.enemies[i].pos_y = 50;
         game_state.enemies[i].active = 1;
 
@@ -163,11 +161,20 @@ int enemy_movement(){
     enemy *enemy;
     int num_left = 0;
     bullet *bul;
+    spaceship *ship;
 
     for (int i = 0; i < ENEMY_COUNT; i++){
 
         enemy = &game_state.enemies[i];
         bul = &enemy->bul;
+
+        if (enemy_moving == 0){
+            if (enemy->pos_y > ship->pos_y){
+                enemy->velo_y = 1;
+            }
+
+            continue;
+        }
 
         if (enemy->bul.active){
 
@@ -371,4 +378,3 @@ int main(){
     }
 
 }
-

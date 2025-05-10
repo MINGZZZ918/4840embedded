@@ -34,6 +34,7 @@ struct vga_ball_dev {
     background_color background;
     spaceship ship;
     bullet bullets[MAX_BULLETS];
+    enemy enemies[ENEMY_COUNT];
 } dev;
 
 /*
@@ -69,11 +70,12 @@ static void write_object(int idx, unsigned short x, unsigned short y, char sprit
 /*
  * Write all objects
  */
-static void write_all(spaceship *ship, bullet bullets[])
+static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 {
 
     int i;
     bullet *bul;
+    enemy *enemy;
 
 
     write_object (1, ship->pos_x,  ship->pos_y, ship->sprite, ship->active);
@@ -83,10 +85,31 @@ static void write_all(spaceship *ship, bullet bullets[])
     for (i = 0; i < MAX_BULLETS; i++) {
 
         bul = &bullets[i];
-        write_object(i+2,  bul->pos_x,  bul->pos_y, bul->sprite, bul->active);
+        write_object(i+2,  bul->pos_x,  bul->pos_y, 1, bul->active);
         
         dev.bullets[i] = bullets[i];
     }
+
+
+    for (i = 0; i < ENEMY_COUNT; i++) {
+
+        enemy = &enemies[i];
+        write_object(i+MAX_BULLETS+2,  enemy->pos_x,  enemy->pos_y, 3, enemy->active);
+
+        dev.enemies[i] = enemies[i];
+    }
+
+    for (i = 0; i < ENEMY_COUNT; i++) {
+
+        enemy = &enemies[i];
+        bul = &enemy->bul;
+        write_object(i+MAX_BULLETS+ENEMY_COUNT+2,  bul->pos_x,  bul->pos_y, 2, bul->active);
+
+        dev.enemies[i].bul = enemies[i].bul;
+    }
+
+
+
 }
 
 /*
@@ -95,7 +118,7 @@ static void write_all(spaceship *ship, bullet bullets[])
 static void update_game_state(gamestate *game_state)
 {
     write_background(&game_state->background);
-    write_all(&game_state->ship, game_state->bullets);
+    write_all(&game_state->ship, game_state->bullets, game_state->enemies);
 }
 
 
@@ -140,8 +163,9 @@ static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
     background_color background = { 0xFF, 0x0FF, 0xFF }; // Dark blue
-    spaceship ship = { .pos_x = 240, .pos_y = 200, .active = 1};  // Ship starting position
-    bullet bullets[MAX_BULLETS] = {0};
+    spaceship ship = { .pos_x = 240, .pos_y = 200, .active = 0};  // Ship starting position
+    bullet bullets[MAX_BULLETS] = { 0 };
+    enemy enemies[ENEMY_COUNT] = { 0 };
 
     int ret;
 
@@ -172,7 +196,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         
     /* Set initial values */
     write_background(&background);
-    write_all(&ship, bullets);
+    write_all(&ship, bullets, enemies);
 
     return 0;
 

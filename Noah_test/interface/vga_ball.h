@@ -5,7 +5,7 @@
 
 /* 定义最大子弹数量 */
 #define MAX_BULLETS 5
-#define ENEMY_COUNT 10
+#define ENEMY_COUNT 20
 #define LIFE_COUNT 5
 // #define INPUT_QUEUE_SIZE 32
 
@@ -60,7 +60,6 @@ typedef struct {
 typedef struct {
     unsigned short pos_x, pos_y;
     unsigned short velo_y; // velo_x is always 0 on bullets
-    char sprite;
     int active;
 } bullet;
 

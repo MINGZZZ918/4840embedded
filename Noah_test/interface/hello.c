@@ -79,7 +79,7 @@ void init_game_state() {
 
     for (int i = 0; i < ENEMY_COUNT; i++) {
 
-        game_state.enemies[i].pos_x = i*ENEMY_WIDTH+50;
+        game_state.enemies[i].pos_x = 20 + i*(ENEMY_WIDTH + 20);
         game_state.enemies[i].pos_y = 50;
         game_state.enemies[i].active = 1;
 
@@ -238,7 +238,7 @@ int main(){
 
     printf("Game Begins! \n");
 
-    // init_game_state();
+    init_game_state();
     update_hardware();
     for (;;){       
 
@@ -346,7 +346,7 @@ int main(){
 
             ship_movement();
             bullet_movement(new_bullet);
-            // enemies_remaining = enemy_movement();
+            enemies_remaining = enemy_movement();
 
             if(ship->lives <= 0){
                 printf("You lost =( \n");
@@ -355,10 +355,10 @@ int main(){
 
             update_hardware();
 
-            // if(!enemies_remaining){
-            //     printf("You Won!");
-            //     break;
-            // }
+            if(!enemies_remaining){
+                printf("You Won!");
+                break;
+            }
 
             usleep(16000);
         }    

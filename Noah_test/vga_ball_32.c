@@ -62,6 +62,12 @@ static void write_object(unsigned short x, unsigned short y, char sprite_idx, ch
                 ((u32)(active & 0x1) << 1);  // 活动状态 (1位)
                 
     iowrite32(obj_data, OBJECT_DATA(dev.virtbase));
+
+
+    for (int i = 31; i >= 0; i--) {
+        // Print the bit at each position (either 0 or 1)
+        printk(KERN_INFO "%d \n", (obj_data >> i) & 1);
+    }
 }
 
 

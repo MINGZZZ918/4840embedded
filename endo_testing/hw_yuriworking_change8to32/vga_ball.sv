@@ -3,121 +3,135 @@
  */
 
 module vga_ball#(
-    parameter MAX_OBJECTS = 10, 
-    parameter SPRITE_WIDTH = 16,
-    parameter SPRITE_HEIGHT = 16
-)(
+    parameter MAX_OBJECTS = 20,    // 飞船(1) + 敌人(2) + 玩家子弹(5) + 敌人子弹(6) + 预留(6)，可以增加改成敌人
+    parameter SPRITE_WIDTH = 16,   // 所有精灵标准宽度
+    parameter SPRITE_HEIGHT = 16,  // 所有精灵标准高度
+    parameter SHIP_SPRITE_INDEX = 0,  // 飞船的精灵索引
+    parameter ENEMY_SPRITE_START = 1, // 敌人精灵索引开始，预设十六个敌人
+    parameter BULLET_SPRITE_START = 17 // 子弹精灵索引开始 ，可以增加 MAX_OBJECTS来增加 bullet 数量
+) (
     input  logic        clk,
     input  logic        reset,
-    input  logic [31:0] writedata,
+    input  logic [31:0] writedata,  // 改为32位宽度
     input  logic        write,
     input  logic        chipselect,
-    input  logic [4:0]  address,
-
+    input  logic [4:0]  address,    // 由于一次传32位，地址空间可以减小
     output logic [7:0]  VGA_R, VGA_G, VGA_B,
     output logic        VGA_CLK, VGA_HS, VGA_VS,
-                        VGA_BLANK_n,
+    output logic        VGA_BLANK_n,
     output logic        VGA_SYNC_n
 );
 
+    // 常量定义
     logic [10:0]    hcount;
     logic [9:0]     vcount;
 
+    // Background color
     logic [7:0]     background_r, background_g, background_b;
     
-    logic [11:0]    obj_x[MAX_OBJECTS];
-    logic [11:0]    obj_y[MAX_OBJECTS];
-    logic [5:0]     obj_sprite[MAX_OBJECTS];
-    logic           obj_active[MAX_OBJECTS];
+    // 游戏对象数组，每个对象包含位置和精灵信息（不懂）
+    logic [11:0]    obj_x[MAX_OBJECTS]; // 12位x坐标
+    logic [11:0]    obj_y[MAX_OBJECTS]; // 12位y坐标
+    logic [5:0]     obj_sprite[MAX_OBJECTS]; // 6位精灵索引，所以最多是64个精灵（bullet+ship+enemy）
+    logic           obj_active[MAX_OBJECTS]; // 活动状态位
     
-    localparam int SPRITE_SIZE  = SPRITE_WIDTH * SPRITE_HEIGHT;
+    // 精灵渲染相关
+    localparam int SPRITE_SIZE  = SPRITE_WIDTH * SPRITE_HEIGHT; // 16*16=256
     logic [13:0] sprite_address;
     logic [7:0] color_address;
     logic [7:0] rom_data;
     logic [7:0] rom_r, rom_g, rom_b;
     logic [23:0] sprite_data;
-    logic [23:0] color_data;
+    logic [23:0] color_data;  // 来自 color_palette.mif 的 RGB
 
+
+    // ROM IP module
+    //rom_sprites
     soc_system_rom_sprites sprite_images (
-        .address      (sprite_address),
-        .chipselect   (1'b1),
-        .clk          (clk),
-        .clken        (1'b1),
+        .address      (sprite_address),   // ROM 索引地址
+        .chipselect   (1'b1),             // 始终使能
+        .clk          (clk),              // 时钟
+        .clken        (1'b1),             // 时钟使能
         .debugaccess  (1'b0),
         .freeze       (1'b0),
         .reset        (1'b0),
         .reset_req    (1'b0),
         .write        (1'b0),
         .writedata    (32'b0),
-        .readdata     (rom_data)
+        .readdata     (rom_data)          // 输出：ROM中读出的颜色索引
     );
 
+    //color palette
     color_palette palette_inst (
         .clk        (clk),
         .clken      (1'b1),
         .address    (color_address),
         .color_data (color_data)
     );
+    assign color_address = rom_data;
+    assign sprite_data = color_data;
+    assign {rom_r, rom_g, rom_b} = sprite_data;
 
-    vga_counters counters(
-        .clk50(clk), 
-        .*
-    );
+    // Instantiate VGA counter module
+    vga_counters counters(.clk50(clk), .*);
 
-    // === Updated 32-bit writedata interface ===
-    always_ff @(posedge clk) begin
+    // Register update logic
+    always_ff @(posedge clk) begin //initialize
         if (reset) begin
             // 初始化背景色
             background_r <= 8'h00;
             background_g <= 8'h80;
-            background_b <= 8'h00;
-
+            background_b <= 8'h00;  // 深蓝色背景
+            
             // 初始化所有对象
             for (int i = 0; i < MAX_OBJECTS; i++) begin
-                obj_x[i]      <= 12'd0;
-                obj_y[i]      <= 12'd0;
+                obj_x[i] <= 12'd0;
+                obj_y[i] <= 12'd0;
                 obj_sprite[i] <= 6'd0;
                 obj_active[i] <= 1'b0;
             end
-
-            // Example: 默认放置船和两个敌人
-            obj_x[0]      <= 12'd200;                  // ship
-            obj_y[0]      <= 12'd240;
-            obj_sprite[0] <= 0;
+            
+            // 初始化玩家飞船
+            obj_x[0] <= 12'd200;
+            obj_y[0] <= 12'd240;
+            obj_sprite[0] <= SHIP_SPRITE_INDEX;
             obj_active[0] <= 1'b1;
+            
+            // 初始化敌人
+            obj_x[1] <= 12'd800;
+            obj_y[1] <= 12'd150;
+            obj_sprite[1] <= ENEMY_SPRITE_START;
+            obj_active[1] <= 1'b1;
+            
+            obj_x[2] <= 12'd800;
+            obj_y[2] <= 12'd350;
+            obj_sprite[2] <= ENEMY_SPRITE_START;
+            obj_active[2] <= 1'b1;
+        end 
 
-            // obj_x[1]      <= 12'd800;                  // enemy #1
-            // obj_y[1]      <= 12'd150;
-            // obj_sprite[1] <= ENEMY_SPRITE_START;
-            // obj_active[1] <= 1'b1;
-
-            // obj_x[2]      <= 12'd800;                  // enemy #2
-            // obj_y[2]      <= 12'd350;
-            // obj_sprite[2] <= ENEMY_SPRITE_START;
-            // obj_active[2] <= 1'b1;
-        end
         else if (chipselect && write) begin
             case (address)
-                // 背景色写入：24位
-                5'd0:
-                    {background_r, background_g, background_b}
-                    <= writedata[23:0];
-
-                // 对象数据写入：x[11:0], y[11:0], sprite[5:0], active[1]
+                // 设置背景色 - 使用一个32位写入
+                5'd0: {background_r, background_g, background_b} <= writedata[23:0];
+                //如果想在sw设置敌人和子弹数量可以在bg这里传，剩下8bit
+                // 对象数据更新 - 地址1到MAX_OBJECTS对应各个对象
                 default: begin
-                    if (address >= 5'd1
-                     && address <  5'd1 + MAX_OBJECTS) begin
-                        // int obj_idx = address - 5'd1;
-                        obj_x[address - 5'd1]      <= writedata[31:20];
-                        obj_y[address - 5'd1]      <= writedata[19:8];
-                        obj_sprite[address - 5'd1] <= writedata[7:2];
-                        obj_active[address - 5'd1] <= writedata[1];
+                    if (address >= 5'd1 && address <= 5'd1 + MAX_OBJECTS - 1) begin //最先打印的是 bg，然后先传 ship，再传敌人，再传子弹
+                        int obj_idx;
+                        obj_idx = address - 5'd1;
+                        // 解析32位数据
+                        obj_x[obj_idx] <= writedata[31:20];     // 高12位是x坐标
+                        obj_y[obj_idx] <= writedata[19:8];      // 接下来12位是y坐标
+                        obj_sprite[obj_idx] <= writedata[7:2];  // 接下来6位是精灵索引
+                        obj_active[obj_idx] <= writedata[1];    // 接下来1位是活动状态
+                        // 最低位保留，不使用
                     end
                 end
             endcase
         end
     end
 
+    // 渲染逻辑 - 确定当前像素属于哪个对象
     logic [4:0] active_obj_idx;
     logic obj_visible;
     logic [3:0] rel_x, rel_y;
@@ -128,6 +142,7 @@ module vga_ball#(
         rel_x = 4'd0;
         rel_y = 4'd0;
         
+        // 从高优先级到低优先级检查对象（最后绘制的对象优先级最高）
         for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
             if (obj_active[i] && 
                 hcount[10:1] >= obj_x[i] && 
@@ -139,15 +154,21 @@ module vga_ball#(
                 rel_x = hcount[10:1] - obj_x[i][11:0];
                 rel_y = vcount - obj_y[i][11:0];
                 obj_visible = 1'b1;
-                break;
+                break;  // 找到显示对象，退出循环
             end
         end
     end
     
+    //  用 ROM 真正打印 sprite
     always_comb begin
+        // 默认透明
         sprite_address = 12'd0;
+        // sprite_data 已由 ROM IP 更新
 
         if (obj_visible) begin
+            // 计算这帧要读的 ROM 地址：
+            // base = sprite_index * 256
+            // offset = rel_y*16 + rel_x
             sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE
                            + rel_y * SPRITE_WIDTH
                            + rel_x;
@@ -156,17 +177,26 @@ module vga_ball#(
 
     // VGA output logic
     always_comb begin
-        {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h00, 8'h00}; // 默认黑色
+        {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h80, 8'h00}; // 默认黑色
         
         if (VGA_BLANK_n) begin
             // 背景色
             {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
             
-            {VGA_R, VGA_G, VGA_B} = sprite_data;
-
+            // 如果当前像素属于某个对象且对象是可见的，则显示对象的像素
+            if (obj_visible) begin
+                // 从sprite_data中获取RGB值
+                VGA_R = sprite_data[23:16]; // 高8位是R，sprite_data就是 readdate
+                VGA_G = sprite_data[15:8];  // 中8位是G
+                VGA_B = sprite_data[7:0];   // 低8位是B
+                
+                // 如果像素是透明色(全黑)，显示背景
+                if (sprite_data == 24'h0) begin
+                    {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
+                end
+            end
         end
     end
-
 endmodule
 
 // VGA timing generator module
@@ -223,7 +253,6 @@ module vga_counters(
     assign VGA_CLK = hcount[0]; // 25 MHz clock: rising edge sensitive
     
 endmodule
-
 module color_palette(
     input  logic        clk,
     input  logic        clken,

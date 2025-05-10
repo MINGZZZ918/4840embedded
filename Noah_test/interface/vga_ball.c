@@ -23,7 +23,7 @@
 
 /* Device registers */
 #define BG_COLOR(x)      (x)
-#define OBJECT_DATA(x) ((x) + (4*(i)))
+#define OBJECT_DATA(x,i) ((x) + (4*(i)))
 
 /*
 * Information about our device
@@ -83,7 +83,7 @@ static void write_all(spaceship *ship, bullet bullets[])
     for (i = 0; i < MAX_BULLETS; i++) {
 
         bul = &bullets[i];
-        write_object(i+1,  bul->pos_x,  bul->pos_y, bul->sprite, bul->active);
+        write_object(i+2,  bul->pos_x,  bul->pos_y, bul->sprite, bul->active);
         
         dev.bullets[i] = bullets[i];
     }

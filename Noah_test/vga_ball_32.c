@@ -23,7 +23,7 @@
 
 /* Device registers */
 #define BG_COLOR(x)      (x)
-#define OBJECT_DATA(x) ((x) + 4)
+#define OBJECT_DATA(x) ((x) + 1)
 
 /*
 * Information about our device

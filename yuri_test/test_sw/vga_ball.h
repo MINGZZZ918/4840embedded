@@ -88,3 +88,4 @@ typedef struct {
 
 
 #endif /* _VGA_BALL_H */
+

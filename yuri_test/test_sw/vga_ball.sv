@@ -495,3 +495,4 @@ module vga_counters(
     assign VGA_CLK = hcount[0]; // 25 MHz clock: rising edge sensitive
     
 endmodule
+

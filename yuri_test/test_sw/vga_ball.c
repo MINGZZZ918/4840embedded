@@ -225,3 +225,4 @@ module_exit(vga_ball_exit);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("VGA Ball Demo");
 MODULE_DESCRIPTION("VGA Ball demo driver");
+

@@ -22,3 +22,4 @@ typedef struct {
 extern struct libusb_device_handle *opencontroller(uint8_t *);
 
 #endif
+

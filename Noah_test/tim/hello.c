@@ -168,13 +168,16 @@ int enemy_movement(){
         enemy = &game_state.enemies[i];
         bul = &enemy->bul;
 
+
+        enemy->pos_x += enemy->velo_x;
+        enemy->pos_y += enemy->velo_y;
+
         if (enemy_moving == 0){
             if (enemy->pos_y > ship->pos_y){
-                enemy->velo_y = 1;
+                enemy->velo_y = -2;
             }
 
             enemy_moving ++;
-
             continue;
         }
 

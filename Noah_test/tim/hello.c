@@ -14,8 +14,10 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <time.h>
+#include <math.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include "noah/vga_ball.h"
 #include "vga_ball.h"
 #include "controller.h"
 
@@ -158,23 +160,61 @@ void bullet_movement(int new_bullet){
 
 int enemy_movement(){
 
+
+    int rand_enemy = rand() % ENEMY_COUNT;
+
     enemy *enemy;
-    int num_left = 0;
+    int num_left = 0, new_x, new_y, mag;
     bullet *bul;
     spaceship *ship;
+
+    
 
     for (int i = 0; i < ENEMY_COUNT; i++){
 
         enemy = &game_state.enemies[i];
         bul = &enemy->bul;
 
-        if (enemy_moving == 0){
-            if (enemy->pos_y > ship->pos_y){
-                enemy->velo_y = 1;
-            }
+        if (enemy_moving == 0 && i == 0){
 
+            enemy->velo_y = 2;
+            enemy_moving ++;
             continue;
         }
+
+        if (enemy->velo_y != 0 || enemy->velo_x != 0){
+
+            enemy->pos_x += enemy->velo_x;
+            enemy->pos_y += enemy->velo_y;
+
+
+            new_x = ship->pos_x - enemy->pos_x;
+            new_y = ship->pos_y - enemy->pos_y;
+
+            mag = sqrt(new_x * new_x + new_y * new_y);
+
+            // Normalize the vector by dividing by the magnitude
+            new_x = (new_x * 2) / mag;  // 2 is the desired magnitude
+            new_y = (new_y * 2) / mag;  // 2 is the desired magnitude
+
+            // Assigning the new velocity to the enemy
+            enemy->velo_x = new_x;
+            enemy->velo_y = new_y;
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+
+
 
         if (enemy->bul.active){
 
@@ -226,6 +266,9 @@ int main(){
     controller_packet packet;
     int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining;
     int bumpers = 0, buttons = 0;
+
+    srand((unsigned)time(NULL));
+
 
     /* Open the device file */
     if ((vga_ball_fd = open(filename, O_RDWR)) == -1) {
@@ -366,12 +409,13 @@ int main(){
                 break;
             }
 
-            update_hardware();
-
             if(!enemies_remaining){
                 printf("You Won!");
                 break;
             }
+
+
+            update_hardware();
 
             usleep(16000);
         }    

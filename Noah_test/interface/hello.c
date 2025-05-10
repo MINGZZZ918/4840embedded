@@ -67,21 +67,15 @@ static const background_color colors[] = {
 static gamestate game_state = {
 
     .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_bullets = 0, .sprite = 0, .active = 1},
-    .background = {.red = 0xFF, .green = 0xFF, .blue = 0xFF}
+    .background = {.red = 0xFF, .green = 0xFF, .blue = 0xFF},
+    .bullets = { 0 },
+    .enemies = { 0 }
 };
 
 /**
  * Initialize game state
  */
 void init_game_state() {
-
-    for (int i = 0; i < MAX_BULLETS; i++) {
-
-        game_state.bullets[i].pos_x = 0;
-        game_state.bullets[i].pos_y = 0;
-        game_state.bullets[i].velo_y = 0;
-        game_state.bullets[i].active = 0;
-    }
 
     for (int i = 0; i < ENEMY_COUNT; i++) {
 
@@ -244,7 +238,7 @@ int main(){
 
     printf("Game Begins! \n");
 
-    init_game_state();
+    // init_game_state();
     update_hardware();
     for (;;){       
 
@@ -352,7 +346,7 @@ int main(){
 
             ship_movement();
             bullet_movement(new_bullet);
-            enemies_remaining = enemy_movement();
+            // enemies_remaining = enemy_movement();
 
             if(ship->lives <= 0){
                 printf("You lost =( \n");
@@ -361,13 +355,14 @@ int main(){
 
             update_hardware();
 
-            if(!enemies_remaining){
-                printf("You Won!");
-                break;
-            }
+            // if(!enemies_remaining){
+            //     printf("You Won!");
+            //     break;
+            // }
 
             usleep(16000);
         }    
     }
 
 }
+

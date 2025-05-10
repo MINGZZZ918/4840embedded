@@ -23,7 +23,7 @@
 
 /* Device registers */
 #define BG_COLOR(x)      (x)
-#define OBJECT_DATA(x) ((x) + 4)
+#define OBJECT_DATA(x) ((x) + (4*(i)))
 
 /*
 * Information about our device
@@ -33,6 +33,7 @@ struct vga_ball_dev {
     void __iomem *virtbase; /* Where registers can be accessed in memory */
     background_color background;
     spaceship ship;
+    bullet bullets[MAX_BULLETS];
 } dev;
 
 /*
@@ -52,7 +53,7 @@ static void write_background(background_color *background)
 /*
  * Write object data
  */
-static void write_object(unsigned short x, unsigned short y, char sprite_idx, char active)
+static void write_object(int idx, unsigned short x, unsigned short y, char sprite_idx, char active)
 {
         
     // 构建32位对象数据
@@ -61,19 +62,31 @@ static void write_object(unsigned short x, unsigned short y, char sprite_idx, ch
                 ((u32)(sprite_idx & 0x3F) << 2) | // 精灵索引 (6位)
                 ((u32)(active & 0x1) << 1);  // 活动状态 (1位)
                 
-    iowrite32(obj_data, OBJECT_DATA(dev.virtbase));
+    iowrite32(obj_data, OBJECT_DATA(dev.virtbase, idx));
 }
 
 
 /*
  * Write all objects
  */
-static void write_all(spaceship *ship)
+static void write_all(spaceship *ship, bullet bullets[])
 {
-    write_object (ship->pos_x,  ship->pos_y, ship->sprite, ship->active);
+
+    int i;
+    bullet *bul;
+
+
+    write_object (1, ship->pos_x,  ship->pos_y, ship->sprite, ship->active);
     dev.ship = *ship;
 
-    printk(KERN_INFO "%d, %d, %d", ship->pos_x, ship->pos_y, ship->active);
+
+    for (i = 0; i < MAX_BULLETS; i++) {
+
+        bul = &bullets[i];
+        write_object(i+1,  bul->pos_x,  bul->pos_y, bul->sprite, bul->active);
+        
+        dev.bullets[i] = bullets[i];
+    }
 }
 
 /*
@@ -82,7 +95,7 @@ static void write_all(spaceship *ship)
 static void update_game_state(gamestate *game_state)
 {
     write_background(&game_state->background);
-    write_all(&game_state->ship);
+    write_all(&game_state->ship, game_state->bullets);
 }
 
 
@@ -128,6 +141,8 @@ static int __init vga_ball_probe(struct platform_device *pdev)
     // Initial values
     background_color background = { 0xFF, 0x0FF, 0xFF }; // Dark blue
     spaceship ship = { .pos_x = 240, .pos_y = 200, .active = 1};  // Ship starting position
+    bullet bullets[MAX_BULLETS] = {0};
+
     int ret;
 
     /* Register ourselves as a misc device */
@@ -157,8 +172,7 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         
     /* Set initial values */
     write_background(&background);
-    write_all(&ship);
-
+    write_all(&ship, bullets);
 
     return 0;
 

@@ -66,7 +66,7 @@ typedef struct {
 
 typedef struct {
     unsigned short pos_x, pos_y;
-    // unsigned short velo_x, velo_y;
+    unsigned short velo_x, velo_y;
     // int moving; // if the enemy is currently moving towards the ship
     bullet bul; // bullet structure for each enemy to shoot
     char sprite; // different enemies have different visuals

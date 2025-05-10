@@ -128,7 +128,7 @@ static struct miscdevice vga_ball_misc_device = {
 static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
-    background_color background = { 0x00, 0x00, 0x20 }; // Dark blue
+    background_color background = { 0xFF, 0x0FF, 0xFF }; // Dark blue
     spaceship ship = { 0 };  // Ship starting position
     int ret;
 

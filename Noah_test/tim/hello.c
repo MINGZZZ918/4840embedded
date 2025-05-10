@@ -34,6 +34,8 @@
 #define ENEMY_WIDTH 16
 #define ENEMY_HEIGHT 16
 
+#define ENEMY_SPACE 44
+
 #define LIFE_COUNT 5
 
 #define NUM_ENEMIES 5 // how many different sprites we have
@@ -80,7 +82,7 @@ void init_game_state() {
 
     for (int i = 0; i < ENEMY_COUNT; i++) {
 
-        game_state.enemies[i].pos_x = 20 + i*(ENEMY_WIDTH + 44);
+        game_state.enemies[i].pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
         game_state.enemies[i].pos_y = 50;
         game_state.enemies[i].active = 1;
 
@@ -366,4 +368,3 @@ int main(){
     }
 
 }
-

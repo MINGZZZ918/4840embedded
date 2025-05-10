@@ -85,7 +85,7 @@ static void write_background(background_color *background)
 static void write_ship(spaceship *ship)
 {
 
-    printk(KERN_INFO "%d, %d", ship->pos_x, ship->pos_y);
+    printk(KERN_INFO "%d, %d \n", ship->pos_x, ship->pos_y);
 
 
     iowrite8((unsigned char)(ship->pos_x & 0xFF), SHIP_X_L(dev.virtbase));

@@ -66,8 +66,9 @@ static void write_object(unsigned short x, unsigned short y, char sprite_idx, ch
 
     for (int i = 31; i >= 0; i--) {
         // Print the bit at each position (either 0 or 1)
-        printk(KERN_INFO "%d \n", (obj_data >> i) & 1);
+        printk(KERN_INFO "%d", (obj_data >> i) & 1);
     }
+    printk(KERN_INFO "\n");
 }
 
 

@@ -173,6 +173,8 @@ int enemy_movement(){
                 enemy->velo_y = 1;
             }
 
+            enemy_moving ++;
+
             continue;
         }
 

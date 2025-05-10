@@ -145,14 +145,14 @@ module vga_ball#(
         // 从高优先级到低优先级检查对象（最后绘制的对象优先级最高）
         for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
             if (obj_active[i] && 
-                hcount[10:1] >= obj_x[i] && 
-                hcount[10:1] < obj_x[i] + SPRITE_WIDTH &&
+                hcount >= obj_x[i] && 
+                hcount< obj_x[i] + SPRITE_WIDTH &&
                 vcount >= obj_y[i] && 
                 vcount < obj_y[i] + SPRITE_HEIGHT) begin
                 
                 active_obj_idx = i[4:0];
-                rel_x = hcount[10:1] - obj_x[i][11:0];
-                rel_y = vcount - obj_y[i][11:0];
+                rel_x = hcount - obj_x[i];
+                rel_y = vcount - obj_y[i];
                 obj_visible = 1'b1;
                 break;  // 找到显示对象，退出循环
             end

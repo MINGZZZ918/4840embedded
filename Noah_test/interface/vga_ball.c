@@ -80,13 +80,13 @@ static void write_all(spaceship *ship, bullet bullets[])
     dev.ship = *ship;
 
 
-    // for (i = 0; i < MAX_BULLETS; i++) {
+    for (i = 0; i < MAX_BULLETS; i++) {
 
-    //     bul = &bullets[i];
-    //     write_object(i+1,  bul->pos_x,  bul->pos_y, bul->sprite, bul->active);
+        bul = &bullets[i];
+        write_object(i+2,  bul->pos_x,  bul->pos_y, bul->sprite, bul->active);
         
-    //     dev.bullets[i] = bullets[i];
-    // }
+        dev.bullets[i] = bullets[i];
+    }
 }
 
 /*

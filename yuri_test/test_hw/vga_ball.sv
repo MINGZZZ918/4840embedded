@@ -3,19 +3,19 @@
  */
 
 module vga_ball#(
-    parameter MAX_OBJECTS = 20,    // 飞船(1) + 敌人(2) + 玩家子弹(5) + 敌人子弹(6) + 预留(6)，可以增加改成敌人
+    parameter MAX_OBJECTS = 16,    // sprites种类：飞船（1）+ 敌人（3）+ 自己子弹（3）+敌人子弹（3）+ 爆炸（3）
     parameter SPRITE_WIDTH = 16,   // 所有精灵标准宽度
     parameter SPRITE_HEIGHT = 16,  // 所有精灵标准高度
     parameter SHIP_SPRITE_INDEX = 0,  // 飞船的精灵索引
     parameter ENEMY_SPRITE_START = 1, // 敌人精灵索引开始，预设十六个敌人
-    parameter BULLET_SPRITE_START = 17 // 子弹精灵索引开始 ，可以增加 MAX_OBJECTS来增加 bullet 数量
+    parameter BULLET_SPRITE_START = 15 // 子弹精灵索引开始 ，可以增加 MAX_OBJECTS来增加 bullet 数量
 ) (
     input  logic        clk,
     input  logic        reset,
     input  logic [31:0] writedata,  // 改为32位宽度
     input  logic        write,
     input  logic        chipselect,
-    input  logic [4:0]  address,    // 由于一次传32位，地址空间可以减小
+    input  logic [6:0]  address,    // 由于一次传32位，地址空间可以减小
     output logic [7:0]  VGA_R, VGA_G, VGA_B,
     output logic        VGA_CLK, VGA_HS, VGA_VS,
     output logic        VGA_BLANK_n,
@@ -116,9 +116,9 @@ module vga_ball#(
                 //如果想在sw设置敌人和子弹数量可以在bg这里传，剩下8bit
                 // 对象数据更新 - 地址1到MAX_OBJECTS对应各个对象
                 default: begin
-                    if (address >= 5'd1 && address <= 5'd1 + MAX_OBJECTS - 1) begin //最先打印的是 bg，然后先传 ship，再传敌人，再传子弹
+                    if (address >= 7'd1 && address <= 7'd1 + MAX_OBJECTS - 1) begin //最先打印的是 bg，然后先传 ship，再传敌人，再传子弹
                         int obj_idx;
-                        obj_idx = address - 5'd1;
+                        obj_idx = address - 7'd1;
                         // 解析32位数据
                         obj_x[obj_idx] <= writedata[31:20];     // 高12位是x坐标
                         obj_y[obj_idx] <= writedata[19:8];      // 接下来12位是y坐标

@@ -238,14 +238,87 @@ void calculate_velo(int x, int y, enemy *enemy, char scaler){
 
 }
 
-int enemy_movement(){
+
+void move_enemy(enemy *enemy){
+
 
     spaceship *ship = &game_state.ship;
     int cont;
 
+
+    if (enemy->turn_counter < TURN_TIME){
+
+        if (enemy->pos_x <= SCREEN_WIDTH/2)
+            enemy->velo_x = -turn_x[enemy->turn_counter];
+
+        else
+            enemy->velo_x = turn_x[enemy->turn_counter];
+
+
+        enemy->velo_y = turn_y[enemy->turn_counter];
+        enemy->turn_counter++;
+
+        if (enemy->turn_counter == TURN_TIME){
+
+            calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
+
+            if (enemy->velo_y == 0) enemy->velo_y = 1;
+
+            if (enemy->velo_x == 0) 
+                enemy->velo_x = (enemy->pos_x > SCREEN_WIDTH / 2) ? 1 : -1;
+
+            // calculate_velo(0, 300, enemy, 3);
+
+            // printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
+        }
+    }
+
+    else{
+
+        if(++enemy->move_time == 150){
+
+            cont = rand() % 3;
+
+            if(!cont)
+                enemy->velo_x = -enemy->velo_x;
+            else
+                enemy->move_time --;
+
+        }
+
+        else if(enemy->move_time == 250){
+
+            enemy->velo_x = 0;
+            enemy->velo_y = 2;
+        }
+    }
+
+    if (enemy->pos_y > SCREEN_HEIGHT || enemy->pos_x > SCREEN_WIDTH || enemy->pos_x < 0){
+
+        enemy->pos_x = enemy->start_x;
+        enemy->pos_y = enemy->start_y;
+
+        enemy->velo_x = 0;
+        enemy->velo_y = 0;
+
+        enemy->moving = 0;
+        enemy->move_time = 0;
+        enemy->turn_counter = 0;
+    }
+
+    enemy->pos_x += enemy->velo_x;
+    enemy->pos_y += enemy->velo_y;
+}
+
+
+
+
+
+int enemy_movement(){
+
+    int cont;
+
     int e = rand() % ENEMY_COUNT;
-
-
 
 
     for (int i = 0; i < ENEMY_COUNT; i++){
@@ -259,76 +332,9 @@ int enemy_movement(){
             enemy->velo_y = -4;
 
             enemy->moving = 1;
+
+            move_enemy(enemy);
         }
-
-        else {
-
-            if (enemy->turn_counter < TURN_TIME){
-
-                if (enemy->pos_x <= SCREEN_WIDTH/2)
-                    enemy->velo_x = -turn_x[enemy->turn_counter];
-
-                else
-                    enemy->velo_x = turn_x[enemy->turn_counter];
-
-
-                enemy->velo_y = turn_y[enemy->turn_counter];
-                enemy->turn_counter++;
-
-                if (enemy->turn_counter == TURN_TIME){
-
-                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
-
-                    if (enemy->velo_y == 0) enemy->velo_y = 1;
-
-                    if (enemy->velo_x == 0) 
-                        enemy->velo_x = (enemy->pos_x > SCREEN_WIDTH / 2) ? 1 : -1;
-
-                    // calculate_velo(0, 300, enemy, 3);
-
-                    // printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
-                }
-            }
-
-            else{
-
-                if(++enemy->move_time == 150){
-
-                    cont = rand() % 3;
-
-                    if(!cont)
-                        enemy->velo_x = -enemy->velo_x;
-                    else
-                        enemy->move_time --;
-
-                }
-
-                else if(enemy->move_time == 250){
-
-                    enemy->velo_x = 0;
-                    enemy->velo_y = 2;
-
-                }
-
-            }
-
-        }
-
-        if (enemy->pos_y > SCREEN_HEIGHT || enemy->pos_x > SCREEN_WIDTH || enemy->pos_x < 0){
-
-            enemy->pos_x = enemy->start_x;
-            enemy->pos_y = enemy->start_y;
-
-            enemy->velo_x = 0;
-            enemy->velo_y = 0;
-
-            enemy->moving = 0;
-            enemy->move_time = 0;
-            enemy->turn_counter = 0;
-        }
-
-        enemy->pos_x += enemy->velo_x;
-        enemy->pos_y += enemy->velo_y;
 
     }
 

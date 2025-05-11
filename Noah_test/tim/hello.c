@@ -88,7 +88,7 @@ static gamestate game_state = {
 void init_game_state() {
 
 
-    int space, row = 0, enemy_count;
+    int space, row = 0, display_row = 1, enemy_count;
 
     enemy *enemy;
 
@@ -102,6 +102,8 @@ void init_game_state() {
 
         if (i >= enemy_count){
 
+
+
             if (++row >= 5) break;
 
             while(row_vals[row] == 0) row++;
@@ -109,13 +111,14 @@ void init_game_state() {
             j = 0;
             space = COLUMNS - row_vals[row];
             enemy_count += row_vals[row];
+            display_row ++;
 
         }
 
         enemy->pos_x = 50 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
                                     + j * (ENEMY_WIDTH + ENEMY_SPACE);
                                     
-        enemy->pos_y = 30 *(row+1);
+        enemy->pos_y = 30 *display_row;
         enemy->sprite = row_sprites[row];
         enemy->active = 1;
     }

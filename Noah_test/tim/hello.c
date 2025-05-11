@@ -268,7 +268,7 @@ int enemy_movement(){
 
             if (enemy->turn_counter == TURN_TIME){
 
-                calculate_velo(ship->pos_x, ship->pos_y, enemy, 3);
+                calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
 
                 if (enemy->velo_y == 0) enemy->velo_y = 1;
 
@@ -287,11 +287,8 @@ int enemy_movement(){
 
                 cont = rand() % 3;
 
-                if(!cont){
-
-                    enemy->move_time = 0;
+                if(!cont)
                     enemy->velo_x = -enemy->velo_x;
-                }
                 else
                     enemy->move_time --;
 

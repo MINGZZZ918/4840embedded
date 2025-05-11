@@ -184,7 +184,7 @@ int enemy_movement(){
             enemy->pos_x += enemy->velo_x;
             enemy->pos_y += enemy->velo_y;
 
-            if(enemy->returning)
+            if(enemy->returning){
 
                 if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y == 50){
 
@@ -239,8 +239,6 @@ int enemy_movement(){
 
             continue;
         }
-
-
 
 
         if (enemy->bul.active){

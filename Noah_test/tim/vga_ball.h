@@ -70,7 +70,7 @@ typedef struct {
     unsigned short velo_x, velo_y;
     bullet bul; // bullet structure for each enemy to shoot
     char sprite; // different enemies have different visuals
-    bool active;
+    bool active, returning;
 } enemy;
 
 

@@ -58,7 +58,7 @@
 static int vga_ball_fd;
 static int enemy_moving = 0;
 
-static int moving = 10000;
+static int moving = 1000;
 
 static const char filename[] = "/dev/vga_ball";
 
@@ -211,7 +211,7 @@ int enemy_movement(){
 
                 enemy->returning = 1;
 
-                moving = 10000;
+                moving = 1000;
 
             }
 
@@ -224,17 +224,14 @@ int enemy_movement(){
 
             else{
 
-                new_x = ship->pos_x - enemy->pos_x;
-                new_y = ship->pos_y - enemy->pos_y;
-
-
-                if (-- moving == 0){
+                if (--moving == 0){
 
                     enemy->velo_x = 0;
                     enemy->velo_y = 2;
                 }
 
-
+                new_x = ship->pos_x - enemy->pos_x;
+                new_y = ship->pos_y - enemy->pos_y;
 
                 mag = sqrt(new_x * new_x + new_y * new_y);
 

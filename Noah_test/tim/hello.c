@@ -59,7 +59,7 @@
 
 /* File descriptor for the VGA ball device */
 static int vga_ball_fd;
-static int enemy_moving = 0;
+static int enemies_moving = 0;
 static char row_vals[5] = { 2, 10, 0, 16, 16 };
 static char row_sprites[5] = { 2, 3, 0, 4, 4 };
 
@@ -239,6 +239,45 @@ void calculate_velo(int x, int y, enemy *enemy, char scaler){
 }
 
 
+void turn(enemy *enemy){
+
+    spaceship *ship = &game_state.ship;
+
+
+    if (enemy->pos_x <= SCREEN_WIDTH/2)
+            enemy->velo_x = -turn_x[enemy->turn_counter];
+    else
+        enemy->velo_x = turn_x[enemy->turn_counter];
+
+    enemy->velo_y = turn_y[enemy->turn_counter];
+    enemy->turn_counter++;
+
+
+
+    if (enemy->turn_counter == TURN_TIME){
+
+
+        if(enemy->sprite == 4){
+
+            enemy->velo_x = (enemy->pos_x > SCREEN_WIDTH / 2) ? 2 : -2;
+            enemy->velo_y = 2;
+        }
+
+        else if(enemy->sprite == 3){
+
+            enemy->velo_x = (enemy->pos_x > SCREEN_WIDTH / 2) ? 3 : -3;
+            enemy->velo_y = 2;
+        }
+        else {
+
+            calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
+        }
+
+    }
+
+}
+
+
 void move_enemy(enemy *enemy){
 
 
@@ -246,36 +285,21 @@ void move_enemy(enemy *enemy){
     int cont;
 
 
-    if (enemy->turn_counter < TURN_TIME){
-
-        if (enemy->pos_x <= SCREEN_WIDTH/2)
-            enemy->velo_x = -turn_x[enemy->turn_counter];
-
-        else
-            enemy->velo_x = turn_x[enemy->turn_counter];
-
-
-        enemy->velo_y = turn_y[enemy->turn_counter];
-        enemy->turn_counter++;
-
-        if (enemy->turn_counter == TURN_TIME){
-
-            calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
-
-            if (enemy->velo_y == 0) enemy->velo_y = 1;
-
-            if (enemy->velo_x == 0) 
-                enemy->velo_x = (enemy->pos_x > SCREEN_WIDTH / 2) ? 1 : -1;
-
-            // calculate_velo(0, 300, enemy, 3);
-
-            // printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
-        }
-    }
+    if (enemy->turn_counter < TURN_TIME)
+        turn(enemy);
 
     else{
 
-        if(++enemy->move_time == 150){
+        if (enemy->sprite == 2){
+
+            if(enemy->move_time < 250)
+                calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
+            else
+                enemy->velo_x = 0;
+                enemy->velo_y = 2;
+        }
+
+        else if(++enemy->move_time == 150){
 
             cont = rand() % 3;
 
@@ -291,6 +315,7 @@ void move_enemy(enemy *enemy){
             enemy->velo_x = 0;
             enemy->velo_y = 2;
         }
+
     }
 
     if (enemy->pos_y > SCREEN_HEIGHT || enemy->pos_x > SCREEN_WIDTH || enemy->pos_x < 0){
@@ -304,6 +329,8 @@ void move_enemy(enemy *enemy){
         enemy->moving = 0;
         enemy->move_time = 0;
         enemy->turn_counter = 0;
+
+        enemies_moving --;
     }
 
     enemy->pos_x += enemy->velo_x;
@@ -311,26 +338,26 @@ void move_enemy(enemy *enemy){
 }
 
 
-
-
-
 int enemy_movement(){
 
     int cont;
-
     enemy *enemy;
+
+    int rand_enemy = rand() % ENEMY_COUNT;
+
 
 
     for (int i = 0; i < ENEMY_COUNT; i++){
 
         enemy = &game_state.enemies[i];
 
-        if(!enemy->moving && i == 14){
+        if(!enemy->moving && !enemies_moving && i == rand_enemy){
 
             enemy-> velo_x = 0;
             enemy->velo_y = -4;
 
             enemy->moving = 1;
+            enemies_moving ++;
         }
 
         if(enemy->moving) move_enemy(enemy);

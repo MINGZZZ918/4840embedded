@@ -208,15 +208,13 @@ int enemy_movement(){
                 enemy->velo_x = 0;
                 enemy->velo_y = 2;
 
-                printf("off screen \n");
-
             }
 
             else if (enemy->pos_y >= ship->pos_y){
                 enemy->velo_x = 0;
                 enemy->velo_y = 2;
 
-                printf("below ship \n");
+                printf("%d, %d \n", enemy->pos_y, ship->pos_y);
             }
 
             else{

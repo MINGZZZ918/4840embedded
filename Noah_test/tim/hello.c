@@ -42,6 +42,8 @@
 
 #define NUM_ENEMIES 5 // how many different sprites we have
 
+#define TURN_TIME 70
+
 
 #define LEFT_ARROW 0x00
 #define RIGHT_ARROW 0xff
@@ -59,7 +61,29 @@
 static int vga_ball_fd;
 static int enemy_moving = 0;
 static char row_vals[5] = { 2, 10, 0, 16, 16 };
-static char row_sprites[5] = {2, 3, 0, 4, 4};
+static char row_sprites[5] = { 2, 3, 0, 4, 4 };
+
+
+static char turn_x[TURN_TIME] = {1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0};
+
+static char turn_y[TURN_TIME] = {-1,-1,-1,-1,-1,-1,-1,-1,
+                    -1,-1,-1,-1,-1,-1,-1,-1,
+                    -1,-1,-1,-1,-1,-1,-1,-1,
+                    0,0,0,0,0,0,0,0,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    2,2,2,2,2,2};
+
 
 static int moving = 300;
 
@@ -218,31 +242,9 @@ void calculate_velo(int x, int y, enemy *enemy, char scaler){
 
 
 
-
-short turn_x[66] = {1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
-                    0,0,0,0,0,0,0,0,
-                    0,0,0,0,0,0,0,0,
-                    0,0};
-
-int turn_y[66] = {-1,-1,-1,-1,-1,-1,-1,-1,
-                    -1,-1,-1,-1,-1,-1,-1,-1,
-                    -1,-1,-1,-1,-1,-1,-1,-1,
-                    0,0,0,0,0,0,0,0,
-                    1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
-                    2,2};
-int turn = 0;
-
 int enemy_movement(){
 
-    enemy *enemy = &game_state.enemies[27];
+    enemy *enemy = &game_state.enemies[14];
     spaceship *ship = &game_state.ship;
     int cont;
 
@@ -253,21 +255,24 @@ int enemy_movement(){
 
         enemy->moving = 1;
     }
+
     else {
 
-        if (turn < 66){
+        if (enemy->turn_counter < TURN_TIME){
 
-            enemy->velo_x = turn_x[turn];
-            enemy->velo_y = turn_y[turn];
-            turn++;
+            enemy->velo_x = -turn_x[enemy->turn_counter];
+            enemy->velo_y = turn_y[enemy->turn_counter];
+            enemy->turn_counter++;
 
-            if (turn == 66){
+            if (enemy->turn_counter == TURN_TIME){
                 calculate_velo(0, 300, enemy, 3);
                 printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
             }
         }
 
-        else{
+        else {
+
+
 
             if(enemy->pos_x <= 100){
 
@@ -283,17 +288,6 @@ int enemy_movement(){
                 }
             }
         }
-
-
-        //         if(!cont ){
-
-        //            
-
-        //             else
-        //                 calculate_velo(500, 480, enemy, 2);
-        //         }
-        //     }
-        // }
     }
 
     printf("%d, %d \n", enemy->velo_x, enemy->velo_y);

@@ -189,13 +189,12 @@ void bullet_movement(int new_bullet){
 
 
 
-void calculate_velo(enemy *enemy, char scaler){
+void calculate_velo(int x, int y, enemy *enemy, char scaler){
 
-    spaceship *ship = &game_state.ship;
     float new_x, new_y, mag;
 
-    new_x = ship->pos_x - enemy->pos_x;
-    new_y = (ship->pos_y - enemy->pos_y) / scaler;
+    new_x = x - enemy->pos_x;
+    new_y = (y - enemy->pos_y);
 
     mag = sqrt(new_x * new_x + new_y * new_y);
 
@@ -242,6 +241,7 @@ int turn = 0;
 int enemy_movement(){
 
     enemy *enemy = &game_state.enemies[27];
+    spaceship *ship = &game_state.ship;
     int cont;
 
     if(!enemy->moving){
@@ -260,7 +260,7 @@ int enemy_movement(){
             turn++;
 
             if (turn == 63){
-                calculate_velo(enemy, 3);
+                calculate_velo(0, 300, enemy, 3);
                 printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
             }
         }
@@ -271,8 +271,14 @@ int enemy_movement(){
 
                 cont = rand() % 2;
 
-                if(!cont)
-                    calculate_velo(enemy, 2);
+                if(!cont ){
+
+                    if(ship->pos_y > enemy->pos_y)
+                        calculate_velo(ship->pos_x, ship->pos_y/2, enemy, 2);
+
+                    else
+                        calculate_velo(500, 480 enemy, 2);
+                }
             }
         }
     }

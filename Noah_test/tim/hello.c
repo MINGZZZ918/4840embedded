@@ -271,13 +271,15 @@ int enemy_movement(){
 
             if(enemy->pos_x <= 100){
 
-
-                cont = rand() % 2;
+                cont = rand() % 3;
 
                 if(!cont ){
 
-                    printf("AHHHHHHHHH \n");
+                    if(ship->pos_y > enemy->pos_y)
+                        calculate_velo(ship->pos_x, ship->pos_y/2, enemy, 2);
 
+                    else 
+                        calculate_velo(500, 480, enemy, 2);
                 }
             }
         }
@@ -285,8 +287,7 @@ int enemy_movement(){
 
         //         if(!cont ){
 
-        //             if(ship->pos_y > enemy->pos_y)
-        //                 calculate_velo(ship->pos_x, ship->pos_y/2, enemy, 2);
+        //            
 
         //             else
         //                 calculate_velo(500, 480, enemy, 2);

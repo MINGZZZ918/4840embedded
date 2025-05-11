@@ -189,8 +189,35 @@ void bullet_movement(int new_bullet){
 
 
 
+void calculate_velo(enemy *enemy, char scaler){
 
-short turn_x[56] = {1,1,1,1,1,1,1,1,
+    spaceship *ship = &game_state.ship;
+    float new_x, new_y, mag;
+
+
+    new_x = ship->pos_x - enemy->pos_x;
+    new_y = (ship->pos_y - enemy->pos_y) / scaler;
+
+    mag = sqrt(new_x * new_x + new_y * new_y);
+
+    new_x /= mag;
+    new_y /= mag;
+
+    new_x *= scaler;
+    new_y *= scaler;
+
+    enemy->velo_x = (int)new_x;
+    enemy->velo_y = (int)new_y;
+
+}
+
+
+
+
+
+short turn_x[72] = {1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
@@ -198,7 +225,9 @@ short turn_x[56] = {1,1,1,1,1,1,1,1,
                     0,0,0,0,0,0,0,0,
                     0,0,0,0,0,0,0,0};
 
-int turn_y[56] = {-1,-1,-1,-1,-1,-1,-1,-1,
+int turn_y[72] = {-1,-1,-1,-1,-1,-1,-1,-1,
+                    -1,-1,-1,-1,-1,-1,-1,-1,
+                    -1,-1,-1,-1,-1,-1,-1,-1,
                     -1,-1,-1,-1,-1,-1,-1,-1,
                     0,0,0,0,0,0,0,0,
                     1,1,1,1,1,1,1,1,
@@ -210,6 +239,7 @@ int turn = 0;
 int enemy_movement(){
 
     enemy *enemy = &game_state.enemies[27];
+    int cont;
 
     if(!enemy->moving){
 
@@ -220,15 +250,25 @@ int enemy_movement(){
     }
     else {
 
-        if (turn < 56){
+        if (turn < 72){
 
             enemy->velo_x = turn_x[turn];
             enemy->velo_y = turn_y[turn];
             turn++;
+
+            if (turn == 71)
+                calculate_velo(enemy, 3);
         }
+
         else{
-            enemy->velo_x = 0;
-            enemy->velo_y = 2;
+
+            if(enemy->pos_x <= 100){
+
+                cont = rand() % 2;
+
+                if(!cont)
+                    calculate_velo(enemy, 2);
+            }
         }
     }
 

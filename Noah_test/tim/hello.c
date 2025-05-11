@@ -35,7 +35,7 @@
 #define ENEMY_WIDTH 16
 #define ENEMY_HEIGHT 16
 
-#define ENEMY_SPACE 4
+#define ENEMY_SPACE 10
 #define COLUMNS 22
 
 #define LIFE_COUNT 5
@@ -78,7 +78,7 @@ static gamestate game_state = {
     .background = {.red = 0xFF, .green = 0x00, .blue = 0xFF},
     .bullets = { 0 },
     .enemies = { 0 },
-    .row_vals = { 3, 10, 20, 0, 0 }
+    .row_vals = { 2, 10, 16, 0, 0 }
 };
 
 /**
@@ -111,7 +111,7 @@ void init_game_state() {
             count += game_state.row_vals[row];
         }
 
-        game_state.enemies[i].pos_x = 100 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
+        game_state.enemies[i].pos_x = 75 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
                                     + j * (ENEMY_WIDTH + ENEMY_SPACE);
                                     
         game_state.enemies[i].pos_y = 30 *(row+1);

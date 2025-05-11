@@ -257,7 +257,7 @@ int enemy_movement(){
 
         if (enemy->turn_counter < TURN_TIME){
 
-            enemy->velo_x = turn_x[enemy->turn_counter];
+            enemy->velo_x = -turn_x[enemy->turn_counter];
             enemy->velo_y = turn_y[enemy->turn_counter];
             enemy->turn_counter++;
 
@@ -268,7 +268,6 @@ int enemy_movement(){
         }
 
         else {
-
 
 
             if(enemy->pos_x <= 100){

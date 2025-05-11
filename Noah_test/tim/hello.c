@@ -277,7 +277,7 @@ int enemy_movement(){
                         calculate_velo(ship->pos_x, ship->pos_y/2, enemy, 2);
 
                     else
-                        calculate_velo(500, 480 enemy, 2);
+                        calculate_velo(500, 480, enemy, 2);
                 }
             }
         }

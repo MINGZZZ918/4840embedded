@@ -318,12 +318,14 @@ int enemy_movement(){
 
     int cont;
 
-    enemy *enemy = &game_state.enemies[14];
+    enemy *enemy;
 
 
     for (int i = 0; i < ENEMY_COUNT; i++){
 
-        if(!enemy->moving){
+        enemy = &game_state.enemies[i];
+
+        if(!enemy->moving && i == 14){
 
             enemy-> velo_x = 0;
             enemy->velo_y = -4;
@@ -331,7 +333,7 @@ int enemy_movement(){
             enemy->moving = 1;
         }
 
-        if(!enemy->moving) move_enemy(enemy);
+        if(enemy->moving) move_enemy(enemy);
 
     }
 

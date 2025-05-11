@@ -87,7 +87,6 @@ static gamestate game_state = {
  */
 void init_game_state() {
 
-
     int space, row = 0, display_row = 1, enemy_count;
 
     enemy *enemy;
@@ -187,142 +186,202 @@ void bullet_movement(int new_bullet){
     }
 }
 
+
+
+int turn_time = 5;
+
 int enemy_movement(){
 
+    enemy *enemy = &game_state.enemies[20];
 
-    int rand_enemy = rand() % ENEMY_COUNT;
+    if(!enemy->moving){
 
-    enemy *enemy;
-    int num_left = 0;
-    float mag, new_x, new_y;
-    bullet *bul;
-    spaceship *ship = &game_state.ship;
+        enemy-> velo_x = 0;
+        enemy->velo_y = -4;
+
+        enemy->moving = 1;
+    }
+    else {
+
+        if(turn_time == 5){
+
+            enemy-> velo_x = 1;
+            enemy->velo_y = -1;
+
+            turn_time--;
+
+        }
+        else if(turn_time == 4){
+
+            enemy-> velo_x = 1;
+            enemy->velo_y = 0;
+            turn_time--;
+
+        }
+        else if(turn_time == 3){
+
+            enemy-> velo_x = 0;
+            enemy->velo_y = -1;
+            turn_time--;
+
+        }
+        else if(turn_time == 2){
+
+            enemy-> velo_x = -1;
+            enemy->velo_y = -1;
+            turn_time--;
+        }
+
+
+
+
+        enemy-> velo_x = 0;
+        enemy->velo_y = ;
+    }
+
+    enemy->pos_x += enemy->velo_x;
+    enemy->pos_y += enemy->velo_y;
+
+    return 1;
+}
+
+
+// int enemy_movement(){
+
+
+//     int rand_enemy = rand() % ENEMY_COUNT;
+
+//     enemy *enemy;
+//     int num_left = 0;
+//     float mag, new_x, new_y;
+//     bullet *bul;
+//     spaceship *ship = &game_state.ship;
 
     
 
-    for (int i = 0; i < ENEMY_COUNT; i++){
+//     for (int i = 0; i < ENEMY_COUNT; i++){
 
-        enemy = &game_state.enemies[i];
-        bul = &enemy->bul;
+//         enemy = &game_state.enemies[i];
+//         bul = &enemy->bul;
         
-        if (enemy_moving == 0 && i == rand_enemy){
+//         if (enemy_moving == 0 && i == rand_enemy){
 
-            enemy->velo_y = 2;
-            enemy->velo_x = 0;
-            enemy_moving ++;
+//             enemy->velo_y = 2;
+//             enemy->velo_x = 0;
+//             enemy_moving ++;
 
-        }
+//         }
 
-        if (enemy->velo_y != 0 || enemy->velo_x != 0){
+//         if (enemy->velo_y != 0 || enemy->velo_x != 0){
 
-            enemy->pos_x += enemy->velo_x;
-            enemy->pos_y += enemy->velo_y;
+//             enemy->pos_x += enemy->velo_x;
+//             enemy->pos_y += enemy->velo_y;
 
-            if(enemy->returning){
+//             if(enemy->returning){
 
-                if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y == 50){
+//                 if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y == 50){
 
-                    enemy->velo_x = 0;
-                    enemy->velo_y = 0;
+//                     enemy->velo_x = 0;
+//                     enemy->velo_y = 0;
 
-                    enemy->returning = 0;
+//                     enemy->returning = 0;
 
-                    enemy_moving --;
+//                     enemy_moving --;
 
-                }
-            }
+//                 }
+//             }
 
-            else if (enemy->pos_y >= SCREEN_HEIGHT - 5){
+//             else if (enemy->pos_y >= SCREEN_HEIGHT - 5){
 
-                enemy->pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
-                enemy->pos_y = 0;
+//                 enemy->pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
+//                 enemy->pos_y = 0;
 
-                enemy->velo_x = 0;
-                enemy->velo_y = 2;
+//                 enemy->velo_x = 0;
+//                 enemy->velo_y = 2;
 
-                enemy->returning = 1;
+//                 enemy->returning = 1;
 
-                moving = 300;
+//                 moving = 300;
 
-            }
+//             }
 
-            // else if (enemy->pos_y >= ship->pos_y){
-            //     enemy->velo_x = 0;
-            //     enemy->velo_y = 2;
+//             // else if (enemy->pos_y >= ship->pos_y){
+//             //     enemy->velo_x = 0;
+//             //     enemy->velo_y = 2;
 
-            //     printf("%d, %d \n", enemy->pos_y, ship->pos_y);
-            // }
+//             //     printf("%d, %d \n", enemy->pos_y, ship->pos_y);
+//             // }
 
-            else{
-                if (--moving <= 0){
+//             else{
+//                 if (--moving <= 0){
 
-                    enemy->velo_x = 0;
-                    enemy->velo_y = 2;
+//                     enemy->velo_x = 0;
+//                     enemy->velo_y = 2;
 
-                }
+//                 }
 
-                else{
+//                 else{
 
-                    new_x = ship->pos_x - enemy->pos_x;
-                    new_y = ship->pos_y - enemy->pos_y;
+//                     new_x = ship->pos_x - enemy->pos_x;
+//                     new_y = ship->pos_y - enemy->pos_y;
 
-                    mag = sqrt(new_x * new_x + new_y * new_y);
+//                     mag = sqrt(new_x * new_x + new_y * new_y);
 
-                    // printf("%f, %f, %f \n", new_x, new_y, mag);
+//                     // printf("%f, %f, %f \n", new_x, new_y, mag);
 
-                    new_x /= mag;
-                    new_y /= mag;
+//                     new_x /= mag;
+//                     new_y /= mag;
 
-                    new_x *= 3;
-                    new_y *= 3;
+//                     new_x *= 3;
+//                     new_y *= 3;
 
-                    enemy->velo_x = (int)new_x;
-                    enemy->velo_y = (int)new_y;
-                }
-            }
+//                     enemy->velo_x = (int)new_x;
+//                     enemy->velo_y = (int)new_y;
+//                 }
+//             }
 
-            continue;
-        }
+//             continue;
+//         }
 
 
-        if (enemy->bul.active){
+//         if (enemy->bul.active){
 
-            bul->pos_y += bul->velo_y;
+//             bul->pos_y += bul->velo_y;
 
-            if (abs(game_state.ship.pos_x - bul->pos_x) <= SHIP_WIDTH
-            && abs(game_state.ship.pos_y - bul->pos_y) <= SHIP_HEIGHT){
+//             if (abs(game_state.ship.pos_x - bul->pos_x) <= SHIP_WIDTH
+//             && abs(game_state.ship.pos_y - bul->pos_y) <= SHIP_HEIGHT){
 
-                bul->active = 0;
-                game_state.ship.lives -= 1;
-            }
+//                 bul->active = 0;
+//                 game_state.ship.lives -= 1;
+//             }
 
-            if(bul->pos_y > SCREEN_HEIGHT) bul->active = 0;
-        }
+//             if(bul->pos_y > SCREEN_HEIGHT) bul->active = 0;
+//         }
 
-        if (enemy->active){
+//         if (enemy->active){
 
-            // if (!enemy->bul.active && abs(game_state.ship.pos_x - enemy->pos_x) < 10){
+//             // if (!enemy->bul.active && abs(game_state.ship.pos_x - enemy->pos_x) < 10){
 
-            //     bul->active = 1;
-            //     bul->pos_x = enemy->pos_x+(ENEMY_WIDTH/2); // make it start in the middle of the ship
-            //     bul->pos_y = enemy->pos_y+(SHIP_HEIGHT+ (SHIP_HEIGHT/2)); // make it start above the ship
-            //     bul->velo_y = 3; // towards the top of the screen
-            // }
-            num_left ++;
+//             //     bul->active = 1;
+//             //     bul->pos_x = enemy->pos_x+(ENEMY_WIDTH/2); // make it start in the middle of the ship
+//             //     bul->pos_y = enemy->pos_y+(SHIP_HEIGHT+ (SHIP_HEIGHT/2)); // make it start above the ship
+//             //     bul->velo_y = 3; // towards the top of the screen
+//             // }
+//             num_left ++;
 
-            // important!!! compare to whichever has the larger size
-            if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
-            && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
+//             // important!!! compare to whichever has the larger size
+//             if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
+//             && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
 
-                enemy->active = 0;
-                game_state.ship.lives -= 1;
-                num_left --;
-            }
-        }
-    }
+//                 enemy->active = 0;
+//                 game_state.ship.lives -= 1;
+//                 num_left --;
+//             }
+//         }
+//     }
 
-    return num_left;
-}
+//     return num_left;
+// }
 
 struct libusb_device_handle *controller;
 

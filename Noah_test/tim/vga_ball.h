@@ -33,7 +33,7 @@ typedef struct {
     char velo_x, velo_y;
     bullet bul;
     char sprite;
-    bool active, returning;
+    bool active, returning, moving;
 } enemy;
 
 

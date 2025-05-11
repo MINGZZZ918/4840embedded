@@ -268,13 +268,18 @@ int enemy_movement(){
 
             if (enemy->turn_counter == TURN_TIME){
 
-                calculate_velo(ship->pos_x, ship->pos_y/2, enemy, 2);
+                calculate_velo(ship->pos_x, ship->pos_y/4, enemy, 2);
 
 
                 if (enemy->velo_y == 0) enemy->velo_y = 1;
 
                 if (enemy->velo_x == 0) 
                     enemy->velo_x = (enemy->pos_x > SCREEN_WIDTH / 2) ? 1 : -1;
+
+
+
+
+
 
                 // calculate_velo(0, 300, enemy, 3);
 

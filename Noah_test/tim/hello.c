@@ -178,7 +178,9 @@ int enemy_movement(){
         if (enemy_moving == 0 && i == 0){
 
             enemy->velo_y = 2;
+            enemy->velo_x = 0;
             enemy_moving ++;
+
         }
 
         if (enemy->velo_y != 0 || enemy->velo_x != 0){
@@ -186,41 +188,51 @@ int enemy_movement(){
             enemy->pos_x += enemy->velo_x;
             enemy->pos_y += enemy->velo_y;
 
+
             if (enemy->pos_y >= SCREEN_HEIGHT - 5){
 
-            }
-            else if (enemy->pos_y > ship->pos_y){
+                if (enemy->pos_y < SCREEN_HEIGHT *2){
+                    
+                    enemy->pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
+                    enemy->pos_y = 1000; //??????
+                }
+
+                if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y %SCREEN_HEIGHT == 50){
+
+                    enemy->velo_x = 0;
+                    enemy->velo_y = 0;
+
+                    enemy_moving --;
+                }
+                
                 enemy->velo_x = 0;
                 enemy->velo_y = 2;
             }
 
+            else if (enemy->pos_y >= ship->pos_y){
+                enemy->velo_x = 0;
+                enemy->velo_y = 2;
+            }
 
-            new_x = ship->pos_x - enemy->pos_x;
-            new_y = ship->pos_y - enemy->pos_y;
+            else{
 
-            mag = sqrt(new_x * new_x + new_y * new_y);
+                new_x = ship->pos_x - enemy->pos_x;
+                new_y = ship->pos_y - enemy->pos_y;
 
-            // Normalize the vector by dividing by the magnitude
-            new_x = (new_x * 2) / mag;  // 2 is the desired magnitude
-            new_y = (new_y * 2) / mag;  // 2 is the desired magnitude
+                mag = sqrt(new_x * new_x + new_y * new_y);
 
-            // Assigning the new velocity to the enemy
-            enemy->velo_x = (int)-new_x;
-            enemy->velo_y = (int)-new_y;
+                new_x /= mag;
+                new_y /= mag;
+
+                new_x *= 2;
+                new_y *= 2;
+
+                enemy->velo_x = (int)-new_x;
+                enemy->velo_y = (int)-new_y;
+            }
+
             continue;
-
-
-
-
-
-
         }
-
-
-
-
-
-
 
 
 

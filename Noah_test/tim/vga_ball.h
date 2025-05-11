@@ -8,8 +8,7 @@
 #define MAX_BULLETS 5
 #define ENEMY_COUNT 50
 #define LIFE_COUNT 5
-// #define INPUT_QUEUE_SIZE 32
-
+#define NUM_ROWS 5
 
 /* Color structure */
 typedef struct {
@@ -18,24 +17,22 @@ typedef struct {
 
 typedef struct {
     unsigned short pos_x, pos_y;
-    unsigned short velo_x, velo_y;
-    int lives, num_bullets;
-    char sprite;
+    short velo_x, velo_y;
+    short lives, num_bullets;
     bool active;
 } spaceship;
 
 typedef struct {
     unsigned short pos_x, pos_y;
     unsigned short velo_y; // velo_x is always 0 on bullets
-    char sprite;
     bool active;
 } bullet;
 
 typedef struct {
     unsigned short pos_x, pos_y;
     unsigned short velo_x, velo_y;
-    bullet bul; // bullet structure for each enemy to shoot
-    char sprite; // different enemies have different visuals
+    bullet bul;
+    char sprite;
     bool active, returning;
 } enemy;
 
@@ -45,6 +42,7 @@ typedef struct {
     bullet bullets[MAX_BULLETS];
     enemy enemies[ENEMY_COUNT];
     background_color background;
+    short row_vals[NUM_ROWS];
 } gamestate;
 
 #define VGA_BALL_MAGIC 'v'

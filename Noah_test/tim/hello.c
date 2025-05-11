@@ -192,52 +192,52 @@ int turn_time = 5;
 
 int enemy_movement(){
 
-    enemy *enemy = &game_state.enemies[20];
+    enemy *enemy = &game_state.enemies[27];
 
     if(!enemy->moving){
 
         enemy-> velo_x = 0;
-        enemy->velo_y = -2;
+        enemy->velo_y = -4;
 
         enemy->moving = 1;
     }
-    // else {
+    else {
 
-    //     if(turn_time == 5){
+        if(turn_time == 5){
 
-    //         enemy-> velo_x = 1;
-    //         enemy->velo_y = -1;
+            enemy-> velo_x = 1;
+            enemy->velo_y = -1;
 
-    //         turn_time--;
+            turn_time--;
 
-    //     }
-    //     else if(turn_time == 4){
+        }
+        else if(turn_time == 4){
 
-    //         enemy-> velo_x = 1;
-    //         enemy->velo_y = 0;
-    //         turn_time--;
+            enemy-> velo_x = 1;
+            enemy->velo_y = 0;
+            turn_time--;
 
-    //     }
-    //     else if(turn_time == 3){
+        }
+        else if(turn_time == 3){
 
-    //         enemy-> velo_x = 0;
-    //         enemy->velo_y = 1;
-    //         turn_time--;
+            enemy-> velo_x = 0;
+            enemy->velo_y = 1;
+            turn_time--;
 
-    //     }
-    //     else if(turn_time == 2){
+        }
+        else if(turn_time == 2){
 
-    //         enemy-> velo_x = -1;
-    //         enemy->velo_y = 1;
-    //         turn_time--;
-    //     }
-    //     else{
+            enemy-> velo_x = -1;
+            enemy->velo_y = 1;
+            turn_time--;
+        }
+        else{
 
-    //         enemy-> velo_x = 0;
-    //         enemy->velo_y = 2;
+            enemy-> velo_x = 0;
+            enemy->velo_y = 2;
 
-    //     }
-    // }
+        }
+    }
 
     enemy->pos_x += enemy->velo_x;
     enemy->pos_y += enemy->velo_y;

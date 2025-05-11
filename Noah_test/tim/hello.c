@@ -190,9 +190,6 @@ int enemy_movement(){
             enemy->pos_x += enemy->velo_x;
             enemy->pos_y += enemy->velo_y;
 
-            printf("moving \n");
-
-
             if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y == 50){
 
                 enemy->velo_x = 0;
@@ -224,7 +221,7 @@ int enemy_movement(){
 
             else{
 
-                printf("normal movement \n");
+                printf("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH \n");
 
                 new_x = ship->pos_x - enemy->pos_x;
                 new_y = ship->pos_y - enemy->pos_y;

@@ -35,7 +35,6 @@ struct vga_ball_dev {
     spaceship ship;
     bullet bullets[MAX_BULLETS];
     enemy enemies[ENEMY_COUNT];
-    short row_vals[NUM_ROWS];
 } dev;
 
 /*

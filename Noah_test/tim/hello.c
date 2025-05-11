@@ -190,7 +190,7 @@ int enemy_movement(){
             enemy->pos_x += enemy->velo_x;
             enemy->pos_y += enemy->velo_y;
 
-            print("moving \n");
+            printf("moving \n");
 
 
             if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y == 50){

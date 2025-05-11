@@ -271,6 +271,9 @@ int enemy_movement(){
 
                 calculate_velo(ship->pos_x, ship->pos_y/2, enemy, 2);
 
+
+
+
                 // calculate_velo(0, 300, enemy, 3);
 
 
@@ -297,7 +300,7 @@ int enemy_movement(){
         // }
     }
 
-    printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
+    // printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
 
     enemy->pos_x += enemy->velo_x;
     enemy->pos_y += enemy->velo_y;

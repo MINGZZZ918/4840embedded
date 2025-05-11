@@ -17,20 +17,20 @@ typedef struct {
 
 typedef struct {
     unsigned short pos_x, pos_y;
-    short velo_x, velo_y;
+    char velo_x, velo_y;
     char lives, num_bullets;
     bool active;
 } spaceship;
 
 typedef struct {
     unsigned short pos_x, pos_y;
-    short velo_y; // velo_x is always 0 on bullets
+    char velo_y; // velo_x is always 0 on bullets
     bool active;
 } bullet;
 
 typedef struct {
     unsigned short pos_x, pos_y;
-    short velo_x, velo_y;
+    char velo_x, velo_y;
     bullet bul;
     char sprite;
     bool active, returning, moving;

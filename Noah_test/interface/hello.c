@@ -37,6 +37,8 @@
 
 #define NUM_ENEMIES 5 // how many different sprites we have
 
+#define ENEMY_SPACE 44
+
 
 #define LEFT_ARROW 0x00
 #define RIGHT_ARROW 0xff
@@ -77,15 +79,16 @@ static gamestate game_state = {
  */
 void init_game_state() {
 
+    int row = 1;
+
     for (int i = 0; i < ENEMY_COUNT; i++) {
 
-        game_state.enemies[i].pos_x = 20 + i*(ENEMY_WIDTH + 10);
-        game_state.enemies[i].pos_y = 50;
+        if(i%10 == 0) row++;
+
+        game_state.enemies[i].pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
+        game_state.enemies[i].pos_y = 50 *row;
         game_state.enemies[i].active = 1;
 
-        game_state.enemies[i].bul.pos_x = 0;
-        game_state.enemies[i].bul.pos_y = 0;
-        game_state.enemies[i].bul.active = 0;
     }
 }
 

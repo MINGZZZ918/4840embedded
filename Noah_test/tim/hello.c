@@ -123,7 +123,7 @@ void init_game_state() {
                                     + j * (ENEMY_WIDTH + ENEMY_SPACE);
                                     
         enemy->pos_y = 30 *(row+1);
-        enemy->sprite = row_sprites[row];
+        enemy->sprite = row_sprites[row+2];
         enemy->active = 1;
     }
 }

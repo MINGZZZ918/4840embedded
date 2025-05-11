@@ -87,10 +87,6 @@ void init_game_state() {
         game_state.enemies[i].pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
         game_state.enemies[i].pos_y = 50;
         game_state.enemies[i].active = 1;
-
-        game_state.enemies[i].bul.pos_x = 0;
-        game_state.enemies[i].bul.pos_y = 0;
-        game_state.enemies[i].bul.active = 0;
     }
 }
 
@@ -183,21 +179,24 @@ int enemy_movement(){
 
         }
 
-
         if (enemy->velo_y != 0 || enemy->velo_x != 0){
 
             enemy->pos_x += enemy->velo_x;
             enemy->pos_y += enemy->velo_y;
 
-            if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y == 50){
+            if(enemy->returning)
 
-                enemy->velo_x = 0;
-                enemy->velo_y = 0;
+                if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y == 50){
 
-                // enemy_moving --;
+                    enemy->velo_x = 0;
+                    enemy->velo_y = 0;
 
+                    enemy->returning = 0;
+
+                    // enemy_moving --;
+
+                }
             }
-
             else if (enemy->pos_y >= SCREEN_HEIGHT - 5){
 
                 printf("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH \n");
@@ -207,6 +206,8 @@ int enemy_movement(){
 
                 enemy->velo_x = 0;
                 enemy->velo_y = 2;
+
+                enemy->returning = 1;
 
             }
 

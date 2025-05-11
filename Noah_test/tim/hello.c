@@ -269,6 +269,8 @@ int enemy_movement(){
 
             if(enemy->pos_x <= 100){
 
+                printf("AHHHHHHHHH \n");
+
                 cont = rand() % 2;
 
                 if(!cont ){

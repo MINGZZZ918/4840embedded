@@ -78,7 +78,7 @@ static gamestate game_state = {
     .background = {.red = 0xFF, .green = 0x00, .blue = 0xFF},
     .bullets = { 0 },
     .enemies = { 0 },
-    .row_vals = { 2, 10, 16, 0, 0 }
+    .row_vals = { 2, 10, 0, 16, 0 }
 };
 
 /**
@@ -95,27 +95,36 @@ void init_game_state() {
 
     int space, row = 0, count;
 
+    enemy *enemy;
+
+
+
+
     count = game_state.row_vals[row];
 
     space = COLUMNS - game_state.row_vals[row];
 
     for (int i = 0, j=0; i < ENEMY_COUNT; i++, j++) {
 
-        if (i >= count){
-            row++;
+        enemy = &game_state.enemies[i];
 
-            if (game_state.row_vals[row] == 0) break;
+        if (i >= count){
+
+            if (++row >= 5) break;
+
+            if (game_state.row_vals[row-1] == 0) row--;
 
             j = 0;
             space = COLUMNS - game_state.row_vals[row];
             count += game_state.row_vals[row];
         }
 
-        game_state.enemies[i].pos_x = 75 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
+        enemy->pos_x = 50 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
                                     + j * (ENEMY_WIDTH + ENEMY_SPACE);
                                     
-        game_state.enemies[i].pos_y = 30 *(row+1);
-        game_state.enemies[i].active = 1;
+        enemy->pos_y = 30 *(row+1);
+        enemy->sprite = row+2;
+        enemy->active = 1;
     }
 }
 

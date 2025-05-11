@@ -35,6 +35,7 @@ struct vga_ball_dev {
     spaceship ship;
     bullet bullets[MAX_BULLETS];
     enemy enemies[ENEMY_COUNT];
+    short row_vals[NUM_ROWS];
 } dev;
 
 /*
@@ -70,10 +71,10 @@ static void write_object(int idx, unsigned short x, unsigned short y, char sprit
 /*
  * Write all objects
  */
-static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
+static void write_all(spaceship *ship, bullet bullets[], enemy enemies[], short row_vals[])
 {
 
-    int i, enemy_type = 0;
+    int i;
     bullet *bul;
     enemy *enemy;
 
@@ -92,12 +93,8 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 
     for (i = 0; i < ENEMY_COUNT; i++) {
 
-        if(i%10 == 0) enemy_type++;
-
-        if (enemy_type > 3) enemy_type = 1;
-
         enemy = &enemies[i];
-        write_object(i+MAX_BULLETS+2,  enemy->pos_x,  enemy->pos_y, enemy_type+1, enemy->active);
+        write_object(i+MAX_BULLETS+2,  enemy->pos_x,  enemy->pos_y, enemy->sprite, enemy->active);
 
         dev.enemies[i] = enemies[i];
     }
@@ -118,7 +115,7 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 static void update_game_state(gamestate *game_state)
 {
     write_background(&game_state->background);
-    write_all(&game_state->ship, game_state->bullets, game_state->enemies);
+    write_all(&game_state->ship, game_state->bullets, game_state->enemies, game_state->row_vals);
 }
 
 

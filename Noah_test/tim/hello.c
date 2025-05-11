@@ -257,33 +257,43 @@ int enemy_movement(){
 
         if (enemy->turn_counter < TURN_TIME){
 
-            enemy->velo_x = -turn_x[enemy->turn_counter];
+            if (enemy->pos_y <= SCREEN_WIDTH/2)
+                enemy->velo_x = -turn_x[enemy->turn_counter];
+            else
+                enemy->velo_x = turn_x[enemy->turn_counter];
+
+
             enemy->velo_y = turn_y[enemy->turn_counter];
             enemy->turn_counter++;
 
             if (enemy->turn_counter == TURN_TIME){
-                calculate_velo(0, 300, enemy, 3);
+
+                calculate_velo(ship->pos_x, ship->pos_y/2, enemy, 2);
+
+                // calculate_velo(0, 300, enemy, 3);
+
+
                 printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
             }
         }
 
-        else {
+        // else {
 
 
-            if(enemy->pos_x <= 100){
+        //     if(enemy->pos_x <= 100){
 
-                cont = rand() % 3;
+        //         cont = rand() % 3;
 
-                if(!cont ){
+        //         if(!cont ){
 
-                    if(ship->pos_y > enemy->pos_y)
-                        calculate_velo(ship->pos_x, ship->pos_y/2, enemy, 2);
+        //             if(ship->pos_y > enemy->pos_y)
+        //                 calculate_velo(ship->pos_x, ship->pos_y/2, enemy, 2);
 
-                    else 
-                        calculate_velo(500, 480, enemy, 2);
-                }
-            }
-        }
+        //             else 
+        //                 calculate_velo(500, 480, enemy, 2);
+        //         }
+        //     }
+        // }
     }
 
     printf("%d, %d \n", enemy->velo_x, enemy->velo_y);

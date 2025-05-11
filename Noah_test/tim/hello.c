@@ -294,10 +294,12 @@ int enemy_movement(){
 
             }
 
-            else if(++enemy->move_time == 250)
+            else if(enemy->move_time == 250){
 
                 enemy->velo_x = 0;
                 enemy->velo_y = 2;
+
+            }
 
         }
 

@@ -191,25 +191,20 @@ int enemy_movement(){
 
             if (enemy->pos_y >= SCREEN_HEIGHT - 5){
 
+                enemy->pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
+                enemy->pos_y = 0; //??????
 
+                // enemy->velo_x = 0;
+                // enemy->velo_y = 2;
+            }
 
-                if (enemy->pos_y < SCREEN_HEIGHT *2){
-                    
-                    enemy->pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
-                    enemy->pos_y = 0; //??????
-                }
-
-                if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y %SCREEN_HEIGHT == 50){
+            if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y %SCREEN_HEIGHT == 50){
 
                     enemy->velo_x = 0;
                     enemy->velo_y = 0;
 
                     // enemy_moving --;
                 }
-                
-                // enemy->velo_x = 0;
-                // enemy->velo_y = 2;
-            }
 
             // else if (enemy->pos_y >= ship->pos_y){
             //     enemy->velo_x = 0;

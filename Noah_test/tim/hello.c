@@ -221,22 +221,22 @@ int enemy_movement(){
         else if(turn_time == 3){
 
             enemy-> velo_x = 0;
-            enemy->velo_y = -1;
+            enemy->velo_y = 1;
             turn_time--;
 
         }
         else if(turn_time == 2){
 
             enemy-> velo_x = -1;
-            enemy->velo_y = -1;
+            enemy->velo_y = 1;
             turn_time--;
         }
+        else{
 
+            enemy-> velo_x = 0;
+            enemy->velo_y = 2;
 
-
-
-        enemy-> velo_x = 0;
-        enemy->velo_y = ;
+        }
     }
 
     enemy->pos_x += enemy->velo_x;

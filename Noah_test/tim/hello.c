@@ -138,10 +138,10 @@ void init_game_state() {
 
         }
 
-        enemy->pos_x = 50 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
+        enemy->pos_x = enemy->start_x = 50 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
                                     + j * (ENEMY_WIDTH + ENEMY_SPACE);
                                     
-        enemy->pos_y = 30 *display_row;
+        enemy->pos_y = enemy->start_y = 30 *display_row;
         enemy->sprite = row_sprites[row];
         enemy->active = 1;
     }
@@ -303,26 +303,24 @@ int enemy_movement(){
 
         }
 
-        // else {
-
-
-        //     if(enemy->pos_x <= 100){
-
-        //         cont = rand() % 3;
-
-        //         if(!cont ){
-
-        //             if(ship->pos_y > enemy->pos_y)
-        //                 calculate_velo(ship->pos_x, ship->pos_y/2, enemy, 2);
-
-        //             else 
-        //                 calculate_velo(500, 480, enemy, 2);
-        //         }
-        //     }
-        // }
     }
 
     // printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
+
+
+    if (enemy->pos_y > SCREEN_HEIGHT || enemy->pos_x > SCREEN_WIDTH || enemy->pos_x < 0){
+
+        enemy->pos_x = enemy->start_x;
+        enemy->pos_y = enemy->start_y;
+
+        enemy->velo_x = 0;
+        enemy->velo_y = 0;
+
+        enemy->moving = 0;
+        enemy->move_time = 0;
+        enemy->turn_counter = 0;
+    }
+
 
     enemy->pos_x += enemy->velo_x;
     enemy->pos_y += enemy->velo_y;

@@ -285,6 +285,8 @@ int enemy_movement(){
         }
     }
 
+    printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
+
     enemy->pos_x += enemy->velo_x;
     enemy->pos_y += enemy->velo_y;
 

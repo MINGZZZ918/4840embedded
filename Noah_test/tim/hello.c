@@ -282,13 +282,13 @@ int enemy_movement(){
         else{
 
 
-            if(++enemy->move_time < 100)
+            if(++enemy->move_time < 150)
                 calculate_velo(ship->pos_x, ship->pos_y+100, enemy, 2);
 
             else{
 
                 enemy->velo_x = 0;
-                enemy->velo_y = -2;
+                enemy->velo_y = 2;
 
             }
         }

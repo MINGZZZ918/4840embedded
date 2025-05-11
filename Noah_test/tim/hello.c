@@ -58,6 +58,8 @@
 static int vga_ball_fd;
 static int enemy_moving = 0;
 
+static int moving = 10000;
+
 static const char filename[] = "/dev/vga_ball";
 
 /* Array of background colors to cycle through */
@@ -209,19 +211,30 @@ int enemy_movement(){
 
                 enemy->returning = 1;
 
+                moving = 10000;
+
             }
 
-            else if (enemy->pos_y >= ship->pos_y){
-                enemy->velo_x = 0;
-                enemy->velo_y = 2;
+            // else if (enemy->pos_y >= ship->pos_y){
+            //     enemy->velo_x = 0;
+            //     enemy->velo_y = 2;
 
-                printf("%d, %d \n", enemy->pos_y, ship->pos_y);
-            }
+            //     printf("%d, %d \n", enemy->pos_y, ship->pos_y);
+            // }
 
             else{
 
                 new_x = ship->pos_x - enemy->pos_x;
                 new_y = ship->pos_y - enemy->pos_y;
+
+
+                if (-- moving == 0){
+
+                    enemy->velo_x = 0;
+                    enemy->velo_y = 2;
+                }
+
+
 
                 mag = sqrt(new_x * new_x + new_y * new_y);
 
@@ -230,11 +243,13 @@ int enemy_movement(){
                 new_x /= mag;
                 new_y /= mag;
 
-                new_x *= 2;
-                new_y *= 2;
+                new_x *= 3;
+                new_y *= 3;
 
                 enemy->velo_x = (int)new_x;
                 enemy->velo_y = (int)new_y;
+
+
             }
 
             continue;

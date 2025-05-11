@@ -241,7 +241,7 @@ void calculate_velo(int x, int y, enemy *enemy, char scaler){
 
 int enemy_movement(){
 
-    enemy *enemy = &game_state.enemies[14];
+    enemy *enemy = &game_state.enemies[27];
     spaceship *ship = &game_state.ship;
     int cont;
 
@@ -257,7 +257,7 @@ int enemy_movement(){
 
         if (enemy->turn_counter < TURN_TIME){
 
-            enemy->velo_x = -turn_x[enemy->turn_counter];
+            enemy->velo_x = turn_x[enemy->turn_counter];
             enemy->velo_y = turn_y[enemy->turn_counter];
             enemy->turn_counter++;
 

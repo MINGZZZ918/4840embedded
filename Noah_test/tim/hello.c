@@ -111,7 +111,7 @@ void init_game_state() {
             count += game_state.row_vals[row];
         }
 
-        game_state.enemies[i].pos_x = 120 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
+        game_state.enemies[i].pos_x = 100 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
                                     + j * (ENEMY_WIDTH + ENEMY_SPACE);
                                     
         game_state.enemies[i].pos_y = 30 *(row+1);

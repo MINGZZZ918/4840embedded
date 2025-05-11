@@ -255,7 +255,7 @@ int enemy_movement(){
 
             if (turn == 63){
                 calculate_velo(enemy, 3);
-                printf("AHHHHHHHHHHHHHHHHHH\n");
+                printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
             }
         }
 

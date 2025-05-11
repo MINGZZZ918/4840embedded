@@ -207,13 +207,13 @@ int enemy_movement(){
 
         if (turn_time < 16){
 
-            turn_x[turn_time];
-            turn_y[turn_time];
+            enemy->velo_x = turn_x[turn_time];
+            enemy->velo_y = turn_y[turn_time];
 
             turn_time++;
         }
         else{
-            enemy-> velo_x = 0;
+            enemy->velo_x = 0;
             enemy->velo_y = 2;
         }
     }

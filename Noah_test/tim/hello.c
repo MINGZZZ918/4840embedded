@@ -35,7 +35,8 @@
 #define ENEMY_WIDTH 16
 #define ENEMY_HEIGHT 16
 
-#define ENEMY_SPACE 44
+#define ENEMY_SPACE 4
+#define COLUMNS 22
 
 #define LIFE_COUNT 5
 
@@ -76,7 +77,8 @@ static gamestate game_state = {
     .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_bullets = 0, .sprite = 0, .active = 1},
     .background = {.red = 0xFF, .green = 0x00, .blue = 0xFF},
     .bullets = { 0 },
-    .enemies = { 0 }
+    .enemies = { 0 },
+    .row_vals = { 3, 10, 20, 0, 0 }
 };
 
 /**
@@ -84,16 +86,31 @@ static gamestate game_state = {
  */
 void init_game_state() {
 
-    int row = 0;
+
+    // need o figure out how to set up top row need to figure out how to keep track of i compared to row vals
+
+    int space, row = 0, count;
+
+    count = game_state.row_vals[row];
+
+    space = COLUMNS - game_state.row_vals[row];
 
     for (int i = 0; i < ENEMY_COUNT; i++) {
 
-        if(i%10 == 0) row++;
+        if (game_state.row_vals[row] == 0) break;
 
-        game_state.enemies[i].pos_x = 20 + (i%10)*(ENEMY_WIDTH + ENEMY_SPACE);
+        if (i > count){
+
+            row++;
+            space = COLUMNS - game_state.row_vals[row];
+            count += game_state.row_vals[row];
+        }
+
+
+        game_state.enemies[i].pos_x = 200 + (ENEMY_WIDTH + ENEMY_SPACE) * (space / 2) \
+                                    + i * (ENEMY_WIDTH + ENEMY_SPACE);
         game_state.enemies[i].pos_y = 30 *row;
         game_state.enemies[i].active = 1;
-
     }
 }
 
@@ -279,13 +296,13 @@ int enemy_movement(){
 
         if (enemy->active){
 
-            if (!enemy->bul.active && abs(game_state.ship.pos_x - enemy->pos_x) < 10){
+            // if (!enemy->bul.active && abs(game_state.ship.pos_x - enemy->pos_x) < 10){
 
-                bul->active = 1;
-                bul->pos_x = enemy->pos_x+(ENEMY_WIDTH/2); // make it start in the middle of the ship
-                bul->pos_y = enemy->pos_y+(SHIP_HEIGHT+ (SHIP_HEIGHT/2)); // make it start above the ship
-                bul->velo_y = 3; // towards the top of the screen
-            }
+            //     bul->active = 1;
+            //     bul->pos_x = enemy->pos_x+(ENEMY_WIDTH/2); // make it start in the middle of the ship
+            //     bul->pos_y = enemy->pos_y+(SHIP_HEIGHT+ (SHIP_HEIGHT/2)); // make it start above the ship
+            //     bul->velo_y = 3; // towards the top of the screen
+            // }
             num_left ++;
 
             // important!!! compare to whichever has the larger size

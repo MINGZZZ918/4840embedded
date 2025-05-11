@@ -94,7 +94,7 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 
         if(i%10 == 0) enemy_type++;
 
-        if (enemy_type > 3) enemy_type = 0;
+        if (enemy_type > 3) enemy_type = 1;
 
         enemy = &enemies[i];
         write_object(i+MAX_BULLETS+2,  enemy->pos_x,  enemy->pos_y, enemy_type+1, enemy->active);

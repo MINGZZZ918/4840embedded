@@ -69,7 +69,7 @@ static const background_color colors[] = {
 static gamestate game_state = {
 
     .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_bullets = 0, .sprite = 0, .active = 1},
-    .background = {.red = 0xFF, .green = 0xFF, .blue = 0xFF},
+    .background = {.red = 0xFF, .green = 0x00, .blue = 0xFF},
     .bullets = { 0 },
     .enemies = { 0 }
 };
@@ -79,11 +79,11 @@ static gamestate game_state = {
  */
 void init_game_state() {
 
-    int row = 1;
+    int row = 0;
 
     for (int i = 0; i < ENEMY_COUNT; i++) {
 
-        if(i%10 == 0 && i !=0) row++;
+        if(i%10 == 0) row++;
 
         game_state.enemies[i].pos_x = 20 + (i%10)*(ENEMY_WIDTH + ENEMY_SPACE);
         game_state.enemies[i].pos_y = 30 *row;

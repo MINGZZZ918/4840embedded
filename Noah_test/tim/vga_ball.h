@@ -17,20 +17,20 @@ typedef struct {
 
 typedef struct {
     unsigned short pos_x, pos_y;
-    short velo_x, velo_y;
-    short lives, num_bullets;
+    char velo_x, velo_y;
+    char lives, num_bullets;
     bool active;
 } spaceship;
 
 typedef struct {
     unsigned short pos_x, pos_y;
-    unsigned short velo_y; // velo_x is always 0 on bullets
+    char velo_y; // velo_x is always 0 on bullets
     bool active;
 } bullet;
 
 typedef struct {
     unsigned short pos_x, pos_y;
-    unsigned short velo_x, velo_y;
+    char velo_x, velo_y;
     bullet bul;
     char sprite;
     bool active, returning;
@@ -42,7 +42,6 @@ typedef struct {
     bullet bullets[MAX_BULLETS];
     enemy enemies[ENEMY_COUNT];
     background_color background;
-    short row_vals[NUM_ROWS];
 } gamestate;
 
 #define VGA_BALL_MAGIC 'v'

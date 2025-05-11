@@ -71,7 +71,7 @@ static void write_object(int idx, unsigned short x, unsigned short y, char sprit
 /*
  * Write all objects
  */
-static void write_all(spaceship *ship, bullet bullets[], enemy enemies[], short row_vals[])
+static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 {
 
     int i;
@@ -115,7 +115,7 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[], short 
 static void update_game_state(gamestate *game_state)
 {
     write_background(&game_state->background);
-    write_all(&game_state->ship, game_state->bullets, game_state->enemies, game_state->row_vals);
+    write_all(&game_state->ship, game_state->bullets, game_state->enemies);
 }
 
 

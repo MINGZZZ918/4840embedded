@@ -58,7 +58,7 @@
 /* File descriptor for the VGA ball device */
 static int vga_ball_fd;
 static int enemy_moving = 0;
-static int row_sprites[5] = {2, 3, 0, 4, 0};
+static int row_sprites[5] = {2, 3, 0, 4, 4};
 
 static int moving = 300;
 
@@ -79,7 +79,7 @@ static gamestate game_state = {
     .background = {.red = 0xFF, .green = 0x00, .blue = 0xFF},
     .bullets = { 0 },
     .enemies = { 0 },
-    .row_vals = { 2, 10, 0, 16, 0 }
+    .row_vals = { 2, 10, 0, 20,16 }
 };
 
 /**
@@ -94,13 +94,13 @@ void init_game_state() {
 
     // need o figure out how to set up top row need to figure out how to keep track of i compared to row vals
 
-    int space, row = 1, arr = 0, enemy_count;
+    int space, row = 0, enemy_count;
 
     enemy *enemy;
 
-    enemy_count = game_state.row_vals[arr];
+    enemy_count = game_state.row_vals[row];
 
-    space = COLUMNS - game_state.row_vals[arr];
+    space = COLUMNS - game_state.row_vals[row];
 
     for (int i = 0, j=0; i < ENEMY_COUNT; i++, j++) {
 
@@ -108,22 +108,22 @@ void init_game_state() {
 
         if (i >= enemy_count){
 
-            if (++arr >= 5) break;
+            if (++row >= 5) break;
 
-            while(game_state.row_vals[arr] == 0) arr++;
+            while(game_state.row_vals[row] == 0) row++;
 
             row++;
             j = 0;
-            space = COLUMNS - game_state.row_vals[arr];
-            enemy_count += game_state.row_vals[arr];
+            space = COLUMNS - game_state.row_vals[row];
+            enemy_count += game_state.row_vals[row];
 
         }
 
         enemy->pos_x = 50 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
                                     + j * (ENEMY_WIDTH + ENEMY_SPACE);
                                     
-        enemy->pos_y = 30 *(row);
-        enemy->sprite = row_sprites[arr];
+        enemy->pos_y = 30 *(row+1);
+        enemy->sprite = row_sprites[row];
         enemy->active = 1;
     }
 }

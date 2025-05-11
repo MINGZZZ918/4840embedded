@@ -58,7 +58,7 @@
 static int vga_ball_fd;
 static int enemy_moving = 0;
 
-static int moving = 1000;
+static int moving = 10000;
 
 static const char filename[] = "/dev/vga_ball";
 
@@ -211,7 +211,7 @@ int enemy_movement(){
 
                 enemy->returning = 1;
 
-                moving = 1000;
+                moving = 10000;
 
             }
 

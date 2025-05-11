@@ -191,45 +191,48 @@ int enemy_movement(){
 
             if (enemy->pos_y >= SCREEN_HEIGHT - 5){
 
-                if (enemy->pos_y < SCREEN_HEIGHT *2){
+                enemy->pos_x = 200;
+                enemy->pos_y = 200;
+
+                // if (enemy->pos_y < SCREEN_HEIGHT *2){
                     
-                    enemy->pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
-                    enemy->pos_y = 1000; //??????
-                }
+                //     enemy->pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
+                //     enemy->pos_y = 1000; //??????
+                // }
 
-                if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y %SCREEN_HEIGHT == 50){
+                // if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y %SCREEN_HEIGHT == 50){
 
-                    enemy->velo_x = 0;
-                    enemy->velo_y = 0;
+                //     enemy->velo_x = 0;
+                //     enemy->velo_y = 0;
 
-                    enemy_moving --;
-                }
+                //     enemy_moving --;
+                // }
                 
-                enemy->velo_x = 0;
-                enemy->velo_y = 2;
+                // enemy->velo_x = 0;
+                // enemy->velo_y = 2;
             }
 
-            else if (enemy->pos_y >= ship->pos_y){
-                enemy->velo_x = 0;
-                enemy->velo_y = 2;
-            }
+            // else if (enemy->pos_y >= ship->pos_y){
+            //     enemy->velo_x = 0;
+            //     enemy->velo_y = 2;
+            // }
 
-            else{
+            // else{
 
-                new_x = ship->pos_x - enemy->pos_x;
-                new_y = ship->pos_y - enemy->pos_y;
+            //     new_x = ship->pos_x - enemy->pos_x;
+            //     new_y = ship->pos_y - enemy->pos_y;
 
-                mag = sqrt(new_x * new_x + new_y * new_y);
+            //     mag = sqrt(new_x * new_x + new_y * new_y);
 
-                new_x /= mag;
-                new_y /= mag;
+            //     new_x /= mag;
+            //     new_y /= mag;
 
-                new_x *= 2;
-                new_y *= 2;
+            //     new_x *= 2;
+            //     new_y *= 2;
 
-                enemy->velo_x = (int)-new_x;
-                enemy->velo_y = (int)-new_y;
-            }
+            //     enemy->velo_x = (int)-new_x;
+            //     enemy->velo_y = (int)-new_y;
+            // }
 
             continue;
         }

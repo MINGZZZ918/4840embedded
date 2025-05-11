@@ -78,7 +78,7 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
     enemy *enemy;
 
 
-    write_object (1, ship->pos_x,  ship->pos_y, ship->sprite, ship->active);
+    write_object (1, ship->pos_x,  ship->pos_y, 0, ship->active);
     dev.ship = *ship;
 
 
@@ -110,9 +110,6 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 
         dev.enemies[i].bul = enemies[i].bul;
     }
-
-
-
 }
 
 /*
@@ -165,10 +162,7 @@ static struct miscdevice vga_ball_misc_device = {
 static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
-    background_color background = { 0xFF, 0x0FF, 0xFF }; // Dark blue
-    spaceship ship = { .pos_x = 240, .pos_y = 200, .active = 0};  // Ship starting position
-    bullet bullets[MAX_BULLETS] = { 0 };
-    enemy enemies[ENEMY_COUNT] = { 0 };
+    background_color background = { 0xFF, 0x00, 0xFF };
 
     int ret;
 
@@ -199,7 +193,6 @@ static int __init vga_ball_probe(struct platform_device *pdev)
         
     /* Set initial values */
     write_background(&background);
-    write_all(&ship, bullets, enemies);
 
     return 0;
 

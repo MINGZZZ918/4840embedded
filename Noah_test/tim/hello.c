@@ -119,8 +119,10 @@ void init_game_state() {
 
                 j = 0;
                 space = COLUMNS - game_state.row_vals[row];
-                count += game_state.row_vals[row];
             }
+
+            count += game_state.row_vals[row];
+
         }
 
         enemy->pos_x = 50 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \

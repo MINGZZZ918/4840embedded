@@ -58,7 +58,7 @@
 static int vga_ball_fd;
 static int enemy_moving = 0;
 
-static int moving = 500;
+static int moving = 300;
 
 static const char filename[] = "/dev/vga_ball";
 
@@ -173,7 +173,7 @@ int enemy_movement(){
         enemy = &game_state.enemies[i];
         bul = &enemy->bul;
         
-        if (enemy_moving == 0 && i == 0){
+        if (enemy_moving == 0 && i == rand_enemy){
 
             enemy->velo_y = 2;
             enemy->velo_x = 0;
@@ -212,7 +212,7 @@ int enemy_movement(){
 
                 enemy->returning = 1;
 
-                moving = 500;
+                moving = 300;
 
             }
 

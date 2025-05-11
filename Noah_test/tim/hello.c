@@ -253,7 +253,7 @@ int enemy_movement(){
         enemy *enemy = &game_state.enemies[i];
 
 
-        if(!enemy->moving & e = i){
+        if(!enemy->moving && e == i){
 
             enemy-> velo_x = 0;
             enemy->velo_y = -4;

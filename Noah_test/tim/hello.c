@@ -196,10 +196,11 @@ int enemy_movement(){
 
                 // enemy_moving --;
 
-                printf("stop \n");
             }
 
             else if (enemy->pos_y >= SCREEN_HEIGHT - 5){
+
+                printf("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH \n");
 
                 enemy->pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
                 enemy->pos_y = 0;
@@ -218,16 +219,12 @@ int enemy_movement(){
 
             else{
 
-                printf("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH \n");
-
                 new_x = ship->pos_x - enemy->pos_x;
                 new_y = ship->pos_y - enemy->pos_y;
 
                 mag = sqrt(new_x * new_x + new_y * new_y);
 
-
                 printf("%f, %f, %f \n", new_x, new_y, mag);
-
 
                 new_x /= mag;
                 new_y /= mag;

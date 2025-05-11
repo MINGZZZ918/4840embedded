@@ -174,18 +174,25 @@ int enemy_movement(){
 
         enemy = &game_state.enemies[i];
         bul = &enemy->bul;
-
+        
         if (enemy_moving == 0 && i == 0){
 
             enemy->velo_y = 2;
             enemy_moving ++;
-            continue;
         }
 
         if (enemy->velo_y != 0 || enemy->velo_x != 0){
 
             enemy->pos_x += enemy->velo_x;
             enemy->pos_y += enemy->velo_y;
+
+            if (enemy->pos_y >= SCREEN_HEIGHT - 5){
+
+            }
+            else if (enemy->pos_y > ship->pos_y){
+                enemy->velo_x = 0;
+                enemy->velo_y = 2;
+            }
 
 
             new_x = ship->pos_x - enemy->pos_x;
@@ -200,6 +207,7 @@ int enemy_movement(){
             // Assigning the new velocity to the enemy
             enemy->velo_x = (int)-new_x;
             enemy->velo_y = (int)-new_y;
+            continue;
 
 
 

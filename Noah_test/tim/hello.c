@@ -166,7 +166,7 @@ int enemy_movement(){
     int num_left = 0;
     float mag, new_x, new_y;
     bullet *bul;
-    spaceship *ship;
+    spaceship *ship = &game_state.ship;
 
     
 
@@ -182,7 +182,6 @@ int enemy_movement(){
             enemy_moving ++;
 
         }
-
 
 
         if (enemy->velo_y != 0 || enemy->velo_x != 0){

@@ -188,9 +188,18 @@ void bullet_movement(int new_bullet){
 
 
 
-int turn_x[16] = {1,1,1,1,1,1,1,1,0,0,0,0,-1,-1,-1,-1};
-int turn_y[16] = {-1,-1,-1,-1, 0,0,0,0,1,1,1,1,1,1,1,1};
-int turn_time = 0;
+
+
+short turn_x[32] = {1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    0,0,0,0,0,0,0,0,
+                    -1,-1,-1,-1,-1,-1,-1,-1};
+
+int turn_y[32] = {-1,-1,-1,-1,-1,-1,-1,-1,
+                    0,0,0,0,0,0,0,0,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1};
+int turn = 0;
 
 int enemy_movement(){
 
@@ -205,12 +214,11 @@ int enemy_movement(){
     }
     else {
 
-        if (turn_time < 16){
+        if (turn <32){
 
-            enemy->velo_x = turn_x[turn_time];
-            enemy->velo_y = turn_y[turn_time];
-
-            turn_time++;
+            enemy->velo_x = turn_x[turn];
+            enemy->velo_y = turn_y[turn];
+            turn++;
         }
         else{
             enemy->velo_x = 0;

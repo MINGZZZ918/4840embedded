@@ -219,23 +219,25 @@ void calculate_velo(int x, int y, enemy *enemy, char scaler){
 
 
 
-short turn_x[64] = {1,1,1,1,1,1,1,1,
+short turn_x[66] = {1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
                     0,0,0,0,0,0,0,0,
-                    0,0,0,0,0,0,0,0};
+                    0,0,0,0,0,0,0,0,
+                    0,0};
 
-int turn_y[64] = {-1,-1,-1,-1,-1,-1,-1,-1,
+int turn_y[66] = {-1,-1,-1,-1,-1,-1,-1,-1,
                     -1,-1,-1,-1,-1,-1,-1,-1,
                     -1,-1,-1,-1,-1,-1,-1,-1,
                     0,0,0,0,0,0,0,0,
                     1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1};
+                    1,1,1,1,1,1,1,1,
+                    2,2};
 int turn = 0;
 
 int enemy_movement(){
@@ -253,23 +255,25 @@ int enemy_movement(){
     }
     else {
 
-        if (turn < 64){
+        if (turn < 66){
 
             enemy->velo_x = turn_x[turn];
             enemy->velo_y = turn_y[turn];
             turn++;
 
-            if (turn == 64){
+            if (turn == 66){
                 calculate_velo(0, 300, enemy, 3);
                 printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
             }
         }
 
-        // else{
+        else{
 
-        //     if(enemy->pos_x <= 100){
+            if(enemy->pos_x <= 100){
 
-        //         printf("AHHHHHHHHH \n");
+                printf("AHHHHHHHHH \n");
+            }
+        }
 
         //         cont = rand() % 2;
 

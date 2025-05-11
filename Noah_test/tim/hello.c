@@ -190,13 +190,17 @@ int enemy_movement(){
             enemy->pos_x += enemy->velo_x;
             enemy->pos_y += enemy->velo_y;
 
+            print("moving \n");
+
 
             if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y == 50){
 
-            enemy->velo_x = 0;
-            enemy->velo_y = 0;
+                enemy->velo_x = 0;
+                enemy->velo_y = 0;
 
-            // enemy_moving --;
+                // enemy_moving --;
+
+                printf("stop \n");
             }
 
             else if (enemy->pos_y >= SCREEN_HEIGHT - 5){
@@ -206,14 +210,21 @@ int enemy_movement(){
 
                 enemy->velo_x = 0;
                 enemy->velo_y = 2;
+
+                printf("off screen \n");
+
             }
 
             else if (enemy->pos_y >= ship->pos_y){
                 enemy->velo_x = 0;
                 enemy->velo_y = 2;
+
+                printf("below ship \n");
             }
 
             else{
+
+                printf("normal movement \n");
 
                 new_x = ship->pos_x - enemy->pos_x;
                 new_y = ship->pos_y - enemy->pos_y;

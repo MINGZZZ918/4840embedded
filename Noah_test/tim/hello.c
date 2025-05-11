@@ -231,9 +231,8 @@ void calculate_velo(int x, int y, enemy *enemy, char scaler){
     printf("%f, %f \n", new_x, new_y);
 
 
-
-    enemy->velo_x = (int)new_x;
-    enemy->velo_y = (int)new_y;
+    enemy->velo_x = (int)round(new_x);
+    enemy->velo_y = (int)round(new_y);
 
     printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
 
@@ -272,7 +271,10 @@ int enemy_movement(){
                 calculate_velo(ship->pos_x, ship->pos_y/2, enemy, 2);
 
 
+                if (enemy->velo_y == 0) enemy->velo_y = 1;
 
+                if (enemy->velo_x == 0) 
+                    enemy->velo_x = (enemy->pos_x > SCREEN_WIDTH / 2) ? 1 : -1;
 
                 // calculate_velo(0, 300, enemy, 3);
 

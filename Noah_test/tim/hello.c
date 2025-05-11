@@ -64,7 +64,7 @@ static char row_vals[5] = { 2, 10, 0, 16, 16 };
 static char row_sprites[5] = { 2, 3, 0, 4, 4 };
 
 
-static char turn_x[TURN_TIME] = {1,1,1,1,1,1,1,1,
+static short turn_x[TURN_TIME] = {1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
@@ -74,7 +74,7 @@ static char turn_x[TURN_TIME] = {1,1,1,1,1,1,1,1,
                     0,0,0,0,0,0,0,0,
                     0,0,0,0,0,0};
 
-static char turn_y[TURN_TIME] = {-1,-1,-1,-1,-1,-1,-1,-1,
+static short turn_y[TURN_TIME] = {-1,-1,-1,-1,-1,-1,-1,-1,
                     -1,-1,-1,-1,-1,-1,-1,-1,
                     -1,-1,-1,-1,-1,-1,-1,-1,
                     0,0,0,0,0,0,0,0,

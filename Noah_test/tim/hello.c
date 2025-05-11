@@ -107,9 +107,11 @@ void init_game_state() {
         }
 
 
-        game_state.enemies[i].pos_x = 200 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
-                                    + j * (ENEMY_WIDTH + ENEMY_SPACE);
-        game_state.enemies[i].pos_y = 30 *row;
+        game_state.enemies[i].pos_x = 200 + j * (ENEMY_WIDTH + ENEMY_SPACE);
+
+        // ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
+                                    
+        game_state.enemies[i].pos_y = 30 *(row+1);
         game_state.enemies[i].active = 1;
     }
 }

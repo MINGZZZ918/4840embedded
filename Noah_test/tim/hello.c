@@ -58,7 +58,7 @@
 static int vga_ball_fd;
 static int enemy_moving = 0;
 
-static int moving = 1000;
+static int moving = 10000;
 
 static const char filename[] = "/dev/vga_ball";
 
@@ -199,6 +199,7 @@ int enemy_movement(){
 
                 }
             }
+
             else if (enemy->pos_y >= SCREEN_HEIGHT - 5){
 
                 printf("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH \n");
@@ -224,6 +225,8 @@ int enemy_movement(){
 
             else{
 
+                printf("%d \n", moving);
+
                 if (--moving <= 0){
 
                     enemy->velo_x = 0;
@@ -238,7 +241,7 @@ int enemy_movement(){
 
                     mag = sqrt(new_x * new_x + new_y * new_y);
 
-                    printf("%f, %f, %f \n", new_x, new_y, mag);
+                    // printf("%f, %f, %f \n", new_x, new_y, mag);
 
                     new_x /= mag;
                     new_y /= mag;

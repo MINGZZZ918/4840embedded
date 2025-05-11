@@ -318,15 +318,12 @@ int enemy_movement(){
 
     int cont;
 
-    int e = rand() % ENEMY_COUNT;
+    enemy *enemy = &game_state.enemies[14];
 
 
     for (int i = 0; i < ENEMY_COUNT; i++){
 
-        enemy *enemy = &game_state.enemies[i];
-
-
-        if(!enemy->moving && e == i){
+        if(!enemy->moving){
 
             enemy-> velo_x = 0;
             enemy->velo_y = -4;

@@ -95,20 +95,20 @@ void init_game_state() {
 
     space = COLUMNS - game_state.row_vals[row];
 
-    for (int i = 0; i < ENEMY_COUNT; i++) {
+    for (int i = 0, j=0; i < ENEMY_COUNT; i++, j++) {
 
         if (game_state.row_vals[row] == 0) break;
 
         if (i > count){
-
             row++;
+            j = 0;
             space = COLUMNS - game_state.row_vals[row];
             count += game_state.row_vals[row];
         }
 
 
-        game_state.enemies[i].pos_x = 200 + (ENEMY_WIDTH + ENEMY_SPACE) * (space / 2) \
-                                    + i * (ENEMY_WIDTH + ENEMY_SPACE);
+        game_state.enemies[i].pos_x = 200 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
+                                    + j * (ENEMY_WIDTH + ENEMY_SPACE);
         game_state.enemies[i].pos_y = 30 *row;
         game_state.enemies[i].active = 1;
     }

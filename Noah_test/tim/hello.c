@@ -235,8 +235,8 @@ int enemy_movement(){
                 new_x *= 2;
                 new_y *= 2;
 
-                enemy->velo_x = (int)-new_x;
-                enemy->velo_y = (int)-new_y;
+                enemy->velo_x = (int)new_x;
+                enemy->velo_y = (int)new_y;
             }
 
             continue;

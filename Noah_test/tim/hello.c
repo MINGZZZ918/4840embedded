@@ -92,9 +92,9 @@ void init_game_state() {
 
     enemy *enemy;
 
-    enemy_count = game_state.row_vals[row];
+    enemy_count = row_vals[row];
 
-    space = COLUMNS - game_state.row_vals[row];
+    space = COLUMNS - row_vals[row];
 
     for (int i = 0, j=0; i < ENEMY_COUNT; i++, j++) {
 
@@ -104,11 +104,11 @@ void init_game_state() {
 
             if (++row >= 5) break;
 
-            while(game_state.row_vals[row] == 0) row++;
+            while(row_vals[row] == 0) row++;
 
             j = 0;
-            space = COLUMNS - game_state.row_vals[row];
-            enemy_count += game_state.row_vals[row];
+            space = COLUMNS - row_vals[row];
+            enemy_count += row_vals[row];
 
         }
 

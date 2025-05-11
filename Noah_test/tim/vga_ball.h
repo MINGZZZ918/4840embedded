@@ -16,40 +16,6 @@ typedef struct {
     unsigned char red, green, blue;
 } background_color;
 
-// typedef enum {
-//     LR_NONE,
-//     LEFT,
-//     RIGHT,
-
-//     UD_NONE,
-//     UP,
-//     DOWN,
-
-//     BUMPER_NONE,
-//     BUMPER_L,
-//     BUMPER_R,
-//     BUMPER_LR,
-//     START,
-//     SELECT,
-
-//     BUTTON_NONE,
-//     BUTTON_A,
-//     BUTTON_B,
-//     BUTTON_X,
-//     BUTTON_Y, 
-
-//     QUEUE_EMPTY
-// } event;
-
-// #ifndef __KERNEL__
-// typedef struct {
-//     event events[INPUT_QUEUE_SIZE]; // holds the events to handle before next frame
-//     int head; // current position in the queue 
-//     int tail;
-//     pthread_mutex_t lock; 
-// } input_queue;
-// #endif
-
 typedef struct {
     unsigned short pos_x, pos_y;
     unsigned short velo_x, velo_y;

@@ -195,7 +195,7 @@ int enemy_movement(){
 
                     enemy->returning = 0;
 
-                    // enemy_moving --;
+                    enemy_moving --;
 
                 }
             }

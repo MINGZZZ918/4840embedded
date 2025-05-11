@@ -199,13 +199,13 @@ int enemy_movement(){
                     enemy->pos_y = 0; //??????
                 }
 
-                // if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y %SCREEN_HEIGHT == 50){
+                if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y %SCREEN_HEIGHT == 50){
 
-                //     enemy->velo_x = 0;
-                //     enemy->velo_y = 0;
+                    enemy->velo_x = 0;
+                    enemy->velo_y = 0;
 
-                //     enemy_moving --;
-                // }
+                    enemy_moving --;
+                }
                 
                 // enemy->velo_x = 0;
                 // enemy->velo_y = 2;

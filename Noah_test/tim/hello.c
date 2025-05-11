@@ -259,13 +259,13 @@ void turn(enemy *enemy){
 
         if(enemy->sprite == 4){
 
-            enemy->velo_x = (enemy->pos_x > SCREEN_WIDTH / 2) ? 2 : -2;
+            enemy->velo_x = (enemy->pos_x < SCREEN_WIDTH / 2) ? 2 : -2;
             enemy->velo_y = 2;
         }
 
         else if(enemy->sprite == 3){
 
-            enemy->velo_x = (enemy->pos_x > SCREEN_WIDTH / 2) ? 3 : -3;
+            enemy->velo_x = (enemy->pos_x < SCREEN_WIDTH / 2) ? 3 : -3;
             enemy->velo_y = 2;
         }
         else {

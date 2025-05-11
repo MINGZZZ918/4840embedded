@@ -17,7 +17,7 @@ typedef struct {
 
 typedef struct {
     unsigned short pos_x, pos_y;
-    char velo_x, velo_y;
+    short velo_x, velo_y;
     char lives, num_bullets;
     bool active;
 } spaceship;

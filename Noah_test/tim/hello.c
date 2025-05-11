@@ -93,43 +93,36 @@ void init_game_state() {
 
     // need o figure out how to set up top row need to figure out how to keep track of i compared to row vals
 
-    int space, row = 0, count;
+    int space, row = 1, arr = 0, enemy_count;
 
     enemy *enemy;
 
+    enemy_count = game_state.row_vals[arr];
 
-
-
-    count = game_state.row_vals[row];
-
-    space = COLUMNS - game_state.row_vals[row];
+    space = COLUMNS - game_state.row_vals[arr];
 
     for (int i = 0, j=0; i < ENEMY_COUNT; i++, j++) {
 
         enemy = &game_state.enemies[i];
 
-        if (i >= count){
+        if (i >= enemy_count){
 
-            if (++row >= 5) break;
+            if (++arr >= 5) break;
 
-            if (game_state.row_vals[row-1] == 0)
-                row--;
+            while(game_state.row_vals[arr] == 0) arr++;
 
-            else {
-
-                j = 0;
-                space = COLUMNS - game_state.row_vals[row];
-            }
-
-            count += game_state.row_vals[row];
+            row++;
+            j = 0;
+            space = COLUMNS - game_state.row_vals[arr];
+            enemy_count += game_state.row_vals[arr];
 
         }
 
         enemy->pos_x = 50 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
                                     + j * (ENEMY_WIDTH + ENEMY_SPACE);
                                     
-        enemy->pos_y = 30 *(row+1);
-        enemy->sprite = row+2;
+        enemy->pos_y = 30 *(row);
+        enemy->sprite = row+1;
         enemy->active = 1;
     }
 }

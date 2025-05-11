@@ -31,7 +31,7 @@ typedef struct {
     unsigned short pos_x, pos_y;
     short velo_x, velo_y;
     bullet bul;
-    char sprite, turn_counter = 0;
+    char sprite, turn_counter;
     bool active, returning, moving;
 } enemy;
 

@@ -332,9 +332,9 @@ int enemy_movement(){
             enemy->velo_y = -4;
 
             enemy->moving = 1;
-
-            move_enemy(enemy);
         }
+
+        if(!enemy->moving) move_enemy(enemy);
 
     }
 

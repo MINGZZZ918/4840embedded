@@ -239,9 +239,6 @@ void calculate_velo(int x, int y, enemy *enemy, char scaler){
 
 }
 
-
-
-
 int enemy_movement(){
 
     enemy *enemy = &game_state.enemies[14];

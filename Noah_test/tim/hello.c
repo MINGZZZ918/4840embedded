@@ -208,6 +208,8 @@ void calculate_velo(enemy *enemy, char scaler){
     enemy->velo_x = (int)new_x;
     enemy->velo_y = (int)new_y;
 
+    printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
+
 }
 
 

@@ -191,14 +191,13 @@ int enemy_movement(){
 
             if (enemy->pos_y >= SCREEN_HEIGHT - 5){
 
-                enemy->pos_x = 200;
-                enemy->pos_y = 200;
 
-                // if (enemy->pos_y < SCREEN_HEIGHT *2){
+
+                if (enemy->pos_y < SCREEN_HEIGHT *2){
                     
-                //     enemy->pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
-                //     enemy->pos_y = 1000; //??????
-                // }
+                    enemy->pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
+                    enemy->pos_y = 0; //??????
+                }
 
                 // if (enemy->pos_x == 20 + i*(ENEMY_WIDTH + ENEMY_SPACE) && enemy->pos_y %SCREEN_HEIGHT == 50){
 

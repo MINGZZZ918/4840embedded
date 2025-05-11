@@ -230,23 +230,24 @@ int enemy_movement(){
                     enemy->velo_y = 2;
                 }
 
-                new_x = ship->pos_x - enemy->pos_x;
-                new_y = ship->pos_y - enemy->pos_y;
+                else{
 
-                mag = sqrt(new_x * new_x + new_y * new_y);
+                    new_x = ship->pos_x - enemy->pos_x;
+                    new_y = ship->pos_y - enemy->pos_y;
 
-                printf("%f, %f, %f \n", new_x, new_y, mag);
+                    mag = sqrt(new_x * new_x + new_y * new_y);
 
-                new_x /= mag;
-                new_y /= mag;
+                    printf("%f, %f, %f \n", new_x, new_y, mag);
 
-                new_x *= 3;
-                new_y *= 3;
+                    new_x /= mag;
+                    new_y /= mag;
 
-                enemy->velo_x = (int)new_x;
-                enemy->velo_y = (int)new_y;
+                    new_x *= 3;
+                    new_y *= 3;
 
-
+                    enemy->velo_x = (int)new_x;
+                    enemy->velo_y = (int)new_y;
+                }
             }
 
             continue;

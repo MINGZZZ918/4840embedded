@@ -266,26 +266,24 @@ int enemy_movement(){
             enemy->velo_y = turn_y[enemy->turn_counter];
             enemy->turn_counter++;
 
-            // if (enemy->turn_counter == TURN_TIME){
+            if (enemy->turn_counter == TURN_TIME){
 
-            //     if (enemy->velo_y == 0) enemy->velo_y = 1;
+                calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
 
-            //     if (enemy->velo_x == 0) 
-            //         enemy->velo_x = (enemy->pos_x > SCREEN_WIDTH / 2) ? 1 : -1;
+                if (enemy->velo_y == 0) enemy->velo_y = 1;
 
-            //     // calculate_velo(0, 300, enemy, 3);
+                if (enemy->velo_x == 0) 
+                    enemy->velo_x = (enemy->pos_x > SCREEN_WIDTH / 2) ? 1 : -1;
 
-            //     printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
-            // }
+                // calculate_velo(0, 300, enemy, 3);
+
+                // printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
+            }
         }
 
         else{
 
-
-            if(++enemy->move_time < 150)
-                calculate_velo(ship->pos_x, ship->pos_y+100, enemy, 2);
-
-            else{
+            if(++enemy->move_time > 200){
 
                 enemy->velo_x = 0;
                 enemy->velo_y = 2;

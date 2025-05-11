@@ -194,7 +194,6 @@ void calculate_velo(enemy *enemy, char scaler){
     spaceship *ship = &game_state.ship;
     float new_x, new_y, mag;
 
-
     new_x = ship->pos_x - enemy->pos_x;
     new_y = (ship->pos_y - enemy->pos_y) / scaler;
 
@@ -215,8 +214,7 @@ void calculate_velo(enemy *enemy, char scaler){
 
 
 
-short turn_x[72] = {1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
+short turn_x[64] = {1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
@@ -225,8 +223,7 @@ short turn_x[72] = {1,1,1,1,1,1,1,1,
                     0,0,0,0,0,0,0,0,
                     0,0,0,0,0,0,0,0};
 
-int turn_y[72] = {-1,-1,-1,-1,-1,-1,-1,-1,
-                    -1,-1,-1,-1,-1,-1,-1,-1,
+int turn_y[64] = {-1,-1,-1,-1,-1,-1,-1,-1,
                     -1,-1,-1,-1,-1,-1,-1,-1,
                     -1,-1,-1,-1,-1,-1,-1,-1,
                     0,0,0,0,0,0,0,0,
@@ -250,14 +247,16 @@ int enemy_movement(){
     }
     else {
 
-        if (turn < 72){
+        if (turn < 64){
 
             enemy->velo_x = turn_x[turn];
             enemy->velo_y = turn_y[turn];
             turn++;
 
-            if (turn == 71)
+            if (turn == 63){
                 calculate_velo(enemy, 3);
+                printf("AHHHHHHHHHHHHHHHHHH\n");
+            }
         }
 
         else{

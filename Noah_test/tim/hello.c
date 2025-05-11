@@ -197,7 +197,7 @@ int enemy_movement(){
     if(!enemy->moving){
 
         enemy-> velo_x = 0;
-        enemy->velo_y = -4;
+        enemy->velo_y = -2;
 
         enemy->moving = 1;
     }

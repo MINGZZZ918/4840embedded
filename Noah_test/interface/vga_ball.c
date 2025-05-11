@@ -73,7 +73,7 @@ static void write_object(int idx, unsigned short x, unsigned short y, char sprit
 static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 {
 
-    int i;
+    int i, row = 0;
     bullet *bul;
     enemy *enemy;
 
@@ -92,8 +92,12 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 
     for (i = 0; i < ENEMY_COUNT; i++) {
 
+        if(i%10 == 0) row++;
+
+        if (row > 3) row = 0;
+
         enemy = &enemies[i];
-        write_object(i+MAX_BULLETS+2,  enemy->pos_x,  enemy->pos_y, 3, enemy->active);
+        write_object(i+MAX_BULLETS+2,  enemy->pos_x,  enemy->pos_y, row+1, enemy->active);
 
         dev.enemies[i] = enemies[i];
     }

@@ -224,10 +224,11 @@ int enemy_movement(){
 
             else{
 
-                if (--moving == 0){
+                if (--moving <= 0){
 
                     enemy->velo_x = 0;
                     enemy->velo_y = 2;
+
                 }
 
                 else{

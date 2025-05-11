@@ -112,11 +112,15 @@ void init_game_state() {
 
             if (++row >= 5) break;
 
-            if (game_state.row_vals[row-1] == 0) row--;
+            if (game_state.row_vals[row-1] == 0)
+                row--;
 
-            j = 0;
-            space = COLUMNS - game_state.row_vals[row];
-            count += game_state.row_vals[row];
+            else {
+
+                j = 0;
+                space = COLUMNS - game_state.row_vals[row];
+                count += game_state.row_vals[row];
+            }
         }
 
         enemy->pos_x = 50 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
@@ -238,8 +242,6 @@ int enemy_movement(){
 
             else if (enemy->pos_y >= SCREEN_HEIGHT - 5){
 
-                printf("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH \n");
-
                 enemy->pos_x = 20 + i*(ENEMY_WIDTH + ENEMY_SPACE);
                 enemy->pos_y = 0;
 
@@ -260,9 +262,6 @@ int enemy_movement(){
             // }
 
             else{
-
-                printf("%d \n", moving);
-
                 if (--moving <= 0){
 
                     enemy->velo_x = 0;

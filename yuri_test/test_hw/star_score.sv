@@ -224,11 +224,10 @@ module vga_ball#(
             end
         end 
         else begin
-            {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
+            {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h80, 8'h00}; 
             is_star <= 1'b0;
         end
     end
-    
 endmodule
 
 // VGA timing generator module

@@ -445,8 +445,8 @@ void enemy_shoot(enemy *enemy){
         enemy->bul.pos_x += enemy->bul.velo_x;
         enemy->bul.pos_y += enemy->bul.velo_y;
 
-        if (abs(ship->pos_x - bul->pos_x) <= SHIP_WIDTH
-                    && abs(ship->pos_y - bul->pos_y) <= SHIP_HEIGHT){
+        if (abs(ship->pos_x - enemy->bul.pos_x) <= SHIP_WIDTH
+                    && abs(ship->pos_y - enemy->bul.pos_y) <= SHIP_HEIGHT){
 
             enemy->bul.active = 0;
             ship->lives --;

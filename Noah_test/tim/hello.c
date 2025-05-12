@@ -123,6 +123,10 @@ static gamestate game_state = {
  */
 void init_game_state() {
 
+
+    static char row_vals[5] = { 2, 6, 8, 12, 12 };
+    static char row_sprites[5] = { 2, 3, 3, 4, 4 };
+
     int space, row = 0, enemy_count;
 
     enemy *enemy;
@@ -142,8 +146,6 @@ void init_game_state() {
             row_backs[row] = i-1;
 
             if (++row >= 5) break;
-
-            row++;
 
             j = 0;
             space = COLUMNS - row_vals[row];

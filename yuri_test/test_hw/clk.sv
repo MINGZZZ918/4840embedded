@@ -173,7 +173,7 @@ module vga_ball#(
             end
         end 
         else begin
-            {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h80, 8'h00}; // 默认黑色
+            {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b}; // 默认黑色
         end
     end
     

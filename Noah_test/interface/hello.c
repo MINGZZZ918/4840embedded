@@ -28,7 +28,7 @@
 #define SHIP_WIDTH 16
 #define SHIP_HEIGHT 16
 #define SHIP_INITIAL_X 200
-#define SHIP_INITIAL_Y 240
+#define SHIP_INITIAL_Y 400
 
 #define ENEMY_WIDTH 16
 #define ENEMY_HEIGHT 16
@@ -36,6 +36,8 @@
 #define LIFE_COUNT 5
 
 #define NUM_ENEMIES 5 // how many different sprites we have
+
+#define ENEMY_SPACE 44
 
 
 #define LEFT_ARROW 0x00
@@ -67,7 +69,7 @@ static const background_color colors[] = {
 static gamestate game_state = {
 
     .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_bullets = 0, .sprite = 0, .active = 1},
-    .background = {.red = 0xFF, .green = 0xFF, .blue = 0xFF},
+    .background = {.red = 0xFF, .green = 0x00, .blue = 0xFF},
     .bullets = { 0 },
     .enemies = { 0 }
 };
@@ -77,15 +79,16 @@ static gamestate game_state = {
  */
 void init_game_state() {
 
+    int row = 0;
+
     for (int i = 0; i < ENEMY_COUNT; i++) {
 
-        game_state.enemies[i].pos_x = 20 + i*(ENEMY_WIDTH + 20);
-        game_state.enemies[i].pos_y = 50;
+        if(i%10 == 0) row++;
+
+        game_state.enemies[i].pos_x = 20 + (i%10)*(ENEMY_WIDTH + ENEMY_SPACE);
+        game_state.enemies[i].pos_y = 30 *row;
         game_state.enemies[i].active = 1;
 
-        game_state.enemies[i].bul.pos_x = 0;
-        game_state.enemies[i].bul.pos_y = 0;
-        game_state.enemies[i].bul.active = 0;
     }
 }
 
@@ -162,6 +165,9 @@ int enemy_movement(){
 
         enemy = &game_state.enemies[i];
         bul = &enemy->bul;
+
+        if(i == 9)
+            printf("%d \n", bul->active);
 
         if (enemy->bul.active){
 

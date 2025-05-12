@@ -610,7 +610,7 @@ int main(){
 
 
 
-        if (++total_time%4 == 0) {
+        if (++total_time%3 == 0) {
 
             enemy_wiggle_time += enemy_wiggle;
 

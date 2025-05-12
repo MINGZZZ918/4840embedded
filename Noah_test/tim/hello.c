@@ -421,7 +421,7 @@ int enemy_movement(){
 
         else{
 
-            if (++total_time%2 == 0) enemy->pos_x += enemy_wiggle;
+            if (++total_time%3 == 0) enemy->pos_x += enemy_wiggle;
 
 
 

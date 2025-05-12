@@ -307,7 +307,7 @@ void move_enemy(enemy *enemy){
             if (enemy->start_x < SCREEN_WIDTH/2 && enemy->move_time == 0){
 
                 if (enemy->pos_x - ship->pos_x > 10){
-                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 1);
+                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
 
                 }
             }

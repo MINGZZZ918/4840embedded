@@ -44,7 +44,7 @@
 
 #define TURN_TIME 70
 
-#define ENEMY_BULLET_COOLDOWN 30
+#define ENEMY_BULLET_COOLDOWN 10
 
 
 #define LEFT_ARROW 0x00

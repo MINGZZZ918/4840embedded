@@ -435,10 +435,10 @@ void enemy_shoot(enemy *enemy){
 
                         enemy->bullets[0].active = 1;
 
-                        printf("ACTIVE 1 \n");
-
                         enemy->bullets[0].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
                         enemy->bullets[0].pos_y = enemy->pos_x+(ENEMY_HEIGHT/2);
+
+                        printf("ACTIVE 1 %d, %d \n", enemy->bullets[0].pos_x, enemy->bullets[0].pos_y);
 
 
                         calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[0], 0, 2);
@@ -452,6 +452,9 @@ void enemy_shoot(enemy *enemy){
 
                         enemy->bullets[1].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
                         enemy->bullets[1].pos_y = enemy->pos_x+(ENEMY_HEIGHT/2);
+
+
+                        printf("ACTIVE 1 %d, %d \n", enemy->bullets[1].pos_x, enemy->bullets[1].pos_y);
 
 
                         calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[1], 0, 2);

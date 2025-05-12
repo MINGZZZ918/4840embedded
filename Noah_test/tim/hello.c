@@ -399,7 +399,7 @@ void enemy_shoot(enemy *enemy){
 
             if (abs(ship->pos_x - enemy->pos_x) <= 40
                     && abs(ship->pos_y - enemy->pos_y) <= 150
-                    && ship->pos_y > enemy->pos_y){
+                    && ship->pos_y - 40 > enemy->pos_y){
 
                 if(!enemy->bul.active){
 
@@ -671,45 +671,48 @@ int enemy_movement(int rand_enemy){
         enemy = &game_state.enemies[i];
 
 
-        if (!enemy->active) continue;
+        if (enemy->active){
 
-        if(!enemy->moving && rand_enemy == i){
+            if(enemy->active && !enemy->moving && rand_enemy == i){
 
-            if (enemy_wiggle > 0) change_row_ends(i, row_num, 0);
-                
-            else change_row_ends(i, row_num, 1);
+                if (enemy_wiggle > 0) change_row_ends(i, row_num, 0);
+            
+                else change_row_ends(i, row_num, 1);
 
-            enemy-> velo_x = 0;
-            enemy->velo_y = -4;
+                enemy-> velo_x = 0;
+                enemy->velo_y = -4;
 
-            enemy->moving = 1;
-            enemies_moving ++;
-        }
+                enemy->moving = 1;
+                enemies_moving ++;
+            }
 
-        if(enemy->moving) {
+            if(enemy->moving) {
 
-            enemy_attack(enemy);
+                enemy_attack(enemy);
 
-            if (!enemy->moving){
+                if (!enemy->moving){
 
-                if(i > row_backs[enemy->row]) row_backs[enemy->row] = i;
-                if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
+                    if(i > row_backs[enemy->row]) row_backs[enemy->row] = i;
+                    if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
+                }
+
+                else
+                    enemy_shoot(enemy);
+
             }
 
             else
-                enemy_shoot(enemy);
+                enemy->pos_x += enemy_wiggle;
 
         }
-
-        else{
-            enemy->pos_x += enemy_wiggle;
-
+        else {
             // if(enemy->bullets[0].active || enemy->bullets[1].active) 
             if(enemy->bul.active)
                 enemy_shoot(enemy);
-
-
+            
+            else continue;
         }
+
 
         if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
             && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){

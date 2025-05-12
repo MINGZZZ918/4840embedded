@@ -612,7 +612,7 @@ int main(){
         if (abs(enemy_wiggle_time) == 20) enemy_wiggle = -enemy_wiggle;
 
 
-        printf("%d, %d, %d", total_time, enemy_wiggle_time, enemy_wiggle_time)
+        printf("%d, %d, %d", total_time, enemy_wiggle_time, enemy_wiggle_time);
 
 
 

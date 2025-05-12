@@ -606,26 +606,14 @@ int main(){
 
     init_game_state();
     update_hardware();
-    for (;;){      
+    for (;;){
+
+        if (++total_time%3 == 0) enemy_wiggle_time += enemy_wiggle;
+        if (abs(enemy_wiggle_time) == 20) enemy_wiggle = -enemy_wiggle;
 
 
+        printf("%d, %d, %d", total_time, enemy_wiggle_time, enemy_wiggle_time)
 
-        if (++total_time%3 == 0) {
-
-            enemy_wiggle_time += enemy_wiggle;
-
-            printf("%d \n", enemy_wiggle_time);
-
-        }
-        
-        
-        if (abs(enemy_wiggle_time) == 20) 
-        {       
-            
-            printf("AHHHHHHHHHHHHHHHHHh %d\n", enemy_wiggle);
-            enemy_wiggle = -enemy_wiggle;
-
-        }
 
 
 

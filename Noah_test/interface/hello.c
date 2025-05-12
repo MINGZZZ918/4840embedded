@@ -83,10 +83,10 @@ void init_game_state() {
 
     for (int i = 0; i < ENEMY_COUNT; i++) {
 
-        if(i%10 == 0) row++;
+        if(i%20 == 0) row++;
 
-        game_state.enemies[i].pos_x = 20 + (i%10)*(ENEMY_WIDTH + ENEMY_SPACE);
-        game_state.enemies[i].pos_y = 30 *row;
+        game_state.enemies[i].pos_x = 20 + (i%10)*(ENEMY_WIDTH + 10);
+        game_state.enemies[i].pos_y = 20 *row;
         game_state.enemies[i].active = 1;
 
     }

@@ -23,7 +23,7 @@ typedef struct {
 
 typedef struct {
     unsigned short pos_x, pos_y;
-    short velo_y; // velo_x is always 0 on bullets
+    short velo_x, velo_y;
     bool active;
 } bullet;
 
@@ -31,8 +31,8 @@ typedef struct {
     unsigned short pos_x, pos_y;
     short velo_x, velo_y;
     short start_x, start_y;
-    bullet bul;
-    short move_time;
+    bullet bullets[2];
+    short move_time, bul_cooldown;
     char sprite, turn_counter, row;
     bool active, returning, moving;
 } enemy;

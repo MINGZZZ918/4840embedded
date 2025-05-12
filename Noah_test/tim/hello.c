@@ -430,10 +430,6 @@ void enemy_shoot(enemy *enemy){
 
         if(enemy->sprite == 4){
 
-            if(enemy->move_time >= TURN_TIME) printf("AHHHHHHHHHHHH \n");
-
-
-
             if (abs(ship->pos_x - enemy->pos_x) <= 100
                 && abs(ship->pos_y - enemy->pos_y <= 200
                 && ship->pos_y > enemy->pos_y)){
@@ -473,7 +469,7 @@ void enemy_shoot(enemy *enemy){
         }
     }
 
-    else
+    else if(enemy->turn_counter < TURN_TIME)
         enemy->bul_cooldown --;
 
 
@@ -629,7 +625,7 @@ int enemy_movement(int rand_enemy){
                 if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
             }
 
-            else 
+            else
                 enemy_shoot(enemy);
 
         }

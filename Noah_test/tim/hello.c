@@ -292,64 +292,63 @@ void move_enemy(enemy *enemy){
 
         if (enemy->sprite == 2){
 
-            enemy->move_time ++;
 
-            if(enemy->move_time < 250)
+            if(++enemy->move_time < 250)
                 calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
             else
                 enemy->velo_x = 0;
                 enemy->velo_y = 2;
         }
 
-        else if (enemy->sprite == 3){
+        // else if (enemy->sprite == 3){
 
 
-            if (enemy->start_x < SCREEN_WIDTH/2 && enemy->move_time == 0){
+        //     if (enemy->start_x < SCREEN_WIDTH/2 && enemy->move_time == 0){
 
-                if (enemy->pos_x - ship->pos_x > 10){
+        //         if (enemy->pos_x - ship->pos_x > 10){
                     
-                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
-                    enemy->move_time++;
-                }
-            }
+        //             calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
+        //             enemy->move_time++;
+        //         }
+        //     }
 
-            else if (enemy->move_time == 0){
-                if (ship->pos_x - enemy->pos_x > 10){
-                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
-                    enemy->move_time++;
-                }
-            }
+        //     else if (enemy->move_time == 0){
+        //         if (ship->pos_x - enemy->pos_x > 10){
+        //             calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
+        //             enemy->move_time++;
+        //         }
+        //     }
 
-            else{
+        //     else{
 
-                calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
+        //         calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
 
-                if(++ enemy->move_time > 50){
+        //         if(++ enemy->move_time > 50){
 
-                    enemy->velo_x = 0;
-                    enemy->velo_y = 2;
-                }
-            }
+        //             enemy->velo_x = 0;
+        //             enemy->velo_y = 2;
+        //         }
+        //     }
 
-        }
-        else{
+        // }
+        // else{
 
-            if(++enemy->move_time == 150){
+        //     if(++enemy->move_time == 150){
 
-                cont = rand() % 3;
+        //         cont = rand() % 3;
 
-                if(!cont)
-                    enemy->velo_x = -enemy->velo_x;
-                else
-                    enemy->move_time --;
-            }
+        //         if(!cont)
+        //             enemy->velo_x = -enemy->velo_x;
+        //         else
+        //             enemy->move_time --;
+        //     }
 
-            else if(enemy->move_time == 250){
+        //     else if(enemy->move_time == 250){
 
-                enemy->velo_x = 0;
-                enemy->velo_y = 2;
-            }
-        }
+        //         enemy->velo_x = 0;
+        //         enemy->velo_y = 2;
+        //     }
+        // }
 
     }
 
@@ -384,7 +383,7 @@ int enemy_movement(){
 
         enemy = &game_state.enemies[i];
 
-        if(!enemy->moving && !enemies_moving && i == rand_enemy && enemy->sprite == 3){
+        if(!enemy->moving && !enemies_moving && i == rand_enemy && enemy->sprite == 2){
 
             enemy-> velo_x = 0;
             enemy->velo_y = -4;

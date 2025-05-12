@@ -60,8 +60,14 @@
 /* File descriptor for the VGA ball device */
 static int vga_ball_fd;
 static int enemies_moving = 0;
-static char row_vals[5] = { 8, 10, 0, 16, 16 };
-static char row_sprites[5] = { 2, 3, 0, 4, 4 };
+static char row_vals[5] = { 2, 6, 8, 12, 12 };
+static char row_sprites[5] = { 2, 3, 3, 4, 4 };
+
+
+static int row_fronts[5];
+static int row_backs[5];
+
+
 
 static int enemy_wiggle = 1;
 static int enemy_wiggle_time = 0;
@@ -117,7 +123,7 @@ static gamestate game_state = {
  */
 void init_game_state() {
 
-    int space, row = 0, display_row = 1, enemy_count;
+    int space, row = 0, enemy_count;
 
     enemy *enemy;
 
@@ -125,29 +131,32 @@ void init_game_state() {
 
     space = COLUMNS - row_vals[row];
 
+    row_fronts[row] = 0;
+
     for (int i = 0, j=0; i < ENEMY_COUNT; i++, j++) {
 
         enemy = &game_state.enemies[i];
 
         if (i >= enemy_count){
 
-
+            row_backs[row] = i-1;
 
             if (++row >= 5) break;
 
-            while(row_vals[row] == 0) row++;
+            row++;
 
             j = 0;
             space = COLUMNS - row_vals[row];
             enemy_count += row_vals[row];
-            display_row ++;
 
+
+            row_fronts[row] = i;
         }
 
         enemy->pos_x = enemy->start_x = 50 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
                                     + j * (ENEMY_WIDTH + ENEMY_SPACE);
                                     
-        enemy->pos_y = enemy->start_y = 30 *display_row;
+        enemy->pos_y = enemy->start_y = 60 + 30 *(row+1);
         enemy->sprite = row_sprites[row];
         enemy->active = 1;
     }
@@ -215,8 +224,6 @@ void bullet_movement(int new_bullet){
         }
     }
 }
-
-
 
 
 void calculate_velo(int x, int y, enemy *enemy, short scaler){
@@ -411,17 +418,19 @@ void enemy_attack(enemy *enemy){
 
 int enemy_movement(){
 
-    int cont;
+    int cont, row4, row3;
     enemy *enemy;
 
-    int rand_enemy = rand() % ENEMY_COUNT;
+    int rand_num = rand() % 2;
+
+
 
 
     for (int i = 0; i < ENEMY_COUNT; i++){
 
         enemy = &game_state.enemies[i];
 
-        if(!enemy->moving && !enemies_moving && i == rand_enemy && enemy->sprite == 4){
+        if(!enemy->moving && (rand_enemy == i || enemy->group)){
 
             enemy-> velo_x = 0;
             enemy->velo_y = -4;
@@ -435,9 +444,6 @@ int enemy_movement(){
         else{
 
             enemy->pos_x += enemy_wiggle;
-
-
-
         }
             
 
@@ -624,6 +630,15 @@ int main(){
     printf("Game Begins! \n");
 
     init_game_state();
+
+    for(int i = 0; i<5; i++){
+
+        printf("%d, %d \n", row_fronts[i], row_backs[i] );
+
+    }
+
+
+
     update_hardware();
     for (;;){
 
@@ -634,10 +649,6 @@ int main(){
         printf("%d, %d, %d \n", total_time, enemy_wiggle_time, enemy_wiggle);
 
 
-
-
-
-        
 
         new_bullet = 0;
 

@@ -212,13 +212,13 @@ void calculate_velo(int ship_x, int ship_y, void *object, int type, short scaler
 
     if (type) {
 
-        enemyy->velo_x = (int)new_x;
-        enemyy->velo_y = (int)new_y;
+        enemyy->velo_x = (short)new_x;
+        enemyy->velo_y = (short)new_y;
     }
     else{
 
-        bul->velo_x = (int)new_x;
-        bul->velo_y = (int)new_y;
+        bul->velo_x = (short)new_x;
+        bul->velo_y = (short)new_y;
     }
 }
 
@@ -384,9 +384,9 @@ void enemy_shoot(enemy *enemy){
 
                         enemy->bul_cooldown = ENEMY4_BULLET_COOLDOWN;
 
-                        game_state.bullets[enemy->bul1].velo_y = 3;
+                        // game_state.bullets[enemy->bul1].velo_y = 3;
 
-                        // calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul1], 0, 1);
+                        calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul1], 0, 3);
 
                     }
                 }

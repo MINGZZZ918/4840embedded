@@ -63,6 +63,9 @@ static int enemies_moving = 0;
 static char row_vals[5] = { 8, 10, 0, 16, 16 };
 static char row_sprites[5] = { 2, 3, 0, 4, 4 };
 
+static short enemy_wiggle = 1;
+static short enemy_wiggle_time = 0;
+
 
 static short turn_x[TURN_TIME] = {1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
@@ -277,7 +280,7 @@ void turn(enemy *enemy){
 }
 
 
-void move_enemy(enemy *enemy){
+void enemy_attack(enemy *enemy){
 
 
     spaceship *ship = &game_state.ship;
@@ -379,7 +382,7 @@ void move_enemy(enemy *enemy){
 
             enemies_moving --;
         }
-        
+
         else 
             calculate_velo(enemy->start_x, enemy->start_y, enemy, 2);
 
@@ -397,6 +400,7 @@ int enemy_movement(){
 
     int rand_enemy = rand() % ENEMY_COUNT;
 
+
     for (int i = 0; i < ENEMY_COUNT; i++){
 
         enemy = &game_state.enemies[i];
@@ -410,7 +414,10 @@ int enemy_movement(){
             enemies_moving ++;
         }
 
-        if(enemy->moving) move_enemy(enemy);
+        if(enemy->moving) enemy_attack(enemy);
+
+        else
+            enemy->pos_x += enemy_wiggle;
 
     }
 
@@ -596,7 +603,12 @@ int main(){
 
     init_game_state();
     update_hardware();
-    for (;;){       
+    for (;;){      
+
+        enemy_wiggle_time += enemy_wiggle;
+        if (abs(enemy_wiggle_time) == 5)
+            enemy_wiggle = -enemy_wiggle;
+
 
         new_bullet = 0;
 

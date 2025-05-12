@@ -407,7 +407,7 @@ void enemy_shoot(enemy *enemy){
                     enemy->bullets[0].active = 1;
 
                     enemy->bullets[0].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
-                    enemy->bullets[0].pos_y = enemy->pos_x+(ENEMY_HEIGHT);
+                    enemy->bullets[0].pos_y = enemy->pos_y+(ENEMY_HEIGHT);
 
                     enemy->bullets[0].velo_y = 3;
                     enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
@@ -417,7 +417,7 @@ void enemy_shoot(enemy *enemy){
                     enemy->bullets[1].active = 1;
 
                     enemy->bullets[1].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
-                    enemy->bullets[1].pos_y = enemy->pos_x+(ENEMY_HEIGHT);
+                    enemy->bullets[1].pos_y = enemy->pos_y+(ENEMY_HEIGHT);
 
                     enemy->bullets[1].velo_y = 3;
                     enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN*2;

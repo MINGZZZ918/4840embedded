@@ -436,59 +436,61 @@ int enemy_movement(int rand_enemy){
         if (rand_side) rand_enemy = row_backs[row_num];
         else rand_enemy = row_fronts[row_num];
 
-        for (int i = 0; i < ENEMY_COUNT; i++){
+    }
+    else rand_enemy = -1;
 
-            enemy = &game_state.enemies[i];
+    for (int i = 0; i < ENEMY_COUNT; i++){
 
-            if(!enemy->moving && rand_enemy == i){
+        enemy = &game_state.enemies[i];
 
-                if (rand_side){
-                    for (int j=i-1; game_state.enemies[j].row == row_num; j--){
+        if(!enemy->moving && rand_enemy == i){
 
-                        if(game_state.enemies[j].active && !game_state.enemies[j].moving){
+            if (rand_side){
+                for (int j=i-1; game_state.enemies[j].row == row_num; j--){
 
-                            row_backs[row_num] = j;
-                            break;
-                        }
-                    }
+                    if(game_state.enemies[j].active && !game_state.enemies[j].moving){
 
-                }
-                else{
-
-                    for (int j=i+1; game_state.enemies[j].row == row_num; j++){
-
-                        if(game_state.enemies[j].active && !game_state.enemies[j].moving){
-
-                            row_fronts[row_num] = j;
-                            break;
-                        }
+                        row_backs[row_num] = j;
+                        break;
                     }
                 }
 
-                enemy-> velo_x = 0;
-                enemy->velo_y = -4;
-
-                enemy->moving = 1;
-                enemies_moving ++;
             }
-
-            if(enemy->moving) {
-                
-                enemy_attack(enemy);
-
-
-                if (!enemy->moving){
-
-                    if(i > row_backs[enemy->row]) row_backs[enemy->row] = i;
-
-
-                    if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
-                }
-            }
-
             else{
-                enemy->pos_x += enemy_wiggle;
+
+                for (int j=i+1; game_state.enemies[j].row == row_num; j++){
+
+                    if(game_state.enemies[j].active && !game_state.enemies[j].moving){
+
+                        row_fronts[row_num] = j;
+                        break;
+                    }
+                }
             }
+
+            enemy-> velo_x = 0;
+            enemy->velo_y = -4;
+
+            enemy->moving = 1;
+            enemies_moving ++;
+        }
+
+        if(enemy->moving) {
+            
+            enemy_attack(enemy);
+
+
+            if (!enemy->moving){
+
+                if(i > row_backs[enemy->row]) row_backs[enemy->row] = i;
+
+
+                if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
+            }
+        }
+
+        else{
+            enemy->pos_x += enemy_wiggle;
         }
     }
 
@@ -659,7 +661,7 @@ int enemies_to_move(){
     }
     else{
 
-        if(round_time % 50) return rand_enemy;
+        if(round_time % 50 == 0) return rand_enemy;
 
         else return 0;
     }

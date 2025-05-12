@@ -60,6 +60,7 @@
 /* File descriptor for the VGA ball device */
 static int vga_ball_fd;
 static int enemies_moving = 0;
+static int round = 1;
 static char row_vals[5] = { 2, 6, 8, 12, 12 };
 static char row_sprites[5] = { 2, 3, 3, 4, 4 };
 
@@ -73,7 +74,7 @@ static int enemy_wiggle = 1;
 static int enemy_wiggle_time = 0;
 
 
-static int total_time = 0;
+static long round_time = 0;
 
 
 static short turn_x[TURN_TIME] = {1,1,1,1,1,1,1,1,
@@ -161,6 +162,7 @@ void init_game_state() {
         enemy->pos_y = enemy->start_y = 60 + 30 *(row+1);
         enemy->sprite = row_sprites[row];
         enemy->active = 1;
+        enemy->row = row;
     }
 }
 
@@ -390,7 +392,6 @@ void enemy_attack(enemy *enemy){
 
         if (abs(enemy->pos_x - enemy->start_x + enemy_wiggle_time) < 15 && abs(enemy->pos_y -enemy->start_y) < 15){
 
-
             enemy->pos_x = enemy->start_x+enemy_wiggle_time;
             enemy->pos_y = enemy->start_y;
 
@@ -418,37 +419,78 @@ void enemy_attack(enemy *enemy){
 }
 
 
-int enemy_movement(){
+int enemy_movement(int rand_enemy){
 
-    int cont, row4, row3;
+    int cont, rand_side, row_num;
     enemy *enemy;
 
-    int rand_enemy = rand() % ENEMY_COUNT;
+    if (rand_enemy != 0){
+
+        if(rand_enemy == 4) row_num = 3 + rand() % 2;
+
+        else if(rand_enemy == 3) row_num = 1 + rand() % 2;
+
+        else if(rand_enemy == 2) row_num = 0;
+
+        rand_side = rand()%2;
+
+        if (rand_side) rand_enemy = row_backs[row_num];
+        else rand_enemy = row_fronts[row_num];
+
+        for (int i = 0; i < ENEMY_COUNT; i++){
+
+            enemy = &game_state.enemies[i];
+
+            if(!enemy->moving && rand_enemy == i){
+
+                if (rand_side){
+                    for (int j=i-1; game_state.enemies[j].row == row_num; j--){
+
+                        if(game_state.enemies[j].active && !game_state.enemies[j].moving){
+
+                            row_backs[row_num] = j;
+                            break;
+                        }
+                    }
+
+                }
+                else{
+
+                    for (int j=i+1; game_state.enemies[j].row == row_num; j++){
+
+                        if(game_state.enemies[j].active && !game_state.enemies[j].moving){
+
+                            row_fronts[row_num] = j;
+                            break;
+                        }
+                    }
+                }
+
+                enemy-> velo_x = 0;
+                enemy->velo_y = -4;
+
+                enemy->moving = 1;
+                enemies_moving ++;
+            }
+
+            if(enemy->moving) {
+                
+                enemy_attack(enemy);
 
 
+                if (!enemy->moving){
+
+                    if(i > row_backs[enemy->row]) row_backs[enemy->row] = i;
 
 
-    for (int i = 0; i < ENEMY_COUNT; i++){
+                    if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
+                }
+            }
 
-        enemy = &game_state.enemies[i];
-
-        if(!enemy->moving && rand_enemy == i){
-
-            enemy-> velo_x = 0;
-            enemy->velo_y = -4;
-
-            enemy->moving = 1;
-            enemies_moving ++;
+            else{
+                enemy->pos_x += enemy_wiggle;
+            }
         }
-
-        if(enemy->moving) enemy_attack(enemy);
-
-        else{
-
-            enemy->pos_x += enemy_wiggle;
-        }
-            
-
     }
 
     return 1;
@@ -592,6 +634,34 @@ int enemy_movement(){
 //     return num_left;
 // }
 
+
+
+int enemies_to_move(){
+
+
+    int rand_enemy = rand()%7;
+
+
+    if(rand_enemy >=0 && rand_enemy < 4) rand_enemy = 4;
+
+    else if (rand_enemy >= 4 && rand_enemy < 6) rand_enemy = 3;
+
+    else rand_enemy = 2;
+
+
+    if (round_time > 1000){
+
+        if(round_time >= 1500) round_time = 0;
+    }
+    else{
+
+        if(round_time % 50) return rand_enemy;
+
+        else return 0;
+    }
+
+}
+
 struct libusb_device_handle *controller;
 
 uint8_t endpoint_address;
@@ -601,7 +671,7 @@ int main(){
 
     spaceship *ship = &game_state.ship;
     controller_packet packet;
-    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining;
+    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy;
     int bumpers = 0, buttons = 0;
 
     srand((unsigned)time(NULL));
@@ -632,25 +702,16 @@ int main(){
     printf("Game Begins! \n");
 
     init_game_state();
-
-    for(int i = 0; i<5; i++){
-
-        printf("%d, %d \n", row_fronts[i], row_backs[i] );
-
-    }
-
-
-
     update_hardware();
     for (;;){
+
+        round_time++;
 
         enemy_wiggle_time += enemy_wiggle;
         if (abs(enemy_wiggle_time) == 80) enemy_wiggle = -enemy_wiggle;
 
 
         printf("%d, %d, %d \n", total_time, enemy_wiggle_time, enemy_wiggle);
-
-
 
         new_bullet = 0;
 
@@ -756,7 +817,8 @@ int main(){
 
             ship_movement();
             bullet_movement(new_bullet);
-            // enemies_remaining = enemy_movement();
+            rand_enemy = enemies_to_move();
+            enemies_remaining = enemy_movement(rand_enemy);
 
             if(ship->lives <= 0){
                 printf("You lost =( \n");

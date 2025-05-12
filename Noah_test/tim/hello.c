@@ -390,15 +390,17 @@ void enemy_shoot(enemy *enemy){
 
                     }
                 }
-                // else if (enemy->bul2 == -1){
+                else if (enemy->bul2 == -1){
 
-                //     aquired = aquire_bullet(enemy, 2);
+                    aquired = aquire_bullet(enemy, 2);
 
-                //     if(aquired){
-                //         enemy->bul_cooldown = ENEMY4_BULLET_COOLDOWN;
-                //         calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul2], 0, 1);
-                //     }   
-                // }
+                    if(aquired){
+                        enemy->bul_cooldown = ENEMY4_BULLET_COOLDOWN;
+                        game_state.bullets[enemy->bul2].velo_y = 3;
+
+                        // calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul2], 0, 1);
+                    }   
+                }
             }
         }
     }

@@ -608,10 +608,19 @@ int main(){
     update_hardware();
     for (;;){      
 
-        if (++total_time%6 == 0) enemy_wiggle_time += enemy_wiggle;
 
-        if (abs(enemy_wiggle_time) == 10)
-            enemy_wiggle = -enemy_wiggle;
+
+        if (++total_time%4 == 0) {
+
+            enemy_wiggle_time += enemy_wiggle;
+
+            printf("%d \n", enemy_wiggle_time);
+
+        }
+        
+        
+
+        if (abs(enemy_wiggle_time) == 10) enemy_wiggle = -enemy_wiggle;
 
 
 

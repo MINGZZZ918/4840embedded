@@ -648,9 +648,14 @@ int enemies_to_move(){
     else rand_enemy = 2;
 
 
-    if (round_time > 1000){
+
+    if (round_time < 100) return 0;
+
+    else if (round_time > 1000){
 
         if(round_time >= 1500) round_time = 0;
+
+        return 0;
     }
     else{
 

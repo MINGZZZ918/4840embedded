@@ -49,10 +49,10 @@ module vga_ball#(
     logic [3:0] rel_x, rel_y;
 
     //星星
-    logic [15:0] lfsr;
     logic [10:0] star_x [STAR_COUNT];
     logic [9:0]  star_y [STAR_COUNT];
     logic [15:0] lfsr_reg, lfsr_next;
+    wire        star_on = lfsr_reg[0];    // 用最低位来控制星星闪烁
     integer i;
     logic is_star;
 
@@ -195,37 +195,30 @@ module vga_ball#(
     // Stage4: 生成最终 VGA 输出    
     always_ff @(posedge clk or posedge reset) begin
         if (reset) begin
-            {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h80, 8'h00}; 
-            is_star = 1'b0;
-        end 
-        else if (VGA_BLANK_n) begin
-            if (sprite_data_reg != 24'h000000) begin
-                // 如果最高层像素不透明，就用它
-                VGA_R <= sprite_data_reg[23:16];
-                VGA_G <= sprite_data_reg[15:8];
-                VGA_B <= sprite_data_reg[7:0];
-                is_star <= 1'b0;
-            end 
-            else begin
-                // 先判断星星再判断背景色
-                is_star <= 1'b0;
-                for (int j = 0; j < STAR_COUNT; j++) begin
-                    if (hcount == star_x[j] && vcount == star_y[j] && star_on) begin
-                        is_star = 1'b1;
-                        break;
-                    end
-                end
-                if (is_star) begin
-                    {VGA_R, VGA_G, VGA_B} <= 24'hFFFFFF;
-                end 
-                else begin
-                    {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
-                end
-            end
+            {VGA_R, VGA_G, VGA_B} <= {8'h00, 8'h80, 8'h00}; 
+            is_star <= 1'b0;
         end 
         else begin
-            {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h80, 8'h00}; 
+            {VGA_R, VGA_G, VGA_B} <= {background_r, background_g, background_b};
             is_star <= 1'b0;
+            if (VGA_BLANK_n) begin
+                if (sprite_data_reg != 24'h000000) begin
+                    // 如果最高层像素不透明，就用它
+                    {VGA_R, VGA_G, VGA_B} <= sprite_data_reg[23:0];
+                    is_star <= 1'b0;
+                end else begin
+                    // 先判断星星再判断背景色
+                    for (int j = 0; j < STAR_COUNT; j++) begin
+                        if (hcount[10:1] == star_x[j] && vcount == star_y[j] && star_on) begin
+                            is_star <= 1'b1;
+                            break;
+                        end
+                    end
+                    if (is_star) begin
+                        {VGA_R, VGA_G, VGA_B} <= 24'hFFFFFF;
+                    end
+                end
+            end 
         end
     end
 endmodule

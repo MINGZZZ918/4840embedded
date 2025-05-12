@@ -1098,7 +1098,7 @@ int main(){
                 break;
             }
 
-            if(!enemies_remaining ){
+            if(enemies_remaining <= 0){
 
                 if(round_num == 3){
 
@@ -1113,10 +1113,13 @@ int main(){
                         row_vals[i] += round_num*2;
 
                     round_num ++;
+                    enemies_remaining = 1;
 
                     init_round_state();
 
                     round_wait = ROUND_WAIT;
+
+
 
                 }
             }

@@ -418,9 +418,38 @@ void enemy_attack(enemy *enemy){
 }
 
 
+
+void change_row_ends(int i, int row_num, int front){
+
+
+    if(!front){
+
+        for (int j=i-1; game_state.enemies[j].row == row_num; j--){
+
+            if(game_state.enemies[j].active && !game_state.enemies[j].moving){
+
+                row_backs[row_num] = j;
+                break;
+            }
+        }
+    }
+    else{
+
+        for (int j=i+1; game_state.enemies[j].row == row_num; j++){
+
+            if(game_state.enemies[j].active && !game_state.enemies[j].moving){
+
+                row_fronts[row_num] = j;
+                break;
+            }
+        }
+    }
+}
+
+
 int enemy_movement(int rand_enemy){
 
-    int cont, rand_side, row_num;
+    int cont, rand_side, row_num, num_left;
     enemy *enemy;
 
     if (rand_enemy != 0){
@@ -443,30 +472,14 @@ int enemy_movement(int rand_enemy){
 
         enemy = &game_state.enemies[i];
 
+
+        if (!enemy->active) continue;
+
         if(!enemy->moving && rand_enemy == i){
 
-            if (rand_side){
-                for (int j=i-1; game_state.enemies[j].row == row_num; j--){
-
-                    if(game_state.enemies[j].active && !game_state.enemies[j].moving){
-
-                        row_backs[row_num] = j;
-                        break;
-                    }
-                }
-
-            }
-            else{
-
-                for (int j=i+1; game_state.enemies[j].row == row_num; j++){
-
-                    if(game_state.enemies[j].active && !game_state.enemies[j].moving){
-
-                        row_fronts[row_num] = j;
-                        break;
-                    }
-                }
-            }
+            if (rand_side) change_row_ends(i, row_num, 0);
+                
+            else change_row_ends(i, row_num, 1);
 
             enemy-> velo_x = 0;
             enemy->velo_y = -4;
@@ -483,8 +496,6 @@ int enemy_movement(int rand_enemy){
             if (!enemy->moving){
 
                 if(i > row_backs[enemy->row]) row_backs[enemy->row] = i;
-
-
                 if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
             }
         }
@@ -492,6 +503,19 @@ int enemy_movement(int rand_enemy){
         else{
             enemy->pos_x += enemy_wiggle;
         }
+
+        if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
+            && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
+
+                enemy->active = 0;
+
+                if(i == row_backs[enemy->row]) change_row_ends(i, row_num, 0);
+
+                else if (i == row_fronts[enemy->row]) change_row_ends(i, row_num, 1);
+
+                game_state.ship.lives -= 1;
+                num_left --;
+            }
     }
 
     return 1;
@@ -653,15 +677,15 @@ int enemies_to_move(){
 
     if (round_time < 100) return 0;
 
-    else if (round_time > 1000){
+    else if (round_time > 500){
 
-        if(round_time >= 1500) round_time = 0;
+        if(round_time >= 750) round_time = 0;
 
         return 0;
     }
     else{
 
-        if(round_time % 50 == 0) return rand_enemy;
+        if(round_time % 100 == 0) return rand_enemy;
 
         else return 0;
     }

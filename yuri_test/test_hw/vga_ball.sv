@@ -130,7 +130,7 @@ module vga_ball#(
         pix             = {background_r,background_g,background_b};
         pix_candidate   = {background_r,background_g,background_b};
         sprite_address = 14'd0;
-        
+
         // 从高优先级到低优先级检查对象（最后绘制的对象优先级最高）
         for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
             if (!found &&
@@ -147,7 +147,6 @@ module vga_ball#(
                                 + rel_y * SPRITE_WIDTH 
                                 + rel_x;
                 pix_candidate = sprite_data;
-
                 if (pix_candidate != 24'h000000) begin
                     pix   = pix_candidate;
                     found = 1'b1;       // 找到第一层非透明，后面就不用再看了

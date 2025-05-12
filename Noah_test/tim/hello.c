@@ -17,6 +17,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include "noah/vga_ball.h"
 #include "vga_ball.h"
 #include "controller.h"
 
@@ -421,7 +422,7 @@ int enemy_movement(){
     int cont, row4, row3;
     enemy *enemy;
 
-    int rand_num = rand() % 2;
+    int rand_enemy = rand() % ENEMY_COUNT;
 
 
 

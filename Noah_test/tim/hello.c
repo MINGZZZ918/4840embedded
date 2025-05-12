@@ -331,6 +331,8 @@ void move_enemy_bul(enemy *enemy, int bul_num){
 
 void enemy_shoot(enemy *enemy){
 
+    spaceship *ship = &game_state.ship;
+
     bool aquired;
 
     if (enemy->bul_cooldown <= 0 && enemy->turn_counter >= TURN_TIME && !enemy->returning){

@@ -63,8 +63,11 @@ static int enemies_moving = 0;
 static char row_vals[5] = { 8, 10, 0, 16, 16 };
 static char row_sprites[5] = { 2, 3, 0, 4, 4 };
 
-static short enemy_wiggle = 1;
-static short enemy_wiggle_time = 0;
+static int enemy_wiggle = 1;
+static int enemy_wiggle_time = 0;
+
+
+static int total_time = 0;
 
 
 static short turn_x[TURN_TIME] = {1,1,1,1,1,1,1,1,
@@ -231,12 +234,12 @@ void calculate_velo(int x, int y, enemy *enemy, short scaler){
     new_x *= scaler;
     new_y *= scaler;
 
-    printf("%f, %f \n", new_x, new_y);
+    // printf("%f, %f \n", new_x, new_y);
 
     enemy->velo_x = (int)new_x;
     enemy->velo_y = (int)new_y;
 
-    printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
+    // printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
 
 }
 
@@ -294,7 +297,7 @@ void enemy_attack(enemy *enemy){
 
         if (enemy->sprite == 2){
 
-            if(++enemy->move_time < 250)
+            if(++enemy->move_time < 200)
                 calculate_velo(ship->pos_x, ship->pos_y, enemy,3);
             else{
 
@@ -303,55 +306,61 @@ void enemy_attack(enemy *enemy){
             }
         }
 
-        // else if (enemy->sprite == 3){
+        else if (enemy->sprite == 3){
 
 
-        //     if (enemy->start_x < SCREEN_WIDTH/2 && enemy->move_time == 0){
+            if (enemy->start_x < SCREEN_WIDTH/2 && enemy->move_time == 0){
 
-        //         if (enemy->pos_x - ship->pos_x > 10){
+                if (enemy->pos_x - ship->pos_x > 10){
                     
-        //             calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
-        //             enemy->move_time++;
-        //         }
-        //     }
+                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 3);
+                    enemy->move_time++;
+                }
+            }
 
-        //     else if (enemy->move_time == 0){
-        //         if (ship->pos_x - enemy->pos_x > 10){
-        //             calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
-        //             enemy->move_time++;
-        //         }
-        //     }
+            else if (enemy->move_time == 0){
 
-        //     else{
+                if (ship->pos_x - enemy->pos_x > 10){
 
-        //         calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
+                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 3);
+                    enemy->move_time++;
+                }
+            }
 
-        //         if(++ enemy->move_time > 50){
+            else{
 
-        //             enemy->velo_x = 0;
-        //             enemy->velo_y = 2;
-        //         }
-        //     }
+                if(enemy->move_time < 75)
+                    calculate_velo(ship->pos_x -200, ship->pos_y, enemy, 2);
 
-        // }
-        // else{
+                else
+                    calculate_velo(ship->pos_x +200, ship->pos_y, enemy, 2);
 
-        //     if(++enemy->move_time == 150){
+                if(++ enemy->move_time > 150){
 
-        //         cont = rand() % 3;
+                    enemy->velo_x = (enemy->pos_x > ship->pos_x) ? 1 : -1;
+                    enemy->velo_y = 2;
+                }
+            }
 
-        //         if(!cont)
-        //             enemy->velo_x = -enemy->velo_x;
-        //         else
-        //             enemy->move_time --;
-        //     }
+        }
+        else{
 
-        //     else if(enemy->move_time == 250){
+            if(++enemy->move_time == 150){
 
-        //         enemy->velo_x = 0;
-        //         enemy->velo_y = 2;
-        //     }
-        // }
+                cont = rand() % 3;
+
+                if(!cont)
+                    enemy->velo_x = -enemy->velo_x;
+                else
+                    enemy->move_time --;
+            }
+
+            else if(enemy->move_time == 250){
+
+                enemy->velo_x = 0;
+                enemy->velo_y = 2;
+            }
+        }
 
     }
 
@@ -363,14 +372,18 @@ void enemy_attack(enemy *enemy){
         enemy->pos_y = 0;
 
 
-        calculate_velo(enemy->start_x, enemy->start_y, enemy, 2);
+        calculate_velo(enemy->start_x + enemy_wiggle_time, enemy->start_y, enemy, 2);
     }
 
     
     if (enemy->returning){
 
 
-        if (enemy->pos_x == enemy->start_x && enemy->pos_y == enemy->start_y){
+        if (abs(enemy->pos_x - enemy->start_x + enemy_wiggle_time) < 15 && abs(enemy->pos_y -enemy->start_y) < 15){
+
+
+            enemy->pos_x = enemy->start_x+enemy_wiggle_time;
+            enemy->pos_y = enemy->start_y;
 
             enemy->velo_x = 0;
             enemy->velo_y = 0;
@@ -381,10 +394,13 @@ void enemy_attack(enemy *enemy){
             enemy->turn_counter = 0;
 
             enemies_moving --;
+
+
+            printf("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH %d, %d, %d, %d \n", enemy->start_x, enemy->start_y, enemy->pos_x, enemy->pos_y);
         }
 
         else 
-            calculate_velo(enemy->start_x, enemy->start_y, enemy, 2);
+            calculate_velo(enemy->start_x + enemy_wiggle_time, enemy->start_y, enemy, 2);
 
     }
 
@@ -405,7 +421,7 @@ int enemy_movement(){
 
         enemy = &game_state.enemies[i];
 
-        if(!enemy->moving && !enemies_moving && i == rand_enemy && enemy->sprite == 2){
+        if(!enemy->moving && !enemies_moving && i == rand_enemy && enemy->sprite == 4){
 
             enemy-> velo_x = 0;
             enemy->velo_y = -4;
@@ -416,8 +432,14 @@ int enemy_movement(){
 
         if(enemy->moving) enemy_attack(enemy);
 
-        else
+        else{
+
             enemy->pos_x += enemy_wiggle;
+
+
+
+        }
+            
 
     }
 
@@ -603,12 +625,19 @@ int main(){
 
     init_game_state();
     update_hardware();
-    for (;;){      
+    for (;;){
 
         enemy_wiggle_time += enemy_wiggle;
-        if (abs(enemy_wiggle_time) == 5)
-            enemy_wiggle = -enemy_wiggle;
+        if (abs(enemy_wiggle_time) == 80) enemy_wiggle = -enemy_wiggle;
 
+
+        printf("%d, %d, %d \n", total_time, enemy_wiggle_time, enemy_wiggle);
+
+
+
+
+
+        
 
         new_bullet = 0;
 

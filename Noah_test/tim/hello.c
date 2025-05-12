@@ -812,7 +812,7 @@ int main(){
 
     printf("Game Begins! \n");
 
-    init_game_state();
+    init_round_state();
     update_hardware();
     for (;;){
 

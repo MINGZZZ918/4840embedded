@@ -397,41 +397,41 @@ void enemy_shoot(enemy *enemy){
 
     if (!enemy->bul_cooldown){
 
-        if (enemy->sprite == 3){
+        // if (enemy->sprite == 3){
 
-            if (abs(ship->pos_x - enemy->pos_x) <= 10
-                && abs(ship->pos_y - enemy->pos_y) <= 100
-                && ship->pos_y > enemy->pos_y){
+        //     if (abs(ship->pos_x - enemy->pos_x) <= 10
+        //         && abs(ship->pos_y - enemy->pos_y) <= 100
+        //         && ship->pos_y > enemy->pos_y){
 
-                    if(!enemy->bullets[0].active){
+        //             if(!enemy->bullets[0].active){
 
-                        enemy->bullets[0].active = 1;
+        //                 enemy->bullets[0].active = 1;
 
-                        enemy->bullets[0].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
-                        enemy->bullets[0].pos_y = enemy->pos_x+(ENEMY_HEIGHT);
+        //                 enemy->bullets[0].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+        //                 enemy->bullets[0].pos_y = enemy->pos_x+(ENEMY_HEIGHT);
 
-                        enemy->bullets[0].velo_y = 3;
-                        enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
-                    }
-                    else if (!enemy->bullets[1].active){
+        //                 enemy->bullets[0].velo_y = 3;
+        //                 enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
+        //             }
+        //             else if (!enemy->bullets[1].active){
 
-                        enemy->bullets[1].active = 1;
+        //                 enemy->bullets[1].active = 1;
 
 
-                        enemy->bullets[1].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
-                        enemy->bullets[1].pos_y = enemy->pos_x+(ENEMY_HEIGHT);
+        //                 enemy->bullets[1].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+        //                 enemy->bullets[1].pos_y = enemy->pos_x+(ENEMY_HEIGHT);
 
-                        enemy->bullets[1].velo_y = 3;
-                        enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN*2;
-                    }
-            }
-        }
+        //                 enemy->bullets[1].velo_y = 3;
+        //                 enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN*2;
+        //             }
+        //     }
+        // }
 
-        else if(enemy->sprite == 4){
+        if(enemy->sprite == 4){
 
             if (abs(ship->pos_x - enemy->pos_x) <= 100
-                && abs(ship->pos_y - enemy->pos_y
-                && ship->pos_y > enemy->pos_y) <= 200){
+                && abs(ship->pos_y - enemy->pos_y <= 200
+                && ship->pos_y > enemy->pos_y)){
 
                     if(!enemy->bullets[0].active){
 

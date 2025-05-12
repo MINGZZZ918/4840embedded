@@ -320,7 +320,7 @@ void move_enemy(enemy *enemy){
             else{
 
                 if(++ enemy->move_time > 50)
-                    calculate_velo(-ship->pos_x, ship->pos_y, enemy, 1);
+                    calculate_velo(-ship->pos_x, ship->pos_y, enemy, 2);
             }
 
         }
@@ -371,8 +371,6 @@ int enemy_movement(){
     enemy *enemy;
 
     int rand_enemy = rand() % ENEMY_COUNT;
-
-
 
     for (int i = 0; i < ENEMY_COUNT; i++){
 

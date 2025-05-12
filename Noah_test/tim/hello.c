@@ -406,7 +406,6 @@ void enemy_attack(enemy *enemy){
             enemies_moving --;
 
 
-            printf("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH %d, %d, %d, %d \n", enemy->start_x, enemy->start_y, enemy->pos_x, enemy->pos_y);
         }
 
         else 
@@ -816,7 +815,13 @@ int main(){
             ship_movement();
             bullet_movement(new_bullet);
             rand_enemy = enemies_to_move();
-            enemies_remaining = enemy_movement(rand_enemy);
+
+
+            printf("%d \n", rand_enemy);
+
+
+
+            // enemies_remaining = enemy_movement(rand_enemy);
 
             if(ship->lives <= 0){
                 printf("You lost =( \n");

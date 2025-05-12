@@ -44,7 +44,7 @@
 
 #define TURN_TIME 70
 
-#define ENEMY_BULLET_COOLDOWN 10
+#define ENEMY_BULLET_COOLDOWN 30
 
 
 #define LEFT_ARROW 0x00
@@ -471,7 +471,7 @@ void enemy_shoot(enemy *enemy){
         }
     }
 
-    else if(enemy->turn_counter < TURN_TIME)
+    else if(enemy->turn_counter <= TURN_TIME)
         enemy->bul_cooldown --;
 
 

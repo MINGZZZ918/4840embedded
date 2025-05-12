@@ -484,6 +484,11 @@ void enemy_shoot(enemy *enemy){
 
             bul->active = 0;
             ship->lives --;
+
+            printf("HITTTTTTTT \n");
+
+
+
         }
         if (bul->pos_y >= SCREEN_HEIGHT || bul->pos_x >= SCREEN_WIDTH || bul->pos_x < 0) 
             bul->active = 0;

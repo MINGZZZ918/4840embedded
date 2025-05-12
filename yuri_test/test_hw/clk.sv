@@ -121,8 +121,8 @@ module vga_ball#(
     always_comb begin
         found = 1'b0;
         sprite_address  = 14'd0;
-        rel_y = 10'd0;
-        rel_x = 10'd0;
+        rel_y = 10'b0;
+        rel_x = 10'b0;
         for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
             if (!found &&
                 obj_active[i] && 
@@ -173,7 +173,7 @@ module vga_ball#(
             end
         end 
         else begin
-            {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b}; // 默认黑色
+            {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h80, 8'h00}; // 默认黑色
         end
     end
     

@@ -524,7 +524,6 @@ void enemy_attack(enemy *enemy){
 
             enemies_moving --;
 
-
         }
 
         else 
@@ -561,93 +560,6 @@ void change_row_ends(int i, int row_num, int front){
             }
         }
     }
-}
-
-
-int enemy_movement(int rand_enemy){
-
-    int cont, row_num, num_left = 0;
-    enemy *enemy;
-
-    if (rand_enemy != 0){
-
-        if(rand_enemy == 4) row_num = 3 + rand() % 2;
-
-        else if(rand_enemy == 3) row_num = 1 + rand() % 2;
-
-        else if(rand_enemy == 2) row_num = 0;
-
-        if (enemy_wiggle > 0) rand_enemy = row_backs[row_num];
-        else rand_enemy = row_fronts[row_num];
-
-    }
-    else rand_enemy = -1;
-
-    for (int i = 0; i < ENEMY_COUNT; i++){
-
-        enemy = &game_state.enemies[i];
-
-        if (enemy->active){
-
-            num_left++;
-
-            if(enemy->active && !enemy->moving && rand_enemy == i){
-
-                if (enemy_wiggle > 0) change_row_ends(i, row_num, 0);
-            
-                else change_row_ends(i, row_num, 1);
-
-                enemy-> velo_x = 0;
-                enemy->velo_y = -4;
-
-                enemy->moving = 1;
-                enemies_moving ++;
-            }
-
-            if(enemy->moving) {
-
-                enemy_attack(enemy);
-
-                if (!enemy->moving){
-
-                    if(i > row_backs[enemy->row]) row_backs[enemy->row] = i;
-                    if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
-                }
-
-                else
-                    enemy_shoot(enemy);
-            }
-
-            else
-                enemy->pos_x += enemy_wiggle;
-
-        }
-        else {
-
-            if(game_state.bullets[enemy->bul1].active || 
-                game_state.bullets[enemy->bul1].active)
-
-                enemy_shoot(enemy);                
-
-            else continue;
-        }
-
-
-        if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
-            && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
-
-                enemy->active = 0;
-
-                if(i == row_backs[enemy->row]) change_row_ends(i, enemy->row, 0);
-
-                else if (i == row_fronts[enemy->row]) change_row_ends(i, enemy->row, 1);
-
-                game_state.ship.lives -= 1;
-                num_left --;
-            }
-    }
-
-    return num_left;
 }
 
 int enemies_to_move(){
@@ -701,6 +613,95 @@ int enemies_to_move(){
         else return 0;
     }
 
+}
+
+
+
+int enemy_movement(int rand_enemy){
+
+    int cont, row_num, num_left = 0;
+    enemy *enemy;
+
+    if (rand_enemy != 0){
+
+        if(rand_enemy == 4) row_num = 3 + rand() % 2;
+
+        else if(rand_enemy == 3) row_num = 1 + rand() % 2;
+
+        else if(rand_enemy == 2) row_num = 0;
+
+        if (enemy_wiggle > 0) rand_enemy = row_backs[row_num];
+        else rand_enemy = row_fronts[row_num];
+
+    }
+
+    else rand_enemy = -1;
+
+    for (int i = 0; i < ENEMY_COUNT; i++){
+
+        enemy = &game_state.enemies[i];
+
+        if (enemy->active){
+
+            num_left++;
+
+            if(enemy->active && !enemy->moving && rand_enemy == i){
+
+                if (enemy_wiggle > 0) change_row_ends(i, row_num, 0);
+            
+                else change_row_ends(i, row_num, 1);
+
+                enemy-> velo_x = 0;
+                enemy->velo_y = -4;
+
+                enemy->moving = 1;
+                enemies_moving ++;
+            }
+
+            if(enemy->moving) {
+
+                enemy_attack(enemy);
+
+                if (!enemy->moving){
+
+                    if(i > row_backs[enemy->row]) row_backs[enemy->row] = i;
+                    if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
+                }
+
+                // else
+                //     enemy_shoot(enemy);
+            }
+
+            else
+                enemy->pos_x += enemy_wiggle;
+
+        }
+        // else {
+
+        //     if(game_state.bullets[enemy->bul1].active || 
+        //         game_state.bullets[enemy->bul1].active)
+
+        //         enemy_shoot(enemy);                
+
+        //     else continue;
+        // }
+
+
+        if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
+            && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
+
+                enemy->active = 0;
+
+                if(i == row_backs[enemy->row]) change_row_ends(i, enemy->row, 0);
+
+                else if (i == row_fronts[enemy->row]) change_row_ends(i, enemy->row, 1);
+
+                game_state.ship.lives -= 1;
+                num_left --;
+            }
+    }
+
+    return num_left;
 }
 
 void bullet_movement(int new_bullet){

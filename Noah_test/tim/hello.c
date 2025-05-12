@@ -384,6 +384,9 @@ void enemy_attack(enemy *enemy){
             enemy->turn_counter = 0;
 
             enemies_moving --;
+
+
+            printf("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH %d, %d, %d, %d \n", enemy->start_x, enemy->start_y, enemy->pos_x, enemy->pos_y);
         }
 
         else 
@@ -421,7 +424,7 @@ int enemy_movement(){
 
         else{
 
-            if (++total_time%3 == 0) enemy->pos_x += enemy_wiggle;
+            enemy->pos_x += enemy_wiggle;
 
 
 
@@ -614,8 +617,8 @@ int main(){
     update_hardware();
     for (;;){
 
-        if (++total_time%3 == 0) enemy_wiggle_time += enemy_wiggle;
-        if (abs(enemy_wiggle_time) == 20) enemy_wiggle = -enemy_wiggle;
+        enemy_wiggle_time += enemy_wiggle;
+        if (abs(enemy_wiggle_time) == 80) enemy_wiggle = -enemy_wiggle;
 
 
         printf("%d, %d, %d \n", total_time, enemy_wiggle_time, enemy_wiggle);

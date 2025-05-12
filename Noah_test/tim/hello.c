@@ -74,7 +74,7 @@ static int row_backs[5];
 static int enemy_wiggle = 1;
 static int enemy_wiggle_time = 0;
 
-// static int round_num = 1;
+static int round_num = 1;
 static long round_time = 0;
 
 
@@ -123,7 +123,7 @@ static gamestate game_state = {
 /**
  * Initialize game state
  */
-void init_game_state() {
+void init_round_state() {
 
     int space, row = 0, enemy_count;
 
@@ -963,7 +963,7 @@ int main(){
 
     printf("Game Begins! \n");
 
-    init_game_state();
+    init_round_state();
     update_hardware();
     for (;;){
 
@@ -1084,11 +1084,25 @@ int main(){
                 break;
             }
 
-            if(!enemies_remaining){
-                printf("You Won!");
-                break;
-            }
+            if(!enemies_remaining ){
 
+                if(round_num == 3){
+
+                    printf("You Won!");
+                    break;
+                }
+                else{
+
+                    row_vals[0] ++;
+
+                    for (int i = 1; i<5; i++)
+                        row_vals[i] += round_num*2;
+
+                    round_num ++;
+                    init_round_state();
+
+                }
+            }
 
             update_hardware();
 

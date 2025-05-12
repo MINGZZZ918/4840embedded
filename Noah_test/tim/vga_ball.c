@@ -105,7 +105,8 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
         bul2 = &enemy->bullets[1];
 
         write_object(i+MAX_BULLETS+ENEMY_COUNT+2,  bul1->pos_x,  bul1->pos_y, 1, bul1->active);
-        write_object(i+MAX_BULLETS+ENEMY_COUNT+2,  bul2->pos_x,  bul2->pos_y, 1, bul2->active);
+
+        write_object(i+(MAX_BULLETS*2)+ENEMY_COUNT+2,  bul2->pos_x,  bul2->pos_y, 1, bul2->active);
 
         dev.enemies[i].bullets[0] = *bul1;
         dev.enemies[i].bullets[1] = *bul2;

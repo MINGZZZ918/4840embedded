@@ -474,6 +474,8 @@ void enemy_shoot(enemy *enemy){
 
         bul = &enemy->bullets[i];
 
+        if(!bul->active) continue;
+
         bul->pos_x += bul->velo_x;
         bul->pos_y += bul->velo_y;
 
@@ -485,8 +487,6 @@ void enemy_shoot(enemy *enemy){
             ship->lives --;
 
             printf("HITTTTTTTT \n");
-
-
 
         }
         if (bul->pos_y >= SCREEN_HEIGHT || bul->pos_x >= SCREEN_WIDTH || bul->pos_x < 0) 

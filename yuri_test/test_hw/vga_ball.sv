@@ -3,7 +3,7 @@
  */
 
 module vga_ball#(
-    parameter MAX_OBJECTS = 100,    // sprites种类：飞船（1）+ 敌人（3）+ 自己子弹（3）+敌人子弹（3）+ 爆炸（3）
+    parameter MAX_OBJECTS = 100,    // sprites数量（adress传递的值最后给obj_sprite，这个才是精灵种类，最多64种）
     parameter SPRITE_WIDTH = 16,   // 所有精灵标准宽度
     parameter SPRITE_HEIGHT = 16  // 所有精灵标准高度
 ) (
@@ -29,8 +29,9 @@ module vga_ball#(
     // 游戏对象数组，每个对象包含位置和精灵信息（不懂）
     logic [11:0]    obj_x[MAX_OBJECTS]; // 12位x坐标
     logic [11:0]    obj_y[MAX_OBJECTS]; // 12位y坐标
-    logic [5:0]     obj_sprite[MAX_OBJECTS]; // 6位精灵索引，所以最多是64个精灵（bullet+ship+enemy）
+    logic [5:0]     obj_sprite[MAX_OBJECTS]; // 6位精灵索引，所以最多是64个精灵
     logic           obj_active[MAX_OBJECTS]; // 活动状态位
+    
     
     // 精灵渲染相关
     localparam int SPRITE_SIZE  = SPRITE_WIDTH * SPRITE_HEIGHT; // 16*16=256
@@ -103,7 +104,7 @@ module vga_ball#(
                         // 解析32位数据
                         obj_x[obj_idx] <= writedata[31:20];     // 高12位是x坐标
                         obj_y[obj_idx] <= writedata[19:8];      // 接下来12位是y坐标
-                        obj_sprite[obj_idx] <= writedata[7:2];  // 接下来6位是精灵索引
+                        obj_sprite[obj_idx] <= writedata[7:2];  // 接下来6位是精灵索引(64 种精灵图案)
                         obj_active[obj_idx] <= writedata[1];    // 接下来1位是活动状态
                         // 最低位保留，不使用
                     end
@@ -150,6 +151,7 @@ module vga_ball#(
             // 计算这帧要读的 ROM 地址：
             // base = sprite_index * 256
             // offset = rel_y*16 + rel_x
+            //这里加if逻辑：精灵种类64，可以拆成4个完整的rom，判断读取哪个rom
             sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE
                            + rel_y * SPRITE_WIDTH
                            + rel_x;

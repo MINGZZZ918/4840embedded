@@ -63,7 +63,7 @@
 static int vga_ball_fd;
 static int enemies_moving = 0;
 
-static char row_vals[5] = { 2, 2, 2, 2, 2 };
+static char row_vals[5] = { 14, 14, 10, 8, 4 };
 static char row_sprites[5] = { 2, 3, 3, 4, 4 };
 
 

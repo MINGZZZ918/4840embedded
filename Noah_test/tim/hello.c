@@ -728,7 +728,7 @@ int enemy_movement(int rand_enemy){
             }
     }
 
-    return 1;
+    return num_left;
 }
 
 

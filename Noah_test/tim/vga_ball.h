@@ -18,7 +18,7 @@ typedef struct {
 typedef struct {
     unsigned short pos_x, pos_y;
     short velo_x, velo_y;
-    char enemy;
+    short enemy;
     bool active;
 } bullet;
 

@@ -269,8 +269,6 @@ bool aquire_bullet(enemy *enemy, int bul_num){
     
     for (int i = 0; i<MAX_BULLETS; i++){
 
-        printf("HELOOOOOO \n");
-
         bul = &game_state.bullets[i];
 
         if(!bul->active){
@@ -378,18 +376,11 @@ void enemy_shoot(enemy *enemy){
                 && abs(ship->pos_y - enemy->pos_y <= 200
                 && ship->pos_y - 40 > enemy->pos_y)){
 
-                    printf("SHOOOT DAMNIT \n");
-
                 if (enemy->bul1 == -1){
-
-                    printf("TRY_TO_SHOOT \n");
 
                     aquired = aquire_bullet(enemy, 1);
 
                     if(aquired){
-
-                        printf("AHHHHHHHHHH \n");
-
 
                         enemy->bul_cooldown = ENEMY4_BULLET_COOLDOWN;
                         calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul1], 0, 4);

@@ -154,7 +154,7 @@ module vga_ball#(
             //这里加if逻辑：精灵种类64，可以拆成4个完整的rom，判断读取哪个rom
             sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE
                            + rel_y * SPRITE_WIDTH
-                           + rel_x;
+                           + rel_x +1;
         end
     end
 

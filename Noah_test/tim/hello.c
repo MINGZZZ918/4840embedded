@@ -44,6 +44,8 @@
 
 #define TURN_TIME 70
 
+#define ENEMY_BULLET_COOLDOWN 30
+
 
 #define LEFT_ARROW 0x00
 #define RIGHT_ARROW 0xff
@@ -372,6 +374,65 @@ void enemy_attack(enemy *enemy){
     enemy->pos_y += enemy->velo_y;
 }
 
+void enemy_shoot(enemy *enemy){
+
+    spaceship *ship = &game_state.ship;
+    bullet *bul;
+
+    if (!enemy->bul_cooldown){
+
+        if (enemy->sprite == 3){
+
+            if (abs(ship->pos_x - enemy->pos_x) <= 10
+                && abs(ship->pos_y - enemy->pos_y) <= 100){
+
+                    if(enemy->bullets[0].active){
+
+                        enemy->bullets[0].velo_y = 2;
+                        enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
+                    }
+                    else if (enemy->bullets[1].active){
+
+                        enemy->bullets[0].velo_y = 2;
+                        enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN*2;
+                    }
+            }
+        }
+
+        else if(enemy->sprite == 4){
+
+            if (abs(ship->pos_x - enemy->pos_x) <= 100
+                && abs(ship->pos_y - enemy->pos_y) <= 200){
+
+                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
+            }
+        }
+    }
+
+    else
+        enemy->bul_cooldown --;
+
+
+    for(int i = 0; i<2; i++){
+
+        bul = &enemy->bullets[i];
+
+        bul->pos_x += bul->velo_x;
+        bul->pos_y += bul->velo_y;
+
+
+        if (abs(ship->pos_x - bul->pos_x) <= SHIP_WIDTH
+                    && abs(ship->pos_y - bul->pos_y) <= SHIP_HEIGHT){
+
+            bul->active = 0;
+            ship->lives --;
+        }
+        if (bul->pos_y >= SCREEN_HEIGHT || bul->pos_x >= SCREEN_WIDTH || bul->pos_x < 0) 
+            bul->active = 0;
+    }
+
+}
+
 
 
 void change_row_ends(int i, int row_num, int front){
@@ -494,15 +555,18 @@ int enemy_movement(int rand_enemy){
         }
 
         if(enemy->moving) {
-            
-            enemy_attack(enemy);
 
+            enemy_attack(enemy);
 
             if (!enemy->moving){
 
                 if(i > row_backs[enemy->row]) row_backs[enemy->row] = i;
                 if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
             }
+
+            else 
+                enemy_shoot(enemy);
+
         }
 
         else{

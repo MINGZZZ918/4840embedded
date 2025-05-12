@@ -3,12 +3,9 @@
  */
 
 module vga_ball#(
-    parameter MAX_OBJECTS = 16,    // sprites种类：飞船（1）+ 敌人（3）+ 自己子弹（3）+敌人子弹（3）+ 爆炸（3）
+    parameter MAX_OBJECTS = 100,    // sprites种类：飞船（1）+ 敌人（3）+ 自己子弹（3）+敌人子弹（3）+ 爆炸（3）
     parameter SPRITE_WIDTH = 16,   // 所有精灵标准宽度
-    parameter SPRITE_HEIGHT = 16,  // 所有精灵标准高度
-    parameter SHIP_SPRITE_INDEX = 0,  // 飞船的精灵索引
-    parameter ENEMY_SPRITE_START = 1, // 敌人精灵索引开始，预设十六个敌人
-    parameter BULLET_SPRITE_START = 15 // 子弹精灵索引开始 ，可以增加 MAX_OBJECTS来增加 bullet 数量
+    parameter SPRITE_HEIGHT = 16  // 所有精灵标准高度
 ) (
     input  logic        clk,
     input  logic        reset,
@@ -90,23 +87,7 @@ module vga_ball#(
                 obj_sprite[i] <= 6'd0;
                 obj_active[i] <= 1'b0;
             end
-            
-            // 初始化玩家飞船
-            obj_x[0] <= 12'd200;
-            obj_y[0] <= 12'd240;
-            obj_sprite[0] <= SHIP_SPRITE_INDEX;
-            obj_active[0] <= 1'b1;
-            
-            // 初始化敌人
-            obj_x[1] <= 12'd800;
-            obj_y[1] <= 12'd150;
-            obj_sprite[1] <= ENEMY_SPRITE_START;
-            obj_active[1] <= 1'b1;
-            
-            obj_x[2] <= 12'd800;
-            obj_y[2] <= 12'd350;
-            obj_sprite[2] <= ENEMY_SPRITE_START;
-            obj_active[2] <= 1'b1;
+
         end 
 
         else if (chipselect && write) begin
@@ -131,49 +112,72 @@ module vga_ball#(
         end
     end
 
-    // 渲染逻辑 - 确定当前像素属于哪个对象 + VGA显示逻辑
-    logic [4:0] active_obj_idx;
+    // 渲染逻辑 - 确定当前像素属于哪个对象
+    logic [6:0] active_obj_idx;
     logic obj_visible;
     logic [3:0] rel_x, rel_y;
     
     always_comb begin
         obj_visible = 1'b0;
-        active_obj_idx = 5'd0;
+        active_obj_idx = 7'd0;
         rel_x = 4'd0;
         rel_y = 4'd0;
-        {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h80, 8'h00}; // 默认黑色
         
-        if (VGA_BLANK_n) begin
-        // 背景色
-        {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
-            
         // 从高优先级到低优先级检查对象（最后绘制的对象优先级最高）
-            for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
-                if (obj_active[i] && 
-                    hcount >= obj_x[i] && 
-                    hcount< obj_x[i] + SPRITE_WIDTH &&
-                    vcount >= obj_y[i] && 
-                    vcount < obj_y[i] + SPRITE_HEIGHT) begin
-                    
-                    active_obj_idx = i[4:0];
-                    rel_x = hcount - obj_x[i];
-                    rel_y = vcount - obj_y[i];
-                    sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE + rel_y * SPRITE_WIDTH + rel_x;
-                    // 从sprite_data中获取RGB值
-                    VGA_R = sprite_data[23:16]; // 高8位是R，sprite_data就是 readdate
-                    VGA_G = sprite_data[15:8];  // 中8位是G
-                    VGA_B = sprite_data[7:0];   // 低8位是B
-                    
-                    // 如果像素是透明色(全黑)，显示背景
-                    if (sprite_data == 24'h0) begin
-                        {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
-                    end
-                    break;  // 找到显示对象，退出循环
-                end
+        for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
+            if (obj_active[i] && 
+                hcount[10:1] >= obj_x[i] && 
+                hcount[10:1] < obj_x[i] + SPRITE_WIDTH &&
+                vcount >= obj_y[i] && 
+                vcount < obj_y[i] + SPRITE_HEIGHT) begin
+                
+                active_obj_idx = i[6:0];
+                rel_x = hcount[10:1] - obj_x[i][11:0];
+                rel_y = vcount - obj_y[i][11:0];
+                obj_visible = 1'b1;
+                break;  // 找到显示对象，退出循环
             end
         end
     end
     
+    //  用 ROM 真正打印 sprite
+    always_comb begin
+        // 默认透明
+        sprite_address = 12'd0;
+        // sprite_data 已由 ROM IP 更新
+
+        if (obj_visible) begin
+            // 计算这帧要读的 ROM 地址：
+            // base = sprite_index * 256
+            // offset = rel_y*16 + rel_x
+            sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE
+                           + rel_y * SPRITE_WIDTH
+                           + rel_x;
+        end
+    end
+
+    // VGA output logic
+    always_comb begin
+        {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h80, 8'h00}; // 默认黑色
+        
+        if (VGA_BLANK_n) begin
+            // 背景色
+            {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
+            
+            // 如果当前像素属于某个对象且对象是可见的，则显示对象的像素
+            if (obj_visible) begin
+                // 从sprite_data中获取RGB值
+                VGA_R = sprite_data[23:16]; // 高8位是R，sprite_data就是 readdate
+                VGA_G = sprite_data[15:8];  // 中8位是G
+                VGA_B = sprite_data[7:0];   // 低8位是B
+                
+                // 如果像素是透明色(全黑)，显示背景
+                if (sprite_data == 24'h0) begin
+                    {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
+                end
+            end
+        end
+    end
 endmodule
 
 // VGA timing generator module

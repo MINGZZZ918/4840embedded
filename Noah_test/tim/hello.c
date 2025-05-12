@@ -71,7 +71,6 @@ static int row_fronts[5];
 static int row_backs[5];
 
 
-
 static int enemy_wiggle = 1;
 static int enemy_wiggle_time = 0;
 
@@ -231,7 +230,7 @@ void turn(enemy *enemy){
     spaceship *ship = &game_state.ship;
 
 
-    if (enemy->pos_x <= SCREEN_WIDTH/2)
+    if (enemy->start_x <= SCREEN_WIDTH/2)
             enemy->velo_x = -turn_x[enemy->turn_counter];
     else
         enemy->velo_x = turn_x[enemy->turn_counter];

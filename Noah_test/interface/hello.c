@@ -85,7 +85,7 @@ void init_game_state() {
 
         if(i%20 == 0) row++;
 
-        game_state.enemies[i].pos_x = 20 + (i%10)*(ENEMY_WIDTH + 10);
+        game_state.enemies[i].pos_x = 20 + (i%20)*(ENEMY_WIDTH + 10);
         game_state.enemies[i].pos_y = 20 *row;
         game_state.enemies[i].active = 1;
 

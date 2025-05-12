@@ -8,7 +8,7 @@ module vga_ball#(
     parameter SPRITE_HEIGHT = 16,  // 所有精灵标准高度
     parameter SHIP_SPRITE_INDEX = 0,  // 飞船的精灵索引
     parameter ENEMY_SPRITE_START = 1, // 敌人精灵索引开始，预设十六个敌人
-    parameter BULLET_SPRITE_START = 15 // 子弹精灵索引开始 ，可以增加 MAX_OBJECTS来增加 bullet 数量
+    parameter BULLET_SPRITE_START = 10 // 子弹精灵索引开始 ，可以增加 MAX_OBJECTS来增加 bullet 数量
 ) (
     input  logic        clk,
     input  logic        reset,
@@ -136,43 +136,36 @@ module vga_ball#(
     logic obj_visible;
     logic [3:0] rel_x, rel_y;
     
-    always_comb begin
-        obj_visible = 1'b0;
-        active_obj_idx = 5'd0;
-        rel_x = 4'd0;
-        rel_y = 4'd0;
-        {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h80, 8'h00}; // 默认黑色
-        
-        if (VGA_BLANK_n) begin
-        // 背景色
-        {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
-            
-        // 从高优先级到低优先级检查对象（最后绘制的对象优先级最高）
-            for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
-                if (obj_active[i] && 
-                    hcount >= obj_x[i] && 
-                    hcount< obj_x[i] + SPRITE_WIDTH &&
-                    vcount >= obj_y[i] && 
-                    vcount < obj_y[i] + SPRITE_HEIGHT) begin
-                    
-                    active_obj_idx = i[4:0];
-                    rel_x = hcount - obj_x[i];
-                    rel_y = vcount - obj_y[i];
-                    sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE + rel_y * SPRITE_WIDTH + rel_x;
-                    // 从sprite_data中获取RGB值
-                    VGA_R = sprite_data[23:16]; // 高8位是R，sprite_data就是 readdate
-                    VGA_G = sprite_data[15:8];  // 中8位是G
-                    VGA_B = sprite_data[7:0];   // 低8位是B
-                    
-                    // 如果像素是透明色(全黑)，显示背景
-                    if (sprite_data == 24'h0) begin
-                        {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
-                    end
-                    break;  // 找到显示对象，退出循环
-                end
-            end
-        end
-    end
+     always_comb begin
+         // 默认先填背景
+         {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
+ 
+         if (VGA_BLANK_n) begin
+             // 从最高层开始往下找，只在遇到非透明像素时才画，遇到透明就跳过
+             for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
+                 if (obj_active[i] &&
+                     hcount >= obj_x[i] && hcount <  obj_x[i] + SPRITE_WIDTH &&
+                     vcount >= obj_y[i] && vcount <  obj_y[i] + SPRITE_HEIGHT) begin
+ 
+                     // 计算相对坐标和ROM地址
+                     rel_x = hcount - obj_x[i];
+                     rel_y = vcount - obj_y[i];
+                     sprite_address = obj_sprite[i] * SPRITE_SIZE
+                                    + rel_y * SPRITE_WIDTH
+                                    + rel_x;
+ 
+                     // 如果不是透明像素，就显示它，然后退出循环
+                     if (sprite_data != 24'h0) begin
+                         VGA_R = sprite_data[23:16];
+                         VGA_G = sprite_data[15:8];
+                         VGA_B = sprite_data[7:0];
+                         break;
+                     end
+                     // 否则继续看下一层（更低优先级）的像素
+                 end
+             end
+         end
+     end
     
 endmodule
 

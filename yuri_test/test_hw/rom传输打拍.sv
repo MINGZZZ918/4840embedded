@@ -42,12 +42,14 @@ module vga_ball#(
     logic [23:0] sprite_data;
     logic [23:0] color_data;  // 来自 color_palette.mif 的 RGB
     logic        transparent_part; // 精灵中的透明背景可以透出下面的精灵
-
-
+    logic [13:0] sprite_addr_reg;
+    logic [23:0] sprite_data_reg;
+    logic found; //用来判断有没有找到非透明的像素，没有就继续，直到最后
+    logic [3:0] rel_x, rel_y;
     // ROM IP module
     //rom_sprites
     soc_system_rom_sprites sprite_images (
-        .address      (sprite_address),   // ROM 索引地址
+        .address      (sprite_addr_reg),   // ROM 索引地址
         .chipselect   (1'b1),             // 始终使能
         .clk          (clk),              // 时钟
         .clken        (1'b1),             // 时钟使能
@@ -115,23 +117,10 @@ module vga_ball#(
     end
 
     // 渲染逻辑 - 确定当前像素属于哪个对象
-    logic [6:0] active_obj_idx;
-    logic obj_visible;
-    logic found; //用来判断有没有找到非透明的像素，没有就继续，直到最后
-    logic [3:0] rel_x, rel_y;
-    logic [23:0] pix; //保留当前层的rgb数据
-    logic [23:0] pix_candidate; //
+    //Stage0: 组合逻辑，找到最高优先级不透明像素的 ROM address
     always_comb begin
         found = 1'b0;
-        obj_visible = 1'b0;
-        active_obj_idx = 7'd0;
-        rel_x = 4'd0;
-        rel_y = 4'd0;
-        pix             = {background_r,background_g,background_b};
-        pix_candidate   = {background_r,background_g,background_b};
-        sprite_address = 14'd0;
-        
-        // 从高优先级到低优先级检查对象（最后绘制的对象优先级最高）
+        sprite_address  = 14'd0;
         for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
             if (!found &&
                 obj_active[i] && 
@@ -139,22 +128,51 @@ module vga_ball#(
                 hcount[10:1] < obj_x[i][9:0] + SPRITE_WIDTH &&
                 vcount[9:0] >= obj_y[i][9:0] && 
                 vcount[9:0] < obj_y[i][9:0] + SPRITE_HEIGHT) begin
-                
-                active_obj_idx = i[6:0];
+
                 rel_x = hcount[10:1] - obj_x[i][9:0];
                 rel_y = vcount[9:0] - obj_y[i][9:0];
-                sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE 
+                sprite_address = obj_sprite[i] * SPRITE_SIZE 
                                 + rel_y * SPRITE_WIDTH 
                                 + rel_x;
-                pix_candidate = sprite_data;
-
-                if (pix_candidate != 24'h000000) begin
-                    pix   = pix_candidate;
-                    found = 1'b1;       // 找到第一层非透明，后面就不用再看了
-                end
+                found = 1'b1;       // 找到第一层非透明，后面就不用再看了
             end
         end
-        {VGA_R, VGA_G, VGA_B} = pix;
+    end
+
+
+    // Stage1: 寄存地址到 ROM
+    always_ff @(posedge clk or posedge reset) begin
+        if (reset) sprite_addr_reg <= 14'd0;
+        else       sprite_addr_reg <= sprite_address;
+    end
+
+    // Stage2: 寄存 palette 输出
+    always_ff @(posedge clk or posedge reset) begin
+        if (reset) sprite_data_reg <= 24'd0;
+        else       sprite_data_reg <= color_data;
+    end
+
+
+    // Stage3: 生成最终 VGA 输出    
+    always_ff @(posedge clk or posedge reset) begin
+        if (reset) begin
+            {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h80, 8'h00}; 
+        end 
+        else if (VGA_BLANK_n) begin
+            if (sprite_data_reg != 24'h000000) begin
+                // 如果最高层像素不透明，就用它
+                VGA_R <= sprite_data_reg[23:16];
+                VGA_G <= sprite_data_reg[15:8];
+                VGA_B <= sprite_data_reg[7:0];
+            end 
+            else begin
+            // 否则透出背景
+                {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
+            end
+        end 
+        else begin
+            {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h80, 8'h00}; // 默认黑色
+        end
     end
     
 endmodule

@@ -197,15 +197,13 @@ void calculate_velo(int ship_x, int ship_y, void *object, int type, short scaler
         new_y = ship_y - enemyy->pos_y;
     }
 
-    else 
-    {
-        
+    else {
+
         bul = (bullet *)object;
 
         new_x = ship_x - bul->pos_x;
         new_y = ship_y - bul->pos_y;
     }
-
 
     mag = sqrt(new_x * new_x + new_y * new_y);
 
@@ -398,77 +396,76 @@ void enemy_shoot(enemy *enemy){
 
     if (enemy->bul_cooldown <= 0 && enemy->turn_counter >= TURN_TIME){
 
-        // if (enemy->sprite == 3){
+        if (enemy->sprite == 3){
 
-        //     if (abs(ship->pos_x - enemy->pos_x) <= 10
-        //         && abs(ship->pos_y - enemy->pos_y) <= 100
-        //         && ship->pos_y > enemy->pos_y){
+            if (abs(ship->pos_x - enemy->pos_x) <= 30
+                    && abs(ship->pos_y - enemy->pos_y) <= 100
+                    && ship->pos_y > enemy->pos_y){
+
+                if(!enemy->bullets[0].active){
+
+                    enemy->bullets[0].active = 1;
+
+                    enemy->bullets[0].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+                    enemy->bullets[0].pos_y = enemy->pos_x+(ENEMY_HEIGHT);
+
+                    enemy->bullets[0].velo_y = 3;
+                    enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
+                }
+                else if (!enemy->bullets[1].active){
+
+                    enemy->bullets[1].active = 1;
+
+                    enemy->bullets[1].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+                    enemy->bullets[1].pos_y = enemy->pos_x+(ENEMY_HEIGHT);
+
+                    enemy->bullets[1].velo_y = 3;
+                    enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN*2;
+                }
+            }
+        }
+
+        // else if(enemy->sprite == 4){
+
+        //     printf("WHY ARENT YOU SHOOTING \n");
+
+        //     if (abs(ship->pos_x - enemy->pos_x) <= 150
+        //         && abs(ship->pos_y - enemy->pos_y <= 200
+        //         && ship->pos_y- 20 > enemy->pos_y)){
 
         //             if(!enemy->bullets[0].active){
 
         //                 enemy->bullets[0].active = 1;
 
         //                 enemy->bullets[0].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
-        //                 enemy->bullets[0].pos_y = enemy->pos_x+(ENEMY_HEIGHT);
+        //                 enemy->bullets[0].pos_y = enemy->pos_y+(ENEMY_HEIGHT);
 
-        //                 enemy->bullets[0].velo_y = 3;
+        //                 printf("ACTIVE 1 %d, %d \n", enemy->bullets[0].pos_x, enemy->bullets[0].pos_y);
+
+
+        //                 calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[0], 0, 4);
         //                 enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
         //             }
         //             else if (!enemy->bullets[1].active){
 
         //                 enemy->bullets[1].active = 1;
 
+        //                 printf("ACTIVE 2 \n");
 
         //                 enemy->bullets[1].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
-        //                 enemy->bullets[1].pos_y = enemy->pos_x+(ENEMY_HEIGHT);
+        //                 enemy->bullets[1].pos_y = enemy->pos_y+(ENEMY_HEIGHT);
 
-        //                 enemy->bullets[1].velo_y = 3;
+
+        //                 printf("ACTIVE 1 %d, %d \n", enemy->bullets[1].pos_x, enemy->bullets[1].pos_y);
+
+
+        //                 calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[1], 0, 4);
         //                 enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN*2;
         //             }
+
+        //             enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
         //     }
         // }
-
-        if(enemy->sprite == 4){
-
-            printf("WHY ARENT YOU SHOOTING \n");
-
-            if (abs(ship->pos_x - enemy->pos_x) <= 100
-                && abs(ship->pos_y - enemy->pos_y <= 200
-                && ship->pos_y- 20 > enemy->pos_y)){
-
-                    if(!enemy->bullets[0].active){
-
-                        enemy->bullets[0].active = 1;
-
-                        enemy->bullets[0].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
-                        enemy->bullets[0].pos_y = enemy->pos_y+(ENEMY_HEIGHT);
-
-                        printf("ACTIVE 1 %d, %d \n", enemy->bullets[0].pos_x, enemy->bullets[0].pos_y);
-
-
-                        calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[0], 0, 4);
-                        enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
-                    }
-                    else if (!enemy->bullets[1].active){
-
-                        enemy->bullets[1].active = 1;
-
-                        printf("ACTIVE 2 \n");
-
-                        enemy->bullets[1].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
-                        enemy->bullets[1].pos_y = enemy->pos_y+(ENEMY_HEIGHT);
-
-
-                        printf("ACTIVE 1 %d, %d \n", enemy->bullets[1].pos_x, enemy->bullets[1].pos_y);
-
-
-                        calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[1], 0, 4);
-                        enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN*2;
-                    }
-
-                    enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
-            }
-        }
     }
 
     else if(enemy->turn_counter <= TURN_TIME)

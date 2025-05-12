@@ -18,6 +18,7 @@
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 #include "vga_ball.h"
+#include "noah/vga_ball.h"
 
 #define DRIVER_NAME "vga_ball"
 
@@ -66,57 +67,44 @@ static void write_object(int idx, unsigned short x, unsigned short y, char sprit
     iowrite32(obj_data, OBJECT_DATA(dev.virtbase, idx));
 }
 
-static void write_ship(spaceship *ship){
-
-    write_object (1, ship->pos_x,  ship->pos_y, 0, ship->active);
-    dev.ship = *ship;
-}
 
 /*
  * Write all objects
  */
-static void write_all(bullet bullets[], enemy enemies[])
+static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 {
 
     int i;
     bullet *bul;
     enemy *enemy;
 
-    for (i = 0; i < MAX_BULLETS; i++) {
 
-        bul = &bullets[i];
-        write_object(i+2,  bul->pos_x,  bul->pos_y, 1, bul->active);
-        
-        dev.bullets[i] = bullets[i];
+    write_object (1, ship->pos_x,  ship->pos_y, 0, ship->active);
+    dev.ship = *ship;
+
+
+    for (i = 0; i < SHIP_BULLETS; i++) {
+
+        bul = &ship->bullets[i];
+        write_object (i+2, bul->pos_x,  bul->pos_y, 1, bul->active);
+
+        dev.ship.bullets[i] = *bul;
     }
 
     for (i = 0; i < ENEMY_COUNT; i++) {
 
         enemy = &enemies[i];
-        write_object(i+MAX_BULLETS+2,  enemy->pos_x,  enemy->pos_y, enemy->sprite, enemy->active);
 
+        write_object(i+SHIP_BULLETS+2,  enemy->pos_x,  enemy->pos_y, enemy->sprite, enemy->active);
         dev.enemies[i] = enemies[i];
     }
 
-    for (i = 0; i < ENEMY_COUNT; i++) {
+    for (i = 0; i < MAX_BULLETS; i++) {
 
-        enemy = &enemies[i];
-        bul = &enemy->bul;
+        bul = &bullets[i];
 
-        write_object(i+MAX_BULLETS+ENEMY_COUNT+2,  bul->pos_x,  bul->pos_y, 1, bul->active);
-
-        dev.enemies[i].bul = *bul;
-
-
-        // bul1 = &enemy->bullets[0];
-        // bul2 = &enemy->bullets[1];
-
-        // write_object(i+MAX_BULLETS+ENEMY_COUNT+2,  bul1->pos_x,  bul1->pos_y, 1, bul1->active);
-
-        // write_object(i+(MAX_BULLETS*2)+ENEMY_COUNT+2,  bul2->pos_x,  bul2->pos_y, 1, bul2->active);
-
-        // dev.enemies[i].bullets[0] = *bul1;
-        // dev.enemies[i].bullets[1] = *bul2;
+        write_object(i+SHIP_BULLETS+ENEMY_COUNT+2,  bul->pos_x,  bul->pos_y, 1, bul->active);
+        dev.bullets[i] = *bul;
     }
 }
 
@@ -126,12 +114,11 @@ static void write_all(bullet bullets[], enemy enemies[])
 static void update_game_state(gamestate *game_state)
 {
     write_background(&game_state->background);
-    write_all(game_state->bullets, game_state->enemies);
+    write_all(&game_state->ship, game_state->bullets, game_state->enemies);
 }
 
 
 static gamestate vb_arg;
-static spaceship vb_ship;
 
 /*
 * Handle ioctl() calls from userspace
@@ -139,17 +126,10 @@ static spaceship vb_ship;
 static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
     switch (cmd) {
-        case VGA_BALL_UPDATE_ENEMIES:
+        case VGA_BALL_UPDATE_GAME_STATE:
             if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
                 return -EACCES;
             update_game_state(&vb_arg);
-            break;
-
-        case VGA_BALL_UPDATE_SHIP:
-            if (copy_from_user(&vb_ship, (spaceship *) arg, sizeof(spaceship)))
-                return -EACCES;
-
-            write_ship(&vb_ship);
             break;
 
         default:

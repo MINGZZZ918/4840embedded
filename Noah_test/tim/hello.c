@@ -575,7 +575,7 @@ void bullet_movement(int new_bullet){
 
 int enemy_movement(int rand_enemy){
 
-    int cont, rand_side, row_num, num_left;
+    int cont, row_num, num_left;
     enemy *enemy;
 
     if (rand_enemy != 0){
@@ -586,9 +586,7 @@ int enemy_movement(int rand_enemy){
 
         else if(rand_enemy == 2) row_num = 0;
 
-        rand_side = rand()%2;
-
-        if (rand_side) rand_enemy = row_backs[row_num];
+        if (enemy_wiggle > 0) rand_enemy = row_backs[row_num];
         else rand_enemy = row_fronts[row_num];
 
     }
@@ -603,7 +601,7 @@ int enemy_movement(int rand_enemy){
 
         if(!enemy->moving && rand_enemy == i){
 
-            if (rand_side) change_row_ends(i, row_num, 0);
+            if (enemy_wiggle > 0) change_row_ends(i, row_num, 0);
                 
             else change_row_ends(i, row_num, 1);
 
@@ -631,6 +629,11 @@ int enemy_movement(int rand_enemy){
 
         else{
             enemy->pos_x += enemy_wiggle;
+
+            if(enemy->bullets[0].active || enemy->bullets[1].active) 
+                enemy_shoot(enemy);
+
+
         }
 
         if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH

@@ -292,11 +292,11 @@ void move_enemy(enemy *enemy){
 
         if (enemy->sprite == 2){
 
-            if(++enemy->move_time < 500)
+            // if(++enemy->move_time < 500)
                 calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
-            else
-                enemy->velo_x = 0;
-                enemy->velo_y = 2;
+            // else
+            //     enemy->velo_x = 0;
+            //     enemy->velo_y = 2;
         }
 
         // else if (enemy->sprite == 3){

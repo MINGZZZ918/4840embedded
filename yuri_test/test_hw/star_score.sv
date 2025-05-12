@@ -5,7 +5,8 @@
 module vga_ball#(
     parameter MAX_OBJECTS = 100,    // sprites数量（adress传递的值最后给obj_sprite，这个才是精灵种类，最多64种）
     parameter SPRITE_WIDTH = 16,   // 所有精灵标准宽度
-    parameter SPRITE_HEIGHT = 16  // 所有精灵标准高度
+    parameter SPRITE_HEIGHT = 16,  // 所有精灵标准高度
+    parameter STAR_COUNT    = 50     // 星星数量
 ) (
     input  logic        clk,
     input  logic        reset,
@@ -46,6 +47,15 @@ module vga_ball#(
     logic [23:0] sprite_data_reg;
     logic found; //用来判断有没有找到非透明的像素，没有就继续，直到最后
     logic [3:0] rel_x, rel_y;
+
+    //星星
+    logic [15:0] lfsr;
+    logic [10:0] star_x [STAR_COUNT];
+    logic [9:0]  star_y [STAR_COUNT];
+    logic [15:0] lfsr_reg, lfsr_next;
+    integer i;
+    logic is_star;
+
     // ROM IP module
     //rom_sprites
     soc_system_rom_sprites sprite_images (
@@ -91,7 +101,6 @@ module vga_ball#(
                 obj_sprite[i] <= 6'd0;
                 obj_active[i] <= 1'b0;
             end
-
         end 
 
         else if (chipselect && write) begin
@@ -121,8 +130,8 @@ module vga_ball#(
     always_comb begin
         found = 1'b0;
         sprite_address  = 14'd0;
-        rel_y = 10'b0;
-        rel_x = 10'b0;
+        rel_y = 10'd0;
+        rel_x = 10'd0;
         for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
             if (!found &&
                 obj_active[i] && 
@@ -154,11 +163,40 @@ module vga_ball#(
         else       sprite_data_reg <= color_data;
     end
 
+    // Stage3：星星逻辑
+    // 组合逻辑：多项式 x¹⁶ + x¹⁴ + 1
+    always_comb
+        lfsr_next = { lfsr_reg[14:0], lfsr_reg[15] ^ lfsr_reg[13] };
 
-    // Stage3: 生成最终 VGA 输出    
+    // 时钟驱动的 LFSR
+    always_ff @(posedge clk or posedge reset) begin
+        if (reset)
+            lfsr_reg <= 16'hACE1;  // 任意非全零
+        else
+            lfsr_reg <= lfsr_next;
+    end
+
+    // reset-only 时，用“同一个”lfsr_temp 给每颗星取随机点
+    integer idx;
+    always_ff @(posedge clk or posedge reset) begin
+        if (reset) begin
+            // 用一个临时变量，阻塞赋值，让每次循环都用更新过的 LFSR
+            logic [15:0] lfsr_temp;
+            lfsr_temp = 16'hC0DE;  // 初始化一个新种子（可任选）
+            for (idx = 0; idx < STAR_COUNT; idx = idx + 1) begin
+                star_x[idx] <= {1'b0, lfsr_temp[10:1]};  // 11 位横坐标
+                star_y[idx] <=  lfsr_temp[9:0];          // 10 位纵坐标
+                // 让临时 LFSR 走一步
+                lfsr_temp = { lfsr_temp[14:0], lfsr_temp[15] ^ lfsr_temp[13] };
+            end
+        end
+    end
+
+    // Stage4: 生成最终 VGA 输出    
     always_ff @(posedge clk or posedge reset) begin
         if (reset) begin
             {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h80, 8'h00}; 
+            is_star = 1'b0;
         end 
         else if (VGA_BLANK_n) begin
             if (sprite_data_reg != 24'h000000) begin
@@ -166,17 +204,30 @@ module vga_ball#(
                 VGA_R <= sprite_data_reg[23:16];
                 VGA_G <= sprite_data_reg[15:8];
                 VGA_B <= sprite_data_reg[7:0];
+                is_star <= 1'b0;
             end 
             else begin
-            // 否则透出背景
-                {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
+                // 先判断星星再判断背景色
+                is_star <= 1'b0;
+                for (int j = 0; j < STAR_COUNT; j++) begin
+                    if (hcount == star_x[j] && vcount == star_y[j] && star_on) begin
+                        is_star = 1'b1;
+                        break;
+                    end
+                end
+                if (is_star) begin
+                    {VGA_R, VGA_G, VGA_B} <= 24'hFFFFFF;
+                end 
+                else begin
+                    {VGA_R, VGA_G, VGA_B} = {background_r, background_g, background_b};
+                end
             end
         end 
         else begin
-            {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h80, 8'h00}; // 默认黑色
+            {VGA_R, VGA_G, VGA_B} = {8'h00, 8'h80, 8'h00}; 
+            is_star <= 1'b0;
         end
     end
-    
 endmodule
 
 // VGA timing generator module

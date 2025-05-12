@@ -337,9 +337,6 @@ void enemy_attack(enemy *enemy){
 
                 if(++ enemy->move_time > 150){
 
-                    condition ? expression_if_true : expression_if_false;
-
-
                     enemy->velo_x = (enemy->pos_x > ship->pos_x) ? 1 : -1;
                     enemy->velo_y = 2;
                 }

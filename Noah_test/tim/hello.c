@@ -162,6 +162,8 @@ void init_game_state() {
         enemy->sprite = row_sprites[row];
         enemy->pos_num = i;
         enemy->active = 1;
+
+        enemy->bul1 = enemy->bul2 = -1;
         enemy->row = row;
     }
 }
@@ -371,6 +373,8 @@ void enemy_shoot(enemy *enemy){
             if (abs(ship->pos_x - enemy->pos_x) <= 150
                 && abs(ship->pos_y - enemy->pos_y <= 200
                 && ship->pos_y - 40 > enemy->pos_y)){
+
+                    printf("TRY TO SHOOOt \n");
 
 
                 if (enemy->bul1 == -1){

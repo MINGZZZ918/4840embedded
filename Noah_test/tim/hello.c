@@ -218,7 +218,7 @@ void calculate_velo(int x, int y, enemy *enemy, char scaler){
     float new_x, new_y, mag;
 
     new_x = x - enemy->pos_x;
-    new_y = (y - enemy->pos_y);
+    new_y = y - enemy->pos_y;
 
     mag = sqrt(new_x * new_x + new_y * new_y);
 
@@ -231,8 +231,8 @@ void calculate_velo(int x, int y, enemy *enemy, char scaler){
     printf("%f, %f \n", new_x, new_y);
 
 
-    enemy->velo_x = (int)round(new_x);
-    enemy->velo_y = (int)round(new_y);
+    enemy->velo_x = (int)new_x;
+    enemy->velo_y = (int)new_y;
 
     printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
 

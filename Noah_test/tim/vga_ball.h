@@ -6,7 +6,7 @@
 
 /* 定义最大子弹数量 */
 #define MAX_BULLETS 5
-#define ENEMY_COUNT 50
+#define ENEMY_COUNT 22
 #define LIFE_COUNT 5
 
 /* Color structure */
@@ -31,7 +31,7 @@ typedef struct {
     unsigned short pos_x, pos_y;
     short velo_x, velo_y;
     short start_x, start_y;
-    bullet bullets[2];
+    bullet bul;
     short move_time, bul_cooldown;
     char sprite, turn_counter, row;
     bool active, returning, moving;

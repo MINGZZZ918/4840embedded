@@ -757,11 +757,19 @@ void ship_movement(){
 
     spaceship *ship = &game_state.ship;
 
-    if(ship->pos_x > 0 && ship->pos_x < SCREEN_WIDTH-SHIP_WIDTH)
+    if(ship->velo_x > 0 && ship->pos_x < SCREEN_WIDTH-SHIP_WIDTH-5)
         ship->pos_x += ship->velo_x;
 
-    if(ship->pos_y > 0 && ship->pos_y < SCREEN_HEIGHT-SHIP_HEIGHT)
-    ship->pos_y += ship->velo_y;
+    else if(ship->velo_x < 0 && ship->pos_x > 5)
+        ship->pos_x += ship->velo_x;
+
+
+    if (ship->velo_y > 0 && ship->pos_y < SCREEN_HEIGHT-SHIP_HEIGHT-5)
+        ship->pos_y += ship->velo_y;
+
+    else if (ship->velo_y < 0 && ship->pos_y > 5)
+        ship->pos_y += ship->velo_y;
+    
 }
 
 

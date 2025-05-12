@@ -709,7 +709,7 @@ int enemy_movement(int rand_enemy){
             // if(enemy->bullets[0].active || enemy->bullets[1].active) 
             if(enemy->bul.active)
                 enemy_shoot(enemy);
-            
+
             else continue;
         }
 
@@ -869,8 +869,6 @@ int enemy_movement(int rand_enemy){
 //     return num_left;
 // }
 
-
-
 int enemies_to_move(){
 
     int active2 = 0, active3 = 0, active4 = 0;
@@ -971,7 +969,6 @@ int main(){
 
         enemy_wiggle_time += enemy_wiggle;
         if (abs(enemy_wiggle_time) == 80) enemy_wiggle = -enemy_wiggle;
-
 
         new_bullet = 0;
 
@@ -1085,10 +1082,10 @@ int main(){
                 break;
             }
 
-            // if(!enemies_remaining){
-            //     printf("You Won!");
-            //     break;
-            // }
+            if(!enemies_remaining){
+                printf("You Won!");
+                break;
+            }
 
 
             update_hardware();

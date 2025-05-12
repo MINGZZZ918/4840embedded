@@ -686,7 +686,7 @@ int enemy_movement(int rand_enemy){
         // }
 
 
-        if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
+        if (enemy->active && abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
             && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
 
                 enemy->active = 0;

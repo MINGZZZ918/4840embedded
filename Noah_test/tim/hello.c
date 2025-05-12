@@ -60,7 +60,7 @@
 /* File descriptor for the VGA ball device */
 static int vga_ball_fd;
 static int enemies_moving = 0;
-static int round = 1;
+
 static char row_vals[5] = { 2, 6, 8, 12, 12 };
 static char row_sprites[5] = { 2, 3, 3, 4, 4 };
 
@@ -73,7 +73,7 @@ static int row_backs[5];
 static int enemy_wiggle = 1;
 static int enemy_wiggle_time = 0;
 
-
+// static int round_num = 1;
 static long round_time = 0;
 
 
@@ -710,8 +710,6 @@ int main(){
         enemy_wiggle_time += enemy_wiggle;
         if (abs(enemy_wiggle_time) == 80) enemy_wiggle = -enemy_wiggle;
 
-
-        printf("%d, %d, %d \n", total_time, enemy_wiggle_time, enemy_wiggle);
 
         new_bullet = 0;
 

@@ -649,7 +649,7 @@ void bullet_movement(int new_bullet){
 
 int enemy_movement(int rand_enemy){
 
-    int cont, row_num, num_left;
+    int cont, row_num, num_left = 0;
     enemy *enemy;
 
     if (rand_enemy != 0){
@@ -672,6 +672,8 @@ int enemy_movement(int rand_enemy){
 
 
         if (enemy->active){
+
+            num_left++;
 
             if(enemy->active && !enemy->moving && rand_enemy == i){
 

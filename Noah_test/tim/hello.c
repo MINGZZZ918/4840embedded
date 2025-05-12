@@ -395,7 +395,7 @@ void enemy_shoot(enemy *enemy){
     spaceship *ship = &game_state.ship;
     bullet *bul;
 
-    printf("%d \n", enemy->turn_counter);
+    if(enemy->sprite == 4)printf("%d \n", enemy->turn_counter);
 
     if (!enemy->bul_cooldown && enemy->turn_counter >= TURN_TIME){
 

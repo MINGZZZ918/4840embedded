@@ -763,10 +763,10 @@ int main(){
                 break;
             }
 
-            if(!enemies_remaining){
-                printf("You Won!");
-                break;
-            }
+            // if(!enemies_remaining){
+            //     printf("You Won!");
+            //     break;
+            // }
 
 
             update_hardware();

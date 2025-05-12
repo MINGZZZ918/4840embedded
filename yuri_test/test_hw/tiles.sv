@@ -6,10 +6,10 @@ module vga_ball#(
     parameter MAX_OBJECTS = 100,    // sprites数量（adress传递的值最后给obj_sprite，这个才是精灵种类，最多64种）
     parameter SPRITE_WIDTH = 16,   // 所有精灵标准宽度
     parameter SPRITE_HEIGHT = 16,  // 所有精灵标准高度
-    parameter STAR_COUNT    = 50     // 星星数量
-    parameter TILE_COUNT   = 3;    //tile的数量（静态贴图）
-    parameter TILE_WIDTH   = 16;   //贴图的标准宽度
-    parameter TILE_HEIGHT  = 16;   //贴图的标准高度
+    parameter STAR_COUNT    = 50,     // 星星数量
+    parameter TILE_COUNT   = 3,    //tile的数量（静态贴图）
+    parameter TILE_WIDTH   = 16,   //贴图的标准宽度
+    parameter TILE_HEIGHT  = 16    //贴图的标准高度
 ) (
     input  logic        clk,
     input  logic        reset,

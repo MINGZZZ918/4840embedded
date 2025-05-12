@@ -17,6 +17,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include "noah/vga_ball.h"
 #include "vga_ball.h"
 #include "controller.h"
 
@@ -797,17 +798,39 @@ int enemy_movement(int rand_enemy){
 
 int enemies_to_move(){
 
-
-    int rand_enemy = rand()%7;
-
-
-    if(rand_enemy >=0 && rand_enemy < 4) rand_enemy = 4;
-
-    else if (rand_enemy >= 4 && rand_enemy < 6) rand_enemy = 3;
-
-    else rand_enemy = 2;
+    int active2 = 0, active3 = 0, active4 = 0;
+    enemy *enemy;
 
 
+    for (int i = 0; i< ENEMY_COUNT; i++){
+
+        enemy = &game_state.enemies[i];
+
+        switch (enemy->sprite){
+
+            case 2:
+                active2 ++;
+                break;
+
+            case 3:
+                active3 ++;
+                break;
+
+            case 4:
+                active4 ++;
+                break;
+        }
+    }
+
+    int rand_enemy = rand() % (active2 + active3 + active4);
+
+    if (rand_enemy < active2) {
+        rand_enemy = 2;
+    } else if (rand_enemy < active2 + active3) {
+        rand_enemy =  3;
+    } else {
+        rand_enemy = 4;
+    }
 
     if (round_time < 100) return 0;
 

@@ -619,11 +619,11 @@ int main(){
         }
         
         
-        if (abs(enemy_wiggle_time) == 10) 
+        if (abs(enemy_wiggle_time) == 20) 
         {       
             
             printf("AHHHHHHHHHHHHHHHHHh \n");
-            enemy_wiggle = 0;
+            enemy_wiggle = -enemy_wiggle;
 
         }
 

@@ -44,6 +44,12 @@
 
 #define TURN_TIME 70
 
+#define ENEMY_BULLET_COOLDOWN 60
+
+#define ROUND_WAIT 100
+
+
+
 
 #define LEFT_ARROW 0x00
 #define RIGHT_ARROW 0xff
@@ -61,7 +67,7 @@
 static int vga_ball_fd;
 static int enemies_moving = 0;
 
-static char row_vals[5] = { 2, 6, 8, 12, 12 };
+static char row_vals[5] = { 0, 4, 4, 2, 2 };
 static char row_sprites[5] = { 2, 3, 3, 4, 4 };
 
 
@@ -69,32 +75,31 @@ static int row_fronts[5];
 static int row_backs[5];
 
 
-
 static int enemy_wiggle = 1;
 static int enemy_wiggle_time = 0;
 
-// static int round_num = 1;
+static int round_num = 1;
 static long round_time = 0;
 
 
-static short turn_x[TURN_TIME] = {1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
+static short turn_x[TURN_TIME] = {2,2,2,2,2,2,2,2,
+                    2,2,2,2,2,2,2,2,
+                    2,2,2,2,2,2,2,2,
+                    2,2,2,2,2,2,2,2,
+                    2,2,2,2,2,2,2,2,
+                    2,2,2,2,2,2,2,2,
                     0,0,0,0,0,0,0,0,
                     0,0,0,0,0,0,0,0,
                     0,0,0,0,0,0};
 
-static short turn_y[TURN_TIME] = {-1,-1,-1,-1,-1,-1,-1,-1,
-                    -1,-1,-1,-1,-1,-1,-1,-1,
-                    -1,-1,-1,-1,-1,-1,-1,-1,
+static short turn_y[TURN_TIME] = {-2,-2,-2,-2,-2,-2,-2,-2,
+                    -2,-2,-2,-2,-2,-2,-2,-2,
+                    -2,-2,-2,-2,-2,-2,-2,-2,
                     0,0,0,0,0,0,0,0,
-                    1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
-                    1,1,1,1,1,1,1,1,
+                    2,2,2,2,2,2,2,2,
+                    2,2,2,2,2,2,2,2,
+                    2,2,2,2,2,2,2,2,
+                    2,2,2,2,2,2,2,2,
                     2,2,2,2,2,2};
 
 
@@ -122,11 +127,7 @@ static gamestate game_state = {
 /**
  * Initialize game state
  */
-void init_game_state() {
-
-
-    static char row_vals[5] = { 2, 6, 8, 12, 12 };
-    static char row_sprites[5] = { 2, 3, 3, 4, 4 };
+void init_round_state() {
 
     int space, row = 0, enemy_count;
 
@@ -141,6 +142,8 @@ void init_game_state() {
     for (int i = 0, j=0; i < ENEMY_COUNT; i++, j++) {
 
         enemy = &game_state.enemies[i];
+
+        memset(enemy, 0, sizeof(*enemy));
 
         if (i >= enemy_count){
 
@@ -163,15 +166,23 @@ void init_game_state() {
         enemy->sprite = row_sprites[row];
         enemy->active = 1;
         enemy->row = row;
+        enemy->col = (space/2) / (ENEMY_WIDTH + ENEMY_SPACE) + j;
     }
 }
 
 /**
  * Update game state and send to the device
  */
-void update_hardware() {
-    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_GAME_STATE, &game_state)) {
-        perror("ioctl(VGA_BALL_UPDATE_GAME_STATE) failed");
+void update_enemies() {
+    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_ENEMIES, &game_state)) {
+        perror("ioctl(VGA_BALL_UPDATE_ENEMIES) failed");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void update_ship() {
+    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_SHIP, &game_state.ship)) {
+        perror("ioctl(VGA_BALL_UPDATE_SHIP) failed");
         exit(EXIT_FAILURE);
     }
 }
@@ -184,58 +195,28 @@ void ship_movement(){
     ship->pos_y += ship->velo_y;
 }
 
-void bullet_movement(int new_bullet){
 
-    bullet *bul;
-    enemy *enemy;
-
-    for (int i = 0; i < MAX_BULLETS; i++) {
-
-        bul = &game_state.bullets[i];
-
-        if (bul->active){
-
-            bul->pos_y += bul->velo_y;
-            if (bul->pos_y < 5){ // top of screen
-
-                bul->active = 0;
-                game_state.ship.num_bullets --;
-                continue;
-            }
-
-            for (int j = 0; j<ENEMY_COUNT; j++){ // checking to see if we hit an enemy
-
-                enemy = &game_state.enemies[j];
-
-                if (enemy->active && abs(enemy->pos_x - bul->pos_x) <= ENEMY_WIDTH
-                    && abs(enemy->pos_y - bul->pos_y) <= ENEMY_HEIGHT){
-
-                    enemy->active = 0;
-                    bul->active = 0;
-                    game_state.ship.num_bullets --;
-                    break;
-                }
-            }
-        }
-
-        else if (!bul->active && new_bullet) {
-            bul->active = 1;
-            bul->pos_x = game_state.ship.pos_x+(SHIP_WIDTH/2); // make it start in the middle of the ship
-            bul->pos_y = game_state.ship.pos_y-(SHIP_HEIGHT/2); // make it start above the ship
-            bul->velo_y = -3; // towards the top of the screen
-            game_state.ship.num_bullets ++;
-            new_bullet = 0;
-        }
-    }
-}
-
-
-void calculate_velo(int x, int y, enemy *enemy, short scaler){
+void calculate_velo(int ship_x, int ship_y, void *object, int type, short scaler){
 
     float new_x, new_y, mag;
+    enemy *enemyy;
+    bullet *bul;
 
-    new_x = x - enemy->pos_x;
-    new_y = y - enemy->pos_y;
+    if (type) {
+
+        enemyy = (enemy *)object;
+
+        new_x = ship_x - enemyy->pos_x;
+        new_y = ship_y - enemyy->pos_y;
+    }
+
+    else {
+
+        bul = (bullet *)object;
+
+        new_x = ship_x - bul->pos_x;
+        new_y = ship_y - bul->pos_y;
+    }
 
     mag = sqrt(new_x * new_x + new_y * new_y);
 
@@ -245,13 +226,16 @@ void calculate_velo(int x, int y, enemy *enemy, short scaler){
     new_x *= scaler;
     new_y *= scaler;
 
-    // printf("%f, %f \n", new_x, new_y);
+    if (type) {
 
-    enemy->velo_x = (int)new_x;
-    enemy->velo_y = (int)new_y;
+        enemyy->velo_x = (int)new_x;
+        enemyy->velo_y = (int)new_y;
+    }
+    else{
 
-    // printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
-
+        bul->velo_x = (int)new_x;
+        bul->velo_y = (int)new_y;
+    }
 }
 
 
@@ -260,7 +244,7 @@ void turn(enemy *enemy){
     spaceship *ship = &game_state.ship;
 
 
-    if (enemy->pos_x <= SCREEN_WIDTH/2)
+    if (enemy->start_x <= SCREEN_WIDTH/2)
             enemy->velo_x = -turn_x[enemy->turn_counter];
     else
         enemy->velo_x = turn_x[enemy->turn_counter];
@@ -286,7 +270,7 @@ void turn(enemy *enemy){
         }
         else {
 
-            calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
+            calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 2);
         }
 
     }
@@ -309,7 +293,7 @@ void enemy_attack(enemy *enemy){
         if (enemy->sprite == 2){
 
             if(++enemy->move_time < 200)
-                calculate_velo(ship->pos_x, ship->pos_y, enemy,3);
+                calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 3);
             else{
 
                 enemy->velo_x = 0;
@@ -324,7 +308,7 @@ void enemy_attack(enemy *enemy){
 
                 if (enemy->pos_x - ship->pos_x > 10){
                     
-                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 3);
+                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 3);
                     enemy->move_time++;
                 }
             }
@@ -333,7 +317,7 @@ void enemy_attack(enemy *enemy){
 
                 if (ship->pos_x - enemy->pos_x > 10){
 
-                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 3);
+                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 3);
                     enemy->move_time++;
                 }
             }
@@ -341,10 +325,10 @@ void enemy_attack(enemy *enemy){
             else{
 
                 if(enemy->move_time < 75)
-                    calculate_velo(ship->pos_x -200, ship->pos_y, enemy, 2);
+                    calculate_velo(ship->pos_x -200, ship->pos_y, enemy, 1, 2);
 
                 else
-                    calculate_velo(ship->pos_x +200, ship->pos_y, enemy, 2);
+                    calculate_velo(ship->pos_x +200, ship->pos_y, enemy, 1, 2);
 
                 if(++ enemy->move_time > 150){
 
@@ -383,7 +367,7 @@ void enemy_attack(enemy *enemy){
         enemy->pos_y = 0;
 
 
-        calculate_velo(enemy->start_x + enemy_wiggle_time, enemy->start_y, enemy, 2);
+        calculate_velo(enemy->start_x + enemy_wiggle_time, enemy->start_y, enemy, 1, 2);
     }
 
     
@@ -409,7 +393,7 @@ void enemy_attack(enemy *enemy){
         }
 
         else 
-            calculate_velo(enemy->start_x + enemy_wiggle_time, enemy->start_y, enemy, 2);
+            calculate_velo(enemy->start_x + enemy_wiggle_time, enemy->start_y, enemy, 1, 2);
 
     }
 
@@ -418,6 +402,186 @@ void enemy_attack(enemy *enemy){
 }
 
 
+
+void enemy_shoot(enemy *enemy){
+
+    spaceship *ship = &game_state.ship;
+
+    if (enemy->bul_cooldown <= 0 && enemy->turn_counter >= TURN_TIME && !enemy->returning){
+
+        if (enemy->sprite == 3){
+
+            if (abs(ship->pos_x - enemy->pos_x) <= 40
+                    && abs(ship->pos_y - enemy->pos_y) <= 150
+                    && ship->pos_y - 40 > enemy->pos_y){
+
+                if(!enemy->bul.active){
+
+                    enemy->bul.active = 1;
+
+                    enemy->bul.pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+                    enemy->bul.pos_y = enemy->pos_y+(ENEMY_HEIGHT);
+
+                    enemy->bul.velo_y = 3;
+                    enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
+                }
+            }
+        }
+
+        else if(enemy->sprite == 4){
+
+            if (abs(ship->pos_x - enemy->pos_x) <= 150
+                && abs(ship->pos_y - enemy->pos_y <= 200
+                && ship->pos_y - 40 > enemy->pos_y)){
+
+                if(!enemy->bul.active){
+
+                    enemy->bul.active = 1;
+
+                    enemy->bul.pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+                    enemy->bul.pos_y = enemy->pos_y+(ENEMY_HEIGHT);
+
+                    // printf("ACTIVE 1 %d, %d \n", enemy->bullets[0].pos_x, enemy->bullets[0].pos_y);
+
+                    calculate_velo(ship->pos_x, ship->pos_y, &enemy->bul, 0, 4);
+                    enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
+                }
+            }
+        }
+    }
+
+    else if(enemy->turn_counter <= TURN_TIME)
+        enemy->bul_cooldown --;
+
+
+    if(enemy->bul.active){
+
+        enemy->bul.pos_x += enemy->bul.velo_x;
+        enemy->bul.pos_y += enemy->bul.velo_y;
+
+        if (abs(ship->pos_x - enemy->bul.pos_x) <= SHIP_WIDTH
+                    && abs(ship->pos_y - enemy->bul.pos_y) <= SHIP_HEIGHT){
+
+            enemy->bul.active = 0;
+            ship->lives --;
+
+            printf("HITTTTTTTT \n");
+
+        }
+
+        if (enemy->bul.pos_y >= SCREEN_HEIGHT || enemy->bul.pos_x >= SCREEN_WIDTH || enemy->bul.pos_x < 0) 
+            enemy->bul.active = 0;
+
+    }
+}
+
+
+// void enemy_shoot(enemy *enemy){
+
+//     spaceship *ship = &game_state.ship;
+//     bullet *bul;
+
+
+//     if (enemy->bul_cooldown <= 0 && enemy->turn_counter >= TURN_TIME && !enemy->returning){
+
+//         if (enemy->sprite == 3){
+
+//             if (abs(ship->pos_x - enemy->pos_x) <= 40
+//                     && abs(ship->pos_y - enemy->pos_y) <= 100
+//                     && ship->pos_y > enemy->pos_y){
+
+//                 if(!enemy->bullets[0].active){
+
+//                     enemy->bullets[0].active = 1;
+
+//                     enemy->bullets[0].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+//                     enemy->bullets[0].pos_y = enemy->pos_y+(ENEMY_HEIGHT);
+
+//                     enemy->bullets[0].velo_y = 3;
+//                     enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
+//                 }
+//                 else if (!enemy->bullets[1].active){
+
+//                     enemy->bullets[1].active = 1;
+
+//                     enemy->bullets[1].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+//                     enemy->bullets[1].pos_y = enemy->pos_y+(ENEMY_HEIGHT);
+
+//                     enemy->bullets[1].velo_y = 3;
+//                     enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN*2;
+//                 }
+//             }
+//         }
+
+//         else if(enemy->sprite == 4){
+
+//             printf("WHY ARENT YOU SHOOTING \n");
+
+//             if (abs(ship->pos_x - enemy->pos_x) <= 150
+//                 && abs(ship->pos_y - enemy->pos_y <= 200
+//                 && ship->pos_y- 20 > enemy->pos_y)){
+
+//                     if(!enemy->bullets[0].active){
+
+//                         enemy->bullets[0].active = 1;
+
+//                         enemy->bullets[0].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+//                         enemy->bullets[0].pos_y = enemy->pos_y+(ENEMY_HEIGHT);
+
+//                         printf("ACTIVE 1 %d, %d \n", enemy->bullets[0].pos_x, enemy->bullets[0].pos_y);
+
+
+//                         calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[0], 0, 4);
+//                         enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
+//                     }
+//                     else if (!enemy->bullets[1].active){
+
+//                         enemy->bullets[1].active = 1;
+
+//                         printf("ACTIVE 2 \n");
+
+//                         enemy->bullets[1].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+//                         enemy->bullets[1].pos_y = enemy->pos_y+(ENEMY_HEIGHT);
+
+
+//                         printf("ACTIVE 1 %d, %d \n", enemy->bullets[1].pos_x, enemy->bullets[1].pos_y);
+
+
+//                         calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[1], 0, 4);
+//                         enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN*2;
+//                     }
+//             }
+//         }
+//     }
+
+//     else if(enemy->turn_counter <= TURN_TIME)
+//         enemy->bul_cooldown --;
+
+
+//     for(int i = 0; i<2; i++){
+
+//         bul = &enemy->bullets[i];
+
+//         if(!bul->active) continue;
+
+//         bul->pos_x += bul->velo_x;
+//         bul->pos_y += bul->velo_y;
+
+
+//         if (abs(ship->pos_x - bul->pos_x) <= SHIP_WIDTH
+//                     && abs(ship->pos_y - bul->pos_y) <= SHIP_HEIGHT){
+
+//             bul->active = 0;
+//             ship->lives --;
+
+//             printf("HITTTTTTTT \n");
+
+//         }
+//         if (bul->pos_y >= SCREEN_HEIGHT || bul->pos_x >= SCREEN_WIDTH || bul->pos_x < 0) 
+//             bul->active = 0;
+//     }
+
+// }
 
 void change_row_ends(int i, int row_num, int front){
 
@@ -446,10 +610,60 @@ void change_row_ends(int i, int row_num, int front){
     }
 }
 
+void bullet_movement(int new_bullet){
+
+    bullet *bul;
+    enemy *enemy;
+
+    for (int i = 0; i < MAX_BULLETS; i++) {
+
+        bul = &game_state.bullets[i];
+
+        if (bul->active){
+
+            bul->pos_y += bul->velo_y;
+            if (bul->pos_y < 5){ // top of screen
+
+                bul->active = 0;
+                game_state.ship.num_bullets --;
+                continue;
+            }
+
+            for (int j = 0; j<ENEMY_COUNT; j++){ // checking to see if we hit an enemy
+
+                enemy = &game_state.enemies[j];
+
+                if (enemy->active && abs(enemy->pos_x - bul->pos_x) <= ENEMY_WIDTH
+                    && abs(enemy->pos_y - bul->pos_y) <= ENEMY_HEIGHT){
+
+
+                    if(i == row_backs[enemy->row]) change_row_ends(i, enemy->row, 0);
+
+                    else if (i == row_fronts[enemy->row]) change_row_ends(i, enemy->row, 1);
+
+                    enemy->active = 0;
+                    bul->active = 0;
+                    game_state.ship.num_bullets --;
+                    break;
+                }
+            }
+        }
+
+        else if (!bul->active && new_bullet) {
+            bul->active = 1;
+            bul->pos_x = game_state.ship.pos_x+(SHIP_WIDTH/2); // make it start in the middle of the ship
+            bul->pos_y = game_state.ship.pos_y-(SHIP_HEIGHT/2); // make it start above the ship
+            bul->velo_y = -3; // towards the top of the screen
+            game_state.ship.num_bullets ++;
+            new_bullet = 0;
+        }
+    }
+}
+
 
 int enemy_movement(int rand_enemy){
 
-    int cont, rand_side, row_num, num_left;
+    int cont, row_num, num_left = 0;
     enemy *enemy;
 
     if (rand_enemy != 0){
@@ -460,9 +674,7 @@ int enemy_movement(int rand_enemy){
 
         else if(rand_enemy == 2) row_num = 0;
 
-        rand_side = rand()%2;
-
-        if (rand_side) rand_enemy = row_backs[row_num];
+        if (enemy_wiggle > 0) rand_enemy = row_backs[row_num];
         else rand_enemy = row_fronts[row_num];
 
     }
@@ -473,52 +685,66 @@ int enemy_movement(int rand_enemy){
         enemy = &game_state.enemies[i];
 
 
-        if (!enemy->active) continue;
+        if (enemy->active){
 
-        if(!enemy->moving && rand_enemy == i){
+            num_left++;
 
-            if (rand_side) change_row_ends(i, row_num, 0);
-                
-            else change_row_ends(i, row_num, 1);
+            if(enemy->active && !enemy->moving && rand_enemy == i){
 
-            enemy-> velo_x = 0;
-            enemy->velo_y = -4;
-
-            enemy->moving = 1;
-            enemies_moving ++;
-        }
-
-        if(enemy->moving) {
+                if (enemy_wiggle > 0) change_row_ends(i, row_num, 0);
             
-            enemy_attack(enemy);
+                else change_row_ends(i, row_num, 1);
 
+                enemy-> velo_x = 0;
+                enemy->velo_y = -4;
 
-            if (!enemy->moving){
-
-                if(i > row_backs[enemy->row]) row_backs[enemy->row] = i;
-                if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
+                enemy->moving = 1;
+                enemies_moving ++;
             }
+
+            if(enemy->moving) {
+
+                enemy_attack(enemy);
+
+                if (!enemy->moving){
+
+                    if(i > row_backs[enemy->row]) row_backs[enemy->row] = i;
+                    if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
+                }
+
+                else
+                    enemy_shoot(enemy);
+
+            }
+
+            else
+                enemy->pos_x += enemy_wiggle;
+
+        }
+        else {
+            // if(enemy->bullets[0].active || enemy->bullets[1].active) 
+            if(enemy->bul.active)
+                enemy_shoot(enemy);
+
+            else continue;
         }
 
-        else{
-            enemy->pos_x += enemy_wiggle;
-        }
 
         if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
             && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
 
                 enemy->active = 0;
 
-                if(i == row_backs[enemy->row]) change_row_ends(i, row_num, 0);
+                if(i == row_backs[enemy->row]) change_row_ends(i, enemy->row, 0);
 
-                else if (i == row_fronts[enemy->row]) change_row_ends(i, row_num, 1);
+                else if (i == row_fronts[enemy->row]) change_row_ends(i, enemy->row, 1);
 
                 game_state.ship.lives -= 1;
                 num_left --;
             }
     }
 
-    return 1;
+    return num_left;
 }
 
 
@@ -659,27 +885,47 @@ int enemy_movement(int rand_enemy){
 //     return num_left;
 // }
 
-
-
 int enemies_to_move(){
 
-
-    int rand_enemy = rand()%7;
-
-
-    if(rand_enemy >=0 && rand_enemy < 4) rand_enemy = 4;
-
-    else if (rand_enemy >= 4 && rand_enemy < 6) rand_enemy = 3;
-
-    else rand_enemy = 2;
+    int active2 = 0, active3 = 0, active4 = 0;
+    enemy *enemy;
 
 
+    for (int i = 0; i< ENEMY_COUNT; i++){
 
-    if (round_time < 100) return 0;
+        enemy = &game_state.enemies[i];
 
-    else if (round_time > 500){
+        switch (enemy->sprite){
 
-        if(round_time >= 750) round_time = 0;
+            case 2:
+                active2 ++;
+                break;
+
+            case 3:
+                active3 ++;
+                break;
+
+            case 4:
+                active4 ++;
+                break;
+        }
+    }
+
+    int rand_enemy = rand() % (active2 + active3 + active4);
+
+    if (rand_enemy < active2) {
+        rand_enemy = 2;
+    } else if (rand_enemy < active2 + active3) {
+        rand_enemy =  3;
+    } else {
+        rand_enemy = 4;
+    }
+
+    if (round_time < 100+ROUND_WAIT) return 0;
+
+    else if (round_time > 500+ ROUND_WAIT){
+
+        if(round_time >= 750+ROUND_WAIT) round_time = 0;
 
         return 0;
     }
@@ -701,7 +947,7 @@ int main(){
 
     spaceship *ship = &game_state.ship;
     controller_packet packet;
-    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy;
+    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy, round_wait = ROUND_WAIT;
     int bumpers = 0, buttons = 0;
 
     srand((unsigned)time(NULL));
@@ -731,15 +977,17 @@ int main(){
 
     printf("Game Begins! \n");
 
-    init_game_state();
-    update_hardware();
+    init_round_state();
+    update_enemies();
+    update_ship();
+
+
     for (;;){
 
         round_time++;
 
         enemy_wiggle_time += enemy_wiggle;
         if (abs(enemy_wiggle_time) == 80) enemy_wiggle = -enemy_wiggle;
-
 
         new_bullet = 0;
 
@@ -843,23 +1091,55 @@ int main(){
                     break;
             }
 
-            ship_movement();
-            bullet_movement(new_bullet);
-            rand_enemy = enemies_to_move();
-            enemies_remaining = enemy_movement(rand_enemy);
+            
 
             if(ship->lives <= 0){
                 printf("You lost =( \n");
                 break;
             }
 
-            // if(!enemies_remaining){
-            //     printf("You Won!");
-            //     break;
-            // }
+            if(enemies_remaining <= 0){
+
+                if(round_num == 3){
+
+                    printf("You Won!");
+                    break;
+                }
+                else{
+
+                    row_vals[0] ++;
+
+                    for (int i = 1; i<5; i++)
+                        row_vals[i] += round_num*2;
+
+                    round_num ++;
+                    enemies_remaining = 1;
+
+                    init_round_state();
+
+                    round_wait = ROUND_WAIT;
 
 
-            update_hardware();
+
+                }
+            }
+
+            ship_movement();
+
+
+            if (--round_wait <= 0){
+                
+                bullet_movement(new_bullet);
+                rand_enemy = enemies_to_move();
+                enemies_remaining = enemy_movement(rand_enemy);
+
+                update_enemies();
+                
+            }
+                
+
+
+            update_ship();
 
             usleep(16000);
         }    

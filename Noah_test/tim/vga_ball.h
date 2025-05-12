@@ -6,7 +6,7 @@
 
 /* 定义最大子弹数量 */
 #define MAX_BULLETS 5
-#define ENEMY_COUNT 50
+#define ENEMY_COUNT 22
 #define LIFE_COUNT 5
 
 /* Color structure */
@@ -23,7 +23,7 @@ typedef struct {
 
 typedef struct {
     unsigned short pos_x, pos_y;
-    short velo_y; // velo_x is always 0 on bullets
+    short velo_x, velo_y;
     bool active;
 } bullet;
 
@@ -32,8 +32,8 @@ typedef struct {
     short velo_x, velo_y;
     short start_x, start_y;
     bullet bul;
-    short move_time;
-    char sprite, turn_counter, row;
+    short move_time, bul_cooldown;
+    char sprite, turn_counter, row, col;
     bool active, returning, moving;
 } enemy;
 
@@ -48,7 +48,8 @@ typedef struct {
 #define VGA_BALL_MAGIC 'v'
 
 /* ioctls and their arguments */
-#define VGA_BALL_UPDATE_GAME_STATE   _IOW(VGA_BALL_MAGIC, 1, gamestate)
+#define VGA_BALL_UPDATE_ENEMIES   _IOW(VGA_BALL_MAGIC, 1, gamestate)
+#define VGA_BALL_UPDATE_SHIP   _IOW(VGA_BALL_MAGIC, 2, spaceship)
 
 
 #endif /* _VGA_BALL_H */

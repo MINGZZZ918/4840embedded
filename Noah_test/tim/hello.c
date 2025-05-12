@@ -622,7 +622,7 @@ int main(){
         if (abs(enemy_wiggle_time) == 20) 
         {       
             
-            printf("AHHHHHHHHHHHHHHHHHh \n");
+            printf("AHHHHHHHHHHHHHHHHHh %d\n", enemy_wiggle);
             enemy_wiggle = -enemy_wiggle;
 
         }

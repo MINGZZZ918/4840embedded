@@ -354,17 +354,35 @@ void move_enemy(enemy *enemy){
 
     if (enemy->pos_y > SCREEN_HEIGHT || enemy->pos_x > SCREEN_WIDTH || enemy->pos_x < 0){
 
+        enemy->returning = 1;
+
         enemy->pos_x = enemy->start_x;
-        enemy->pos_y = enemy->start_y;
+        enemy->pos_y = 0;
 
-        enemy->velo_x = 0;
-        enemy->velo_y = 0;
 
-        enemy->moving = 0;
-        enemy->move_time = 0;
-        enemy->turn_counter = 0;
+        calculate_velo(enemy->start_x, enemy->start_y, enemy, 2);
+    }
 
-        enemies_moving --;
+    
+    if (enemy->returning){
+
+
+        if (enemy->pos_x == enemy->start_x && enemy->pos_y == enemy->start_y){
+
+            enemy->velo_x = 0;
+            enemy->velo_y = 0;
+
+            enemy->moving = 0;
+            enemy->returning = 0;
+            enemy->move_time = 0;
+            enemy->turn_counter = 0;
+
+            enemies_moving --;
+        }
+        
+        else 
+            calculate_velo(enemy->start_x, enemy->start_y, enemy, 2);
+
     }
 
     enemy->pos_x += enemy->velo_x;

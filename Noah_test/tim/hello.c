@@ -297,7 +297,7 @@ void enemy_attack(enemy *enemy){
 
         if (enemy->sprite == 2){
 
-            if(++enemy->move_time < 250)
+            if(++enemy->move_time < 200)
                 calculate_velo(ship->pos_x, ship->pos_y, enemy,3);
             else{
 
@@ -373,7 +373,11 @@ void enemy_attack(enemy *enemy){
     if (enemy->returning){
 
 
-        if (enemy->pos_x == enemy->start_x + enemy_wiggle_time && enemy->pos_y == enemy->start_y){
+        if (abs(enemy->pos_x - enemy->start_x + enemy_wiggle_time) < 10 && abs(enemy->pos_y -enemy->start_y) < 10){
+
+
+            enemy->pos_x = enemy->start_x+enemy_wiggle_time;
+            enemy->pos_y = enemy->start_y;
 
             enemy->velo_x = 0;
             enemy->velo_y = 0;

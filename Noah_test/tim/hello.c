@@ -383,19 +383,22 @@ void enemy_shoot(enemy *enemy){
                     if(aquired){
 
                         enemy->bul_cooldown = ENEMY4_BULLET_COOLDOWN;
-                        calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul1], 0, 1);
+
+                        game_state.bullets[enemy->bul1].velo_y = 3;
+
+                        // calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul1], 0, 1);
 
                     }
                 }
-                else if (enemy->bul2 == -1){
+                // else if (enemy->bul2 == -1){
 
-                    aquired = aquire_bullet(enemy, 2);
+                //     aquired = aquire_bullet(enemy, 2);
 
-                    if(aquired){
-                        enemy->bul_cooldown = ENEMY4_BULLET_COOLDOWN;
-                        calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul2], 0, 1);
-                    }   
-                }
+                //     if(aquired){
+                //         enemy->bul_cooldown = ENEMY4_BULLET_COOLDOWN;
+                //         calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul2], 0, 1);
+                //     }   
+                // }
             }
         }
     }
@@ -667,21 +670,8 @@ int enemy_movement(int rand_enemy){
                     if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
                 }
 
-                else{
-
-                    int hi = aquire_bullet(enemy, 1);
-
-                    if(hi){
-
-                        printf("%d \n", enemy->bul1);
-
-                        game_state.bullets[enemy->bul1].velo_y = 3;
-
-                        move_enemy_bul(enemy, 1);
-
-                    }
-                }
-                    // enemy_shoot(enemy);
+                else
+                    enemy_shoot(enemy);
             }
 
             else

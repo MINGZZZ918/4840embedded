@@ -378,6 +378,10 @@ void enemy_shoot(enemy *enemy){
                     aquired = aquire_bullet(enemy, 1);
 
                     if(aquired){
+
+                        printf("AHHHHHHHHHH \n");
+
+
                         enemy->bul_cooldown = ENEMY4_BULLET_COOLDOWN;
                         calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul1], 0, 4);
 

@@ -343,24 +343,24 @@ void enemy_attack(enemy *enemy){
             }
 
         }
-        // else{
+        else{
 
-        //     if(++enemy->move_time == 150){
+            if(++enemy->move_time == 150){
 
-        //         cont = rand() % 3;
+                cont = rand() % 3;
 
-        //         if(!cont)
-        //             enemy->velo_x = -enemy->velo_x;
-        //         else
-        //             enemy->move_time --;
-        //     }
+                if(!cont)
+                    enemy->velo_x = -enemy->velo_x;
+                else
+                    enemy->move_time --;
+            }
 
-        //     else if(enemy->move_time == 250){
+            else if(enemy->move_time == 250){
 
-        //         enemy->velo_x = 0;
-        //         enemy->velo_y = 2;
-        //     }
-        // }
+                enemy->velo_x = 0;
+                enemy->velo_y = 2;
+            }
+        }
 
     }
 
@@ -421,7 +421,7 @@ int enemy_movement(){
 
         enemy = &game_state.enemies[i];
 
-        if(!enemy->moving && !enemies_moving && i == rand_enemy && enemy->sprite == 3){
+        if(!enemy->moving && !enemies_moving && i == rand_enemy && enemy->sprite == 4){
 
             enemy-> velo_x = 0;
             enemy->velo_y = -4;

@@ -287,6 +287,8 @@ bool aquire_bullet(enemy *enemy, int bul_num){
         }
     }
 
+    printf("FAILED TO ACQUIRE \n");
+
     return 0;
 
 
@@ -348,6 +350,8 @@ void enemy_shoot(enemy *enemy){
                     && ship->pos_y - 60 > enemy->pos_y){
 
                 if (enemy->bul1 == -1){
+
+                    printf("TRY TO SHOOT\n");
 
                     aquired = aquire_bullet(enemy, 1);
 

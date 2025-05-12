@@ -419,8 +419,14 @@ int enemy_movement(){
 
         if(enemy->moving) enemy_attack(enemy);
 
-        else
-            enemy->pos_x += enemy_wiggle;
+        else{
+
+            if (++total_time%3 == 0) enemy->pos_x += enemy_wiggle;
+
+
+
+        }
+            
 
     }
 
@@ -608,8 +614,8 @@ int main(){
     update_hardware();
     for (;;){
 
-        if (++total_time%11 == 0) enemy_wiggle_time += enemy_wiggle;
-        if (abs(enemy_wiggle_time) == 15) enemy_wiggle = -enemy_wiggle;
+        enemy_wiggle_time += enemy_wiggle;
+        if (abs(enemy_wiggle_time) == 50) enemy_wiggle = -enemy_wiggle;
 
 
         printf("%d, %d, %d \n", total_time, enemy_wiggle_time, enemy_wiggle);

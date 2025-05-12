@@ -434,7 +434,7 @@ void enemy_shoot(enemy *enemy){
 
             if (abs(ship->pos_x - enemy->pos_x) <= 100
                 && abs(ship->pos_y - enemy->pos_y <= 200
-                && ship->pos_y > enemy->pos_y)){
+                && ship->pos_y- 20 > enemy->pos_y)){
 
                     if(!enemy->bullets[0].active){
 

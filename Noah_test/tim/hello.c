@@ -1091,10 +1091,7 @@ int main(){
                     break;
             }
 
-            ship_movement();
-            bullet_movement(new_bullet);
-            rand_enemy = enemies_to_move();
-            enemies_remaining = enemy_movement(rand_enemy);
+            
 
             if(ship->lives <= 0){
                 printf("You lost =( \n");
@@ -1124,8 +1121,19 @@ int main(){
                 }
             }
 
-            if (--round_wait <= 0)
+            ship_movement();
+
+
+            if (--round_wait <= 0){
+                
+                bullet_movement(new_bullet);
+                rand_enemy = enemies_to_move();
+                enemies_remaining = enemy_movement(rand_enemy);
+
                 update_enemies();
+                
+            }
+                
 
 
             update_ship();

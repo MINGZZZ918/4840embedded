@@ -230,7 +230,6 @@ void calculate_velo(int x, int y, enemy *enemy, short scaler){
 
     printf("%f, %f \n", new_x, new_y);
 
-
     enemy->velo_x = (int)new_x;
     enemy->velo_y = (int)new_y;
 
@@ -292,11 +291,16 @@ void move_enemy(enemy *enemy){
 
         if (enemy->sprite == 2){
 
-            if(++enemy->move_time < 1500)
+            if(++enemy->move_time < 1000)
                 calculate_velo(ship->pos_x, ship->pos_y, enemy,3);
-            else
+            else{
+
                 enemy->velo_x = 0;
                 enemy->velo_y = 2;
+            }
+
+
+
         }
 
         // else if (enemy->sprite == 3){

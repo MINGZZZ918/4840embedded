@@ -316,6 +316,8 @@ void move_enemy_bul(enemy *enemy, int bul_num){
             if (bul_num == 1) enemy->bul1 = -1;
             else enemy->bul2 = -1;
 
+            printf("HITTTTTTTT \n");
+
             ship->lives --;
         }
 

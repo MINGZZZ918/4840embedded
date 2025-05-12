@@ -398,7 +398,7 @@ void enemy_shoot(enemy *enemy){
         if (enemy->sprite == 3){
 
             if (abs(ship->pos_x - enemy->pos_x) <= 40
-                    && abs(ship->pos_y - enemy->pos_y) <= 100
+                    && abs(ship->pos_y - enemy->pos_y) <= 150
                     && ship->pos_y > enemy->pos_y){
 
                 if(!enemy->bul.active){
@@ -418,7 +418,7 @@ void enemy_shoot(enemy *enemy){
 
             if (abs(ship->pos_x - enemy->pos_x) <= 150
                 && abs(ship->pos_y - enemy->pos_y <= 200
-                && ship->pos_y- 20 > enemy->pos_y)){
+                && ship->pos_y - 40 > enemy->pos_y)){
 
                 if(!enemy->bul.active){
 

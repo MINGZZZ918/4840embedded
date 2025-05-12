@@ -430,6 +430,8 @@ void enemy_shoot(enemy *enemy){
 
         if(enemy->sprite == 4){
 
+            printf("WHY ARENT YOU SHOOTING \n");
+
             if (abs(ship->pos_x - enemy->pos_x) <= 100
                 && abs(ship->pos_y - enemy->pos_y <= 200
                 && ship->pos_y > enemy->pos_y)){

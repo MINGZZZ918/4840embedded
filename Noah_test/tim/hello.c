@@ -396,7 +396,7 @@ void enemy_shoot(enemy *enemy){
     bullet *bul;
 
 
-    if (!enemy->bul_cooldown && enemy->turn_counter >= TURN_TIME){
+    if (enemy->bul_cooldown <= 0 && enemy->turn_counter >= TURN_TIME){
 
         // if (enemy->sprite == 3){
 

@@ -373,7 +373,7 @@ void enemy_attack(enemy *enemy){
     if (enemy->returning){
 
 
-        if (abs(enemy->pos_x - enemy->start_x + enemy_wiggle_time) < 10 && abs(enemy->pos_y -enemy->start_y) < 10){
+        if (abs(enemy->pos_x - enemy->start_x + enemy_wiggle_time) < 5 && abs(enemy->pos_y -enemy->start_y) < 5){
 
 
             enemy->pos_x = enemy->start_x+enemy_wiggle_time;

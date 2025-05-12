@@ -213,7 +213,7 @@ void bullet_movement(int new_bullet){
 
 
 
-void calculate_velo(int x, int y, enemy *enemy, char scaler){
+void calculate_velo(int x, int y, enemy *enemy, short scaler){
 
     float new_x, new_y, mag;
 

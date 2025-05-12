@@ -616,7 +616,6 @@ int enemies_to_move(){
 }
 
 
-
 int enemy_movement(int rand_enemy){
 
     int cont, row_num, num_left = 0;
@@ -668,8 +667,21 @@ int enemy_movement(int rand_enemy){
                     if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
                 }
 
-                // else
-                //     enemy_shoot(enemy);
+                else{
+
+                    int hi = aquire_bullet(enemy, 1);
+
+                    if(hi){
+
+                        printf("%d \n", enemy->bul1);
+
+                        game_state.bullets[enemy->bul1].velo_y = 3;
+
+                        move_enemy_bul(enemy, 1);
+
+                    }
+                }
+                    // enemy_shoot(enemy);
             }
 
             else
@@ -758,7 +770,10 @@ void ship_movement(){
 
     spaceship *ship = &game_state.ship;
 
-    ship->pos_x += ship->velo_x;
+    if(ship->pos_x > 0 && ship->pos_x < SCREEN_WIDTH-SHIP_WIDTH)
+        ship->pos_x += ship->velo_x;
+
+    if(ship->pos_y > 0 && ship->pos_y < SCREEN_HEIGHT-SHIP_HEIGHT)
     ship->pos_y += ship->velo_y;
 }
 

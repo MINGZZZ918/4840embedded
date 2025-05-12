@@ -313,7 +313,7 @@ void enemy_attack(enemy *enemy){
 
                 if (enemy->pos_x - ship->pos_x > 10){
                     
-                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
+                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 3);
                     enemy->move_time++;
                 }
             }
@@ -322,14 +322,14 @@ void enemy_attack(enemy *enemy){
 
                 if (ship->pos_x - enemy->pos_x > 10){
 
-                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
+                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 3);
                     enemy->move_time++;
                 }
             }
 
             else{
 
-                calculate_velo(ship->pos_x, ship->pos_y, enemy, 1);
+                calculate_velo(ship->pos_x, ship->pos_y, enemy, 2);
 
                 if(++ enemy->move_time > 100){
 

@@ -404,11 +404,11 @@ void enemy_shoot(enemy *enemy){
         enemy->bul_cooldown --;
 
 
-    if(game_state.bullets[enemy->bul1].active)
+    if(enemy->bul1 != -1 && game_state.bullets[enemy->bul1].active)
         move_enemy_bul(enemy, 1);
 
-    if(game_state.bullets[enemy->bul2].active)
-        move_enemy_bul(enemy, 2);
+    // if(game_state.bullets[enemy->bul2].active)
+    //     move_enemy_bul(enemy, 2);
 
 }
 

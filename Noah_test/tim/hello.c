@@ -704,7 +704,8 @@ int enemy_movement(int rand_enemy){
         else{
             enemy->pos_x += enemy_wiggle;
 
-            if(enemy->bullets[0].active || enemy->bullets[1].active) 
+            // if(enemy->bullets[0].active || enemy->bullets[1].active) 
+            if(enemy->bul.active)
                 enemy_shoot(enemy);
 
 

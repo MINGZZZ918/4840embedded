@@ -273,6 +273,8 @@ bool aquire_bullet(enemy *enemy, int bul_num){
 
         if(!bul->active){
 
+            printf("NOT ACTIVE");
+
             bul->active = 1;
 
             bul->pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
@@ -373,9 +375,6 @@ void enemy_shoot(enemy *enemy){
             if (abs(ship->pos_x - enemy->pos_x) <= 150
                 && abs(ship->pos_y - enemy->pos_y <= 200
                 && ship->pos_y - 40 > enemy->pos_y)){
-
-                    printf("TRY TO SHOOOt \n");
-
 
                 if (enemy->bul1 == -1){
 

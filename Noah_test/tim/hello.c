@@ -184,51 +184,6 @@ void ship_movement(){
     ship->pos_y += ship->velo_y;
 }
 
-void bullet_movement(int new_bullet){
-
-    bullet *bul;
-    enemy *enemy;
-
-    for (int i = 0; i < MAX_BULLETS; i++) {
-
-        bul = &game_state.bullets[i];
-
-        if (bul->active){
-
-            bul->pos_y += bul->velo_y;
-            if (bul->pos_y < 5){ // top of screen
-
-                bul->active = 0;
-                game_state.ship.num_bullets --;
-                continue;
-            }
-
-            for (int j = 0; j<ENEMY_COUNT; j++){ // checking to see if we hit an enemy
-
-                enemy = &game_state.enemies[j];
-
-                if (enemy->active && abs(enemy->pos_x - bul->pos_x) <= ENEMY_WIDTH
-                    && abs(enemy->pos_y - bul->pos_y) <= ENEMY_HEIGHT){
-
-                    enemy->active = 0;
-                    bul->active = 0;
-                    game_state.ship.num_bullets --;
-                    break;
-                }
-            }
-        }
-
-        else if (!bul->active && new_bullet) {
-            bul->active = 1;
-            bul->pos_x = game_state.ship.pos_x+(SHIP_WIDTH/2); // make it start in the middle of the ship
-            bul->pos_y = game_state.ship.pos_y-(SHIP_HEIGHT/2); // make it start above the ship
-            bul->velo_y = -3; // towards the top of the screen
-            game_state.ship.num_bullets ++;
-            new_bullet = 0;
-        }
-    }
-}
-
 
 void calculate_velo(int x, int y, enemy *enemy, short scaler){
 
@@ -446,6 +401,56 @@ void change_row_ends(int i, int row_num, int front){
     }
 }
 
+void bullet_movement(int new_bullet){
+
+    bullet *bul;
+    enemy *enemy;
+
+    for (int i = 0; i < MAX_BULLETS; i++) {
+
+        bul = &game_state.bullets[i];
+
+        if (bul->active){
+
+            bul->pos_y += bul->velo_y;
+            if (bul->pos_y < 5){ // top of screen
+
+                bul->active = 0;
+                game_state.ship.num_bullets --;
+                continue;
+            }
+
+            for (int j = 0; j<ENEMY_COUNT; j++){ // checking to see if we hit an enemy
+
+                enemy = &game_state.enemies[j];
+
+                if (enemy->active && abs(enemy->pos_x - bul->pos_x) <= ENEMY_WIDTH
+                    && abs(enemy->pos_y - bul->pos_y) <= ENEMY_HEIGHT){
+
+
+                    if(i == row_backs[enemy->row]) change_row_ends(i, enemy->row, 0);
+
+                    else if (i == row_fronts[enemy->row]) change_row_ends(i, enemy->row, 1);
+
+                    enemy->active = 0;
+                    bul->active = 0;
+                    game_state.ship.num_bullets --;
+                    break;
+                }
+            }
+        }
+
+        else if (!bul->active && new_bullet) {
+            bul->active = 1;
+            bul->pos_x = game_state.ship.pos_x+(SHIP_WIDTH/2); // make it start in the middle of the ship
+            bul->pos_y = game_state.ship.pos_y-(SHIP_HEIGHT/2); // make it start above the ship
+            bul->velo_y = -3; // towards the top of the screen
+            game_state.ship.num_bullets ++;
+            new_bullet = 0;
+        }
+    }
+}
+
 
 int enemy_movement(int rand_enemy){
 
@@ -509,9 +514,9 @@ int enemy_movement(int rand_enemy){
 
                 enemy->active = 0;
 
-                if(i == row_backs[enemy->row]) change_row_ends(i, row_num, 0);
+                if(i == row_backs[enemy->row]) change_row_ends(i, enemy->row, 0);
 
-                else if (i == row_fronts[enemy->row]) change_row_ends(i, row_num, 1);
+                else if (i == row_fronts[enemy->row]) change_row_ends(i, enemy->row, 1);
 
                 game_state.ship.lives -= 1;
                 num_left --;

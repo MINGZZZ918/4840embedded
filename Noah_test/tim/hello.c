@@ -63,8 +63,8 @@ static int enemies_moving = 0;
 static char row_vals[5] = { 8, 10, 0, 16, 16 };
 static char row_sprites[5] = { 2, 3, 0, 4, 4 };
 
-static short enemy_wiggle = 1;
-static short enemy_wiggle_time = 0;
+static int enemy_wiggle = 1;
+static int enemy_wiggle_time = 0;
 
 
 static int total_time = 0;

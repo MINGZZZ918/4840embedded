@@ -378,6 +378,8 @@ void enemy_shoot(enemy *enemy){
                 && abs(ship->pos_y - enemy->pos_y <= 200
                 && ship->pos_y - 40 > enemy->pos_y)){
 
+                    printf("SHOOOT DAMNIT \n");
+
                 if (enemy->bul1 == -1){
 
                     printf("TRY_TO_SHOOT \n");

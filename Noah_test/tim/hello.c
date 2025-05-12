@@ -376,7 +376,7 @@ int enemy_movement(){
 
         enemy = &game_state.enemies[i];
 
-        if(!enemy->moving && !enemies_moving && i == rand_enemy && enemy->sprite = 3){
+        if(!enemy->moving && !enemies_moving && i == rand_enemy && enemy->sprite == 3){
 
             enemy-> velo_x = 0;
             enemy->velo_y = -4;

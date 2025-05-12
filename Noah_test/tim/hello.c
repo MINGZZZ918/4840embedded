@@ -269,6 +269,8 @@ bool aquire_bullet(enemy *enemy, int bul_num){
     
     for (int i = 0; i<MAX_BULLETS; i++){
 
+        printf("HELOOOOOO \n")
+
         bul = &game_state.bullets[i];
 
         if(!bul->active){

@@ -239,7 +239,7 @@ void calculate_velo(int x, int y, enemy *enemy, short scaler){
     enemy->velo_x = (int)new_x;
     enemy->velo_y = (int)new_y;
 
-    printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
+    // printf("%d, %d \n", enemy->velo_x, enemy->velo_y);
 
 }
 
@@ -620,7 +620,14 @@ int main(){
         
         
 
-        if (abs(enemy_wiggle_time) == 10) enemy_wiggle = -enemy_wiggle;
+        if (abs(enemy_wiggle_time) == 10) 
+        {
+
+            printf("AHHHHHHHHHHHHHHHHHHHHHHHH \n");
+            
+            enemy_wiggle = -enemy_wiggle;
+
+        }
 
 
 

@@ -329,13 +329,13 @@ void enemy_attack(enemy *enemy){
 
             else{
 
-                if(enemy->move_time < 50)
+                if(enemy->move_time < 100)
                     calculate_velo(ship->pos_x -200, ship->pos_y, enemy, 2);
 
                 else
                     calculate_velo(ship->pos_x +200, ship->pos_y, enemy, 2);
 
-                if(++ enemy->move_time > 100){
+                if(++ enemy->move_time > 200){
 
                     enemy->velo_x = 0;
                     enemy->velo_y = 2;

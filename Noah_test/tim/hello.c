@@ -174,14 +174,14 @@ void init_round_state() {
  * Update game state and send to the device
  */
 void update_enemies() {
-    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_GAME_STATE, &game_state)) {
+    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_ENEMIES, &game_state)) {
         perror("ioctl(VGA_BALL_UPDATE_ENEMIES) failed");
         exit(EXIT_FAILURE);
     }
 }
 
 void update_ship() {
-    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_GAME_STATE, &game_state.ship)) {
+    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_SHIP, &game_state.ship)) {
         perror("ioctl(VGA_BALL_UPDATE_SHIP) failed");
         exit(EXIT_FAILURE);
     }

@@ -409,12 +409,21 @@ void enemy_shoot(enemy *enemy){
                     if(!enemy->bullets[0].active){
 
                         enemy->bullets[0].active = 1;
+
+                        enemy->bullets[0].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+                        enemy->bullets[0].pos_y = enemy->pos_x+(ENEMY_HEIGHT/2);
+
                         enemy->bullets[0].velo_y = 2;
                         enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
                     }
                     else if (!enemy->bullets[1].active){
 
                         enemy->bullets[1].active = 1;
+
+
+                        enemy->bullets[1].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+                        enemy->bullets[1].pos_y = enemy->pos_x+(ENEMY_HEIGHT/2);
+
                         enemy->bullets[1].velo_y = 2;
                         enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN*2;
                     }
@@ -429,12 +438,24 @@ void enemy_shoot(enemy *enemy){
                     if(!enemy->bullets[0].active){
 
                         enemy->bullets[0].active = 1;
+
+
+                        enemy->bullets[0].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+                        enemy->bullets[0].pos_y = enemy->pos_x+(ENEMY_HEIGHT/2);
+
+
                         calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[0], 0, 2);
                         enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
                     }
                     else if (!enemy->bullets[1].active){
 
                         enemy->bullets[1].active = 1;
+
+
+                        enemy->bullets[1].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+                        enemy->bullets[1].pos_y = enemy->pos_x+(ENEMY_HEIGHT/2);
+
+
                         calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[1], 0, 2);
                         enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN*2;
                     }

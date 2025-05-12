@@ -67,6 +67,9 @@ static short enemy_wiggle = 1;
 static short enemy_wiggle_time = 0;
 
 
+static int total_time = 0;
+
+
 static short turn_x[TURN_TIME] = {1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
                     1,1,1,1,1,1,1,1,
@@ -605,10 +608,15 @@ int main(){
     update_hardware();
     for (;;){      
 
-        enemy_wiggle_time += enemy_wiggle;
-        if (abs(enemy_wiggle_time) == 5)
+        if (++total_time%3 == 0) enemy_wiggle_time += enemy_wiggle;
+
+        if (abs(enemy_wiggle_time) == 10)
             enemy_wiggle = -enemy_wiggle;
 
+
+
+
+        
 
         new_bullet = 0;
 

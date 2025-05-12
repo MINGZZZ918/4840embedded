@@ -81,7 +81,7 @@ module vga_ball #(
         .color_data (color_data)
     );
     // Final pixel data
-    logic [23:0] sprite_data = color_data;
+    wire [23:0] sprite_data = color_data;
 
     // Write/update logic
     always_ff @(posedge clk) begin

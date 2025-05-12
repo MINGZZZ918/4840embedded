@@ -125,7 +125,7 @@ static gamestate game_state = {
 /**
  * Initialize game state
  */
-void init_game_state() {
+void init_round_state() {
 
     int space, row = 0, enemy_count;
 
@@ -941,7 +941,6 @@ int main(){
                     break;
                 }
 
-
                 row_vals[0] ++;
 
                 for(int i =1; i<5; i++){
@@ -949,10 +948,11 @@ int main(){
                     row_vals[i] += round_num*2;
                 }
 
+                init_round_state();
+
+                enemies_remaining = 1;
                 round_num++;
-
             }
-
 
             update_hardware();
 

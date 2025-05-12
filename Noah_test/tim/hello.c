@@ -63,7 +63,7 @@
 static int vga_ball_fd;
 static int enemies_moving = 0;
 
-static char row_vals[5] = { 0, 3, 4, 6, 8 };
+static char row_vals[5] = { 1, 3, 4, 6, 8 };
 static char row_sprites[5] = { 2, 3, 3, 4, 4 };
 
 
@@ -400,16 +400,17 @@ void enemy_shoot(enemy *enemy){
         if (enemy->sprite == 3){
 
             if (abs(ship->pos_x - enemy->pos_x) <= 10
-                && abs(ship->pos_y - enemy->pos_y) <= 100){
+                && abs(ship->pos_y - enemy->pos_y) <= 100
+                && ship->pos_y > enemy->pos_y){
 
                     if(!enemy->bullets[0].active){
 
                         enemy->bullets[0].active = 1;
 
                         enemy->bullets[0].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
-                        enemy->bullets[0].pos_y = enemy->pos_x+(ENEMY_HEIGHT/2);
+                        enemy->bullets[0].pos_y = enemy->pos_x+(ENEMY_HEIGHT);
 
-                        enemy->bullets[0].velo_y = 2;
+                        enemy->bullets[0].velo_y = 3;
                         enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
                     }
                     else if (!enemy->bullets[1].active){
@@ -418,9 +419,9 @@ void enemy_shoot(enemy *enemy){
 
 
                         enemy->bullets[1].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
-                        enemy->bullets[1].pos_y = enemy->pos_x+(ENEMY_HEIGHT/2);
+                        enemy->bullets[1].pos_y = enemy->pos_x+(ENEMY_HEIGHT);
 
-                        enemy->bullets[1].velo_y = 2;
+                        enemy->bullets[1].velo_y = 3;
                         enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN*2;
                     }
             }
@@ -429,19 +430,20 @@ void enemy_shoot(enemy *enemy){
         else if(enemy->sprite == 4){
 
             if (abs(ship->pos_x - enemy->pos_x) <= 100
-                && abs(ship->pos_y - enemy->pos_y) <= 200){
+                && abs(ship->pos_y - enemy->pos_y
+                && ship->pos_y > enemy->pos_y) <= 200){
 
                     if(!enemy->bullets[0].active){
 
                         enemy->bullets[0].active = 1;
 
                         enemy->bullets[0].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
-                        enemy->bullets[0].pos_y = enemy->pos_y+(ENEMY_HEIGHT/2);
+                        enemy->bullets[0].pos_y = enemy->pos_y+(ENEMY_HEIGHT);
 
                         printf("ACTIVE 1 %d, %d \n", enemy->bullets[0].pos_x, enemy->bullets[0].pos_y);
 
 
-                        calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[0], 0, 2);
+                        calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[0], 0, 3);
                         enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
                     }
                     else if (!enemy->bullets[1].active){
@@ -451,13 +453,13 @@ void enemy_shoot(enemy *enemy){
                         printf("ACTIVE 2 \n");
 
                         enemy->bullets[1].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
-                        enemy->bullets[1].pos_y = enemy->pos_y+(ENEMY_HEIGHT/2);
+                        enemy->bullets[1].pos_y = enemy->pos_y+(ENEMY_HEIGHT);
 
 
                         printf("ACTIVE 1 %d, %d \n", enemy->bullets[1].pos_x, enemy->bullets[1].pos_y);
 
 
-                        calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[1], 0, 2);
+                        calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[1], 0, 3);
                         enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN*2;
                     }
 

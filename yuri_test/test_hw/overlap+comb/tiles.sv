@@ -75,6 +75,8 @@ module vga_ball#(
         .writedata    (32'b0),
         .readdata     (sprite_data)          // 输出：ROM中读出的颜色索引
     );
+    
+    assign color_address = sprite_data;
 
     //color palette
     color_palette palette_inst (
@@ -196,7 +198,7 @@ module vga_ball#(
     always_comb begin
         star_pixel = 1'b0;
         for (int j = 0; j < STAR_COUNT; j++) begin
-            if (hcount[10:1] == star_x[j] && vcount[9:0] == star_y[j])
+            if (hcount == star_x[j] && vcount[9:0] == star_y[j])
             star_pixel = 1'b1;
         end
     end
@@ -220,17 +222,17 @@ module vga_ball#(
         if (reset) begin
             {VGA_R,VGA_G,VGA_B} <= {background_r,background_g,background_b};
         end
-        else if (!VGA_BLANK_n) begin
-            {VGA_R,VGA_G,VGA_B} <= {background_r,background_g,background_b};
-        end
-        else if (sprite_data_reg != 24'h000000) begin
-            {VGA_R,VGA_G,VGA_B} <= sprite_data_reg;
-        end
-        else if (star_pixel && star_on) begin
-            {VGA_R,VGA_G,VGA_B} <= 24'hF78020;
-        end
-        else begin
-            {VGA_R,VGA_G,VGA_B} <= {background_r,background_g,background_b};
+        else if (VGA_BLANK_n) begin
+            if (sprite_data_reg != 24'h000000) begin
+                {VGA_R,VGA_G,VGA_B} <= sprite_data_reg;
+            end
+            //else if (star_pixel && star_on) begin
+            else if (star_pixel) begin
+                {VGA_R,VGA_G,VGA_B} <= 24'hF78020;
+            end
+            else begin
+                {VGA_R,VGA_G,VGA_B} <= {background_r,background_g,background_b};
+            end
         end
     end
 endmodule

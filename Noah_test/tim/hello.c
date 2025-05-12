@@ -383,7 +383,7 @@ void enemy_shoot(enemy *enemy){
                     if(aquired){
 
                         enemy->bul_cooldown = ENEMY4_BULLET_COOLDOWN;
-                        calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul1], 0, 4);
+                        calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul1], 0, 1);
 
                     }
                 }
@@ -393,7 +393,7 @@ void enemy_shoot(enemy *enemy){
 
                     if(aquired){
                         enemy->bul_cooldown = ENEMY4_BULLET_COOLDOWN;
-                        calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul2], 0, 4);
+                        calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul2], 0, 1);
                     }   
                 }
             }

@@ -436,7 +436,7 @@ void enemy_shoot(enemy *enemy){
                         enemy->bullets[0].active = 1;
 
                         enemy->bullets[0].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
-                        enemy->bullets[0].pos_y = enemy->pos_x+(ENEMY_HEIGHT/2);
+                        enemy->bullets[0].pos_y = enemy->pos_y+(ENEMY_HEIGHT/2);
 
                         printf("ACTIVE 1 %d, %d \n", enemy->bullets[0].pos_x, enemy->bullets[0].pos_y);
 
@@ -451,7 +451,7 @@ void enemy_shoot(enemy *enemy){
                         printf("ACTIVE 2 \n");
 
                         enemy->bullets[1].pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
-                        enemy->bullets[1].pos_y = enemy->pos_x+(ENEMY_HEIGHT/2);
+                        enemy->bullets[1].pos_y = enemy->pos_y+(ENEMY_HEIGHT/2);
 
 
                         printf("ACTIVE 1 %d, %d \n", enemy->bullets[1].pos_x, enemy->bullets[1].pos_y);

@@ -44,7 +44,11 @@
 
 #define TURN_TIME 70
 
-#define ENEMY_BULLET_COOLDOWN 30
+#define ENEMY_BULLET_COOLDOWN 60
+
+#define ROUND_WAIT 100
+
+
 
 
 #define LEFT_ARROW 0x00
@@ -139,6 +143,8 @@ void init_round_state() {
 
         enemy = &game_state.enemies[i];
 
+        memset(enemy, 0, sizeof(*enemy));
+
         if (i >= enemy_count){
 
             row_backs[row] = i-1;
@@ -160,6 +166,7 @@ void init_round_state() {
         enemy->sprite = row_sprites[row];
         enemy->active = 1;
         enemy->row = row;
+        enemy->col = (space/2) / (ENEMY_WIDTH + ENEMY_SPACE) + j;
     }
 }
 
@@ -907,11 +914,11 @@ int enemies_to_move(){
         rand_enemy = 4;
     }
 
-    if (round_time < 100) return 0;
+    if (round_time < 100+ROUND_WAIT) return 0;
 
-    else if (round_time > 500){
+    else if (round_time > 500+ ROUND_WAIT){
 
-        if(round_time >= 750) round_time = 0;
+        if(round_time >= 750+ROUND_WAIT) round_time = 0;
 
         return 0;
     }
@@ -933,7 +940,7 @@ int main(){
 
     spaceship *ship = &game_state.ship;
     controller_packet packet;
-    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy;
+    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy, round_wait = ROUND_WAIT;
     int bumpers = 0, buttons = 0;
 
     srand((unsigned)time(NULL));
@@ -1099,12 +1106,16 @@ int main(){
                         row_vals[i] += round_num*2;
 
                     round_num ++;
+
                     init_round_state();
+
+                    round_wait = ROUND_WAIT;
 
                 }
             }
 
-            update_hardware();
+            if (--round_wait <= 0)
+                update_hardware();
 
             usleep(16000);
         }    

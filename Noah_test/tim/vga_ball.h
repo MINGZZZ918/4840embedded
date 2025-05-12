@@ -33,7 +33,7 @@ typedef struct {
     short start_x, start_y;
     bullet bul;
     short move_time, bul_cooldown;
-    char sprite, turn_counter, row;
+    char sprite, turn_counter, row, col;
     bool active, returning, moving;
 } enemy;
 

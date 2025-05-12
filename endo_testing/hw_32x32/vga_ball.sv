@@ -1,168 +1,156 @@
 /*
  * Avalon memory-mapped peripheral for VGA Ball Game
+ * Modified for 32×32 sprites, 8×4k-line ROMs, 256-color (8‑bit) pixels
  */
-
-module vga_ball#(
-    parameter MAX_OBJECTS = 100,    // sprites数量（adress传递的值最后给obj_sprite，这个才是精灵种类，最多64种）
-    parameter SPRITE_WIDTH = 32,   // 所有精灵标准宽度
-    parameter SPRITE_HEIGHT = 32  // 所有精灵标准高度
+module vga_ball #(
+    parameter int MAX_OBJECTS  = 100,
+    parameter int SPRITE_WIDTH  = 32,
+    parameter int SPRITE_HEIGHT = 32
 ) (
     input  logic        clk,
     input  logic        reset,
-    input  logic [31:0] writedata,  // 改为32位宽度
+    input  logic [31:0] writedata,
     input  logic        write,
     input  logic        chipselect,
-    input  logic [6:0]  address,    // 由于一次传32位，地址空间可以减小
+    input  logic [6:0]  address,
+
     output logic [7:0]  VGA_R, VGA_G, VGA_B,
-    output logic        VGA_CLK, VGA_HS, VGA_VS,
+    output logic        VGA_CLK,
+    output logic        VGA_HS,
+    output logic        VGA_VS,
     output logic        VGA_BLANK_n,
     output logic        VGA_SYNC_n
 );
 
-    // 常量定义
-    logic [10:0]    hcount;
-    logic [9:0]     vcount;
-
-    // Background color
-    logic [7:0]     background_r, background_g, background_b;
-    
-    // 游戏对象数组，每个对象包含位置和精灵信息（不懂）
-    logic [11:0]    obj_x[MAX_OBJECTS]; // 12位x坐标
-    logic [11:0]    obj_y[MAX_OBJECTS]; // 12位y坐标
-    logic [5:0]     obj_sprite[MAX_OBJECTS]; // 6位精灵索引，所以最多是64个精灵
-    logic           obj_active[MAX_OBJECTS]; // 活动状态位
-    
-    
-    // 精灵渲染相关
-    localparam int SPRITE_SIZE  = SPRITE_WIDTH * SPRITE_HEIGHT; // 32 * 32 = 1024
-    // full sprite_address spans all 8 ROMs
-    logic [14:0] sprite_address;
-    // split off the top 3 bits to pick which ROM out of 8
-    wire [2:0]  sprite_rom_sel  = sprite_address[14:12];
-    // low 12 bits index into whichever ROM
-    wire [11:0] sprite_rom_addr = sprite_address[11:0];
-
-    logic [7:0] color_address;
-    logic [7:0] rom_data;
-    logic [7:0] rom_r, rom_g, rom_b;
-    logic [23:0] sprite_data;
-    logic [23:0] color_data;  // 来自 color_palette.mif 的 RGB
-    logic        transparent_part; // 精灵中的透明背景可以透出下面的精灵
-
-
-    // ROM IP module
-    //rom_sprites
-    soc_system_rom_sprites sprite_images (
-        .address      (sprite_address),   // ROM 索引地址
-        .chipselect   (1'b1),             // 始终使能
-        .clk          (clk),              // 时钟
-        .clken        (1'b1),             // 时钟使能
-        .debugaccess  (1'b0),
-        .freeze       (1'b0),
-        .reset        (1'b0),
-        .reset_req    (1'b0),
-        .write        (1'b0),
-        .writedata    (32'b0),
-        .readdata     (rom_data)          // 输出：ROM中读出的颜色索引
+    // VGA counters
+    logic [10:0] hcount;
+    logic [9:0]  vcount;
+    vga_counters counters(
+        .clk50(clk),
+        .*  // connects hcount, vcount, VGA_HS, VGA_VS, VGA_CLK, VGA_BLANK_n, VGA_SYNC_n
     );
 
-    //color palette
+    // Background color
+    logic [7:0] background_r, background_g, background_b;
+
+    // Object state arrays
+    logic [11:0] obj_x      [MAX_OBJECTS];
+    logic [11:0] obj_y      [MAX_OBJECTS];
+    logic [4:0]  obj_sprite [MAX_OBJECTS];  // 5-bit pattern ID (0…31)
+    logic        obj_active [MAX_OBJECTS];
+
+    // Sprite address computation
+    localparam int SPRITE_SIZE = SPRITE_WIDTH * SPRITE_HEIGHT;  // 1024
+    logic [14:0] sprite_address;      // total: 8×4096 = 32768 entries (15 bits)
+    wire  [2:0]  sprite_rom_sel  = sprite_address[14:12];
+    wire  [11:0] sprite_rom_addr = sprite_address[11:0];
+
+    // Relative pixel coordinates (0…31)
+    logic [4:0] rel_x, rel_y;
+
+    // ROM data outputs
+    wire [7:0] rom_data0, rom_data1, rom_data2, rom_data3;
+    wire [7:0] rom_data4, rom_data5, rom_data6, rom_data7;
+    wire [7:0] rom_data;
+
+    // Instantiate 8 sprite ROMs (4 k lines × 8 bits)
+    soc_system_rom_sprites sprite_images0 (
+        .address   (sprite_rom_addr),
+        .chipselect(1'b1), 
+        .clk(clk), 
+        .clken(1'b1),
+        .debugaccess(1'b0), 
+        .freeze(1'b0),
+        .reset     (1'b0), 
+        .reset_req(1'b0),
+        .write     (1'b0), 
+        .writedata(32'b0),
+        .readdata  (rom_data0)
+    );
+    soc_system_rom_sprites sprite_images1 (.address(sprite_rom_addr), .chipselect(1'b1), .clk(clk), .clken(1'b1), .debugaccess(1'b0), .freeze(1'b0), .reset(1'b0), .reset_req(1'b0), .write(1'b0), .writedata(32'b0), .readdata(rom_data1));
+    soc_system_rom_sprites sprite_images2 (.address(sprite_rom_addr), .chipselect(1'b1), .clk(clk), .clken(1'b1), .debugaccess(1'b0), .freeze(1'b0), .reset(1'b0), .reset_req(1'b0), .write(1'b0), .writedata(32'b0), .readdata(rom_data2));
+    soc_system_rom_sprites sprite_images3 (.address(sprite_rom_addr), .chipselect(1'b1), .clk(clk), .clken(1'b1), .debugaccess(1'b0), .freeze(1'b0), .reset(1'b0), .reset_req(1'b0), .write(1'b0), .writedata(32'b0), .readdata(rom_data3));
+    soc_system_rom_sprites sprite_images4 (.address(sprite_rom_addr), .chipselect(1'b1), .clk(clk), .clken(1'b1), .debugaccess(1'b0), .freeze(1'b0), .reset(1'b0), .reset_req(1'b0), .write(1'b0), .writedata(32'b0), .readdata(rom_data4));
+    soc_system_rom_sprites sprite_images5 (.address(sprite_rom_addr), .chipselect(1'b1), .clk(clk), .clken(1'b1), .debugaccess(1'b0), .freeze(1'b0), .reset(1'b0), .reset_req(1'b0), .write(1'b0), .writedata(32'b0), .readdata(rom_data5));
+    soc_system_rom_sprites sprite_images6 (.address(sprite_rom_addr), .chipselect(1'b1), .clk(clk), .clken(1'b1), .debugaccess(1'b0), .freeze(1'b0), .reset(1'b0), .reset_req(1'b0), .write(1'b0), .writedata(32'b0), .readdata(rom_data6));
+    soc_system_rom_sprites sprite_images7 (.address(sprite_rom_addr), .chipselect(1'b1), .clk(clk), .clken(1'b1), .debugaccess(1'b0), .freeze(1'b0), .reset(1'b0), .reset_req(1'b0), .write(1'b0), .writedata(32'b0), .readdata(rom_data7));
+
+    // ROM select mux
+    assign rom_data = (sprite_rom_sel == 3'd0) ? rom_data0 :
+                      (sprite_rom_sel == 3'd1) ? rom_data1 :
+                      (sprite_rom_sel == 3'd2) ? rom_data2 :
+                      (sprite_rom_sel == 3'd3) ? rom_data3 :
+                      (sprite_rom_sel == 3'd4) ? rom_data4 :
+                      (sprite_rom_sel == 3'd5) ? rom_data5 :
+                      (sprite_rom_sel == 3'd6) ? rom_data6 : rom_data7;
+
+    // Color palette
+    logic [23:0] color_data;
     color_palette palette_inst (
         .clk        (clk),
         .clken      (1'b1),
-        .address    (color_address),
+        .address    (rom_data),
         .color_data (color_data)
     );
-    assign color_address = rom_data;
-    assign sprite_data = color_data;
-    assign {rom_r, rom_g, rom_b} = sprite_data;
+    // Final pixel data
+    logic [23:0] sprite_data = color_data;
 
-    // Instantiate VGA counter module
-    vga_counters counters(.clk50(clk), .*);
-
-    // Register update logic
-    always_ff @(posedge clk) begin //initialize
+    // Write/update logic
+    always_ff @(posedge clk) begin
         if (reset) begin
-            // 初始化背景色
             background_r <= 8'h00;
             background_g <= 8'h80;
-            background_b <= 8'h00;  // 深蓝色背景
-            
-            // 初始化所有对象
+            background_b <= 8'h00;
             for (int i = 0; i < MAX_OBJECTS; i++) begin
-                obj_x[i] <= 12'd0;
-                obj_y[i] <= 12'd0;
-                obj_sprite[i] <= 6'd0;
+                obj_x[i]      <= 12'd0;
+                obj_y[i]      <= 12'd0;
+                obj_sprite[i] <= 5'd0;
                 obj_active[i] <= 1'b0;
             end
-
-        end 
-
+        end
         else if (chipselect && write) begin
-            case (address)
-                // 设置背景色 - 使用一个32位写入
-                5'd0: {background_r, background_g, background_b} <= writedata[23:0];
-                //如果想在sw设置敌人和子弹数量可以在bg这里传，剩下8bit
-                // 对象数据更新 - 地址1到MAX_OBJECTS对应各个对象
-                default: begin
-                    if (address >= 7'd1 && address <= 7'd1 + MAX_OBJECTS - 1) begin //最先打印的是 bg，然后先传 ship，再传敌人，再传子弹
-                        int obj_idx;
-                        obj_idx = address - 7'd1;
-                        // 解析32位数据
-                        obj_x[obj_idx] <= writedata[31:20];     // 高12位是x坐标
-                        obj_y[obj_idx] <= writedata[19:8];      // 接下来12位是y坐标
-                        obj_sprite[obj_idx] <= writedata[7:2];  // 接下来6位是精灵索引(64 种精灵图案)
-                        obj_active[obj_idx] <= writedata[1];    // 接下来1位是活动状态
-                        // 最低位保留，不使用
-                    end
-                end
-            endcase
+            if (address == 7'd0) begin
+                {background_r, background_g, background_b} <= writedata[23:0];
+            end else if (address >= 7'd1 && address < 7'd1 + MAX_OBJECTS) begin
+                int obj_idx = address - 7'd1;
+                obj_x[obj_idx]      <= writedata[31:20];
+                obj_y[obj_idx]      <= writedata[19:8];
+                obj_sprite[obj_idx] <= writedata[7:3];
+                obj_active[obj_idx] <= writedata[2];
+            end
         end
     end
 
-    // 渲染逻辑 - 确定当前像素属于哪个对象
+    // Render logic
+    logic       found;
     logic [6:0] active_obj_idx;
-    logic obj_visible;
-    logic found; //用来判断有没有找到非透明的像素，没有就继续，直到最后
-    logic [4:0] rel_x, rel_y;
-    logic [23:0] pix; //保留当前层的rgb数据
-    logic [23:0] pix_candidate; //
-    always_comb begin
-        found = 1'b0;
-        obj_visible = 1'b0;
-        active_obj_idx = 7'd0;
-        rel_x = 4'd0;
-        rel_y = 4'd0;
-        pix             = {background_r,background_g,background_b};
-        pix_candidate   = {background_r,background_g,background_b};
-        sprite_address = 14'd0;
-        
-        // 从高优先级到低优先级检查对象（最后绘制的对象优先级最高）
-        for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
-            if (!found &&
-                obj_active[i] && 
-                hcount[10:1] >= obj_x[i][9:0] && 
-                hcount[10:1] < obj_x[i][9:0] + SPRITE_WIDTH &&
-                vcount[9:0] >= obj_y[i][9:0] && 
-                vcount[9:0] < obj_y[i][9:0] + SPRITE_HEIGHT) begin
-                
-                active_obj_idx = i[6:0];
-                rel_x = hcount[10:1] - obj_x[i][9:0];
-                rel_y = vcount[9:0] - obj_y[i][9:0];
-                sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE 
-                                + rel_y * SPRITE_WIDTH 
-                                + rel_x;
-                pix_candidate = sprite_data;
+    logic [23:0] pix, pix_candidate;
 
+    always_comb begin
+        found          = 1'b0;
+        pix            = {background_r, background_g, background_b};
+        sprite_address = 15'd0;
+
+        for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
+            if (!found && obj_active[i] &&
+                hcount >= obj_x[i] && hcount < obj_x[i] + SPRITE_WIDTH &&
+                vcount >= obj_y[i] && vcount < obj_y[i] + SPRITE_HEIGHT) begin
+
+                rel_x = hcount - obj_x[i];
+                rel_y = vcount - obj_y[i];
+                sprite_address = obj_sprite[i] * SPRITE_SIZE
+                               + rel_y * SPRITE_WIDTH
+                               + rel_x;
+                pix_candidate = sprite_data;
                 if (pix_candidate != 24'h000000) begin
                     pix   = pix_candidate;
-                    found = 1'b1;       // 找到第一层非透明，后面就不用再看了
+                    found = 1'b1;
                 end
             end
         end
         {VGA_R, VGA_G, VGA_B} = pix;
     end
-    
+
 endmodule
 
 // VGA timing generator module
@@ -219,6 +207,7 @@ module vga_counters(
     assign VGA_CLK = hcount[0]; // 25 MHz clock: rising edge sensitive
     
 endmodule
+
 module color_palette(
     input  logic        clk,
     input  logic        clken,

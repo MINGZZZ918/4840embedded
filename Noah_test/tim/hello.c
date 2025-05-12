@@ -421,7 +421,7 @@ int enemy_movement(){
 
         else{
 
-            if (++total_time%3 == 0) enemy->pos_x += enemy_wiggle;
+            if (++total_time%2 == 0) enemy->pos_x += enemy_wiggle;
 
 
 
@@ -614,8 +614,8 @@ int main(){
     update_hardware();
     for (;;){
 
-        enemy_wiggle_time += enemy_wiggle;
-        if (abs(enemy_wiggle_time) == 50) enemy_wiggle = -enemy_wiggle;
+        if (++total_time%3 == 0) enemy_wiggle_time += enemy_wiggle;
+        if (abs(enemy_wiggle_time) == 20) enemy_wiggle = -enemy_wiggle;
 
 
         printf("%d, %d, %d \n", total_time, enemy_wiggle_time, enemy_wiggle);

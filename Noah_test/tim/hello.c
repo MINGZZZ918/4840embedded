@@ -380,7 +380,7 @@ void enemy_shoot(enemy *enemy){
 
                 if (enemy->bul1 == -1){
 
-                    printf("TRY_TO_SHOOT \n")
+                    printf("TRY_TO_SHOOT \n");
 
                     aquired = aquire_bullet(enemy, 1);
 

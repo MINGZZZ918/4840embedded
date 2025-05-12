@@ -273,8 +273,6 @@ bool aquire_bullet(enemy *enemy, int bul_num){
 
         if(!bul->active){
 
-            printf("NOT ACTIVE");
-
             bul->active = 1;
 
             bul->pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
@@ -667,8 +665,8 @@ int enemy_movement(int rand_enemy){
                     if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
                 }
 
-                else
-                    enemy_shoot(enemy);
+                // else
+                //     enemy_shoot(enemy);
             }
 
             else

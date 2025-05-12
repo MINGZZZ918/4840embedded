@@ -7,6 +7,9 @@ module vga_ball#(
     parameter SPRITE_WIDTH = 16,   // 所有精灵标准宽度
     parameter SPRITE_HEIGHT = 16,  // 所有精灵标准高度
     parameter STAR_COUNT    = 50     // 星星数量
+    parameter TILE_COUNT   = 3;    //tile的数量（静态贴图）
+    parameter TILE_WIDTH   = 16;   //贴图的标准宽度
+    parameter TILE_HEIGHT  = 16;   //贴图的标准高度
 ) (
     input  logic        clk,
     input  logic        reset,
@@ -33,6 +36,10 @@ module vga_ball#(
     logic [5:0]     obj_sprite[MAX_OBJECTS]; // 6位精灵索引，所以最多是64个精灵
     logic           obj_active[MAX_OBJECTS]; // 活动状态位
     
+    // 静态贴图相关
+    logic [10:0] tile_x[TILE_COUNT];
+    logic [9:0]  tile_y[TILE_COUNT];
+    logic [5:0]  tile_index[TILE_COUNT];
     
     // 精灵渲染相关
     localparam int SPRITE_SIZE  = SPRITE_WIDTH * SPRITE_HEIGHT; // 16*16=256
@@ -126,12 +133,39 @@ module vga_ball#(
     end
 
     // 渲染逻辑 - 确定当前像素属于哪个对象
-    //Stage0: 组合逻辑，找到最高优先级不透明像素的 ROM address
+    // Stage00: 先确定tile的位置
+    always_ff @(posedge clk or posedge reset) begin
+        if (reset) begin
+            // 右上角连排 3 个 tile，每个宽 SPRITE_WIDTH，编号随意举例 6，7，8
+            tile_x[0] <= 1280 - 3*SPRITE_WIDTH;  tile_y[0] <= 0;  tile_idx[0] <= 6'd6;
+            tile_x[1] <= 1280 - 2*SPRITE_WIDTH;  tile_y[1] <= 0;  tile_idx[1] <= 6'd7;
+            tile_x[2] <= 1280 - 1*SPRITE_WIDTH;  tile_y[2] <= 0;  tile_idx[2] <= 6'd8;
+        end
+    end
+
+    // Stage0: 组合逻辑，找到最高优先级不透明像素的 ROM address
     always_comb begin
         found = 1'b0;
         sprite_address  = 14'd0;
         rel_y = 10'd0;
         rel_x = 10'd0;
+        // 先扫描tiles
+          for (int t = TILE_COUNT-1; t >= 0; t--) begin
+            if (!found
+                && hcount[10:1] >= tile_x[t]
+                && hcount[10:1] <  tile_x[t] + SPRITE_WIDTH
+                && vcount[9:0]  >= tile_y[t]
+                && vcount[9:0]  <  tile_y[t] + SPRITE_HEIGHT) begin
+                rel_x = hcount[10:1] - tile_x[t];
+                rel_y = vcount[9:0]  - tile_y[t];
+                // 先用同一个ROM，之后用多个ROM的选择在这里改
+                sprite_address = tile_idx[t] * SPRITE_SIZE
+                                + rel_y * SPRITE_WIDTH
+                                + rel_x;
+                found = 1'b1;
+            end
+        end
+        // 再扫描sprites
         for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
             if (!found &&
                 obj_active[i] && 

@@ -822,13 +822,7 @@ int main(){
             ship_movement();
             bullet_movement(new_bullet);
             rand_enemy = enemies_to_move();
-
-
-            printf("%d \n", rand_enemy);
-
-
-
-            // enemies_remaining = enemy_movement(rand_enemy);
+            enemies_remaining = enemy_movement(rand_enemy);
 
             if(ship->lives <= 0){
                 printf("You lost =( \n");

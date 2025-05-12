@@ -675,15 +675,15 @@ int enemy_movement(int rand_enemy){
                 enemy->pos_x += enemy_wiggle;
 
         }
-        else {
+        // else {
 
-            if(game_state.bullets[enemy->bul1].active|| 
-                game_state.bullets[enemy->bul1].active)
+        //     if(game_state.bullets[enemy->bul1].active|| 
+        //         game_state.bullets[enemy->bul1].active)
 
-                enemy_shoot(enemy);                
+        //         enemy_shoot(enemy);                
 
-            else continue;
-        }
+        //     else continue;
+        // }
 
 
         if (abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH

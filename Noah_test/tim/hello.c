@@ -366,14 +366,14 @@ void enemy_attack(enemy *enemy){
         enemy->pos_y = 0;
 
 
-        calculate_velo(enemy->start_x, enemy->start_y, enemy, 2);
+        calculate_velo(enemy->start_x + enemy_wiggle_time, enemy->start_y, enemy, 2);
     }
 
     
     if (enemy->returning){
 
 
-        if (enemy->pos_x == enemy->start_x && enemy->pos_y == enemy->start_y){
+        if (enemy->pos_x == enemy->start_x + enemy_wiggle_time && enemy->pos_y == enemy->start_y){
 
             enemy->velo_x = 0;
             enemy->velo_y = 0;
@@ -387,7 +387,7 @@ void enemy_attack(enemy *enemy){
         }
 
         else 
-            calculate_velo(enemy->start_x, enemy->start_y, enemy, 2);
+            calculate_velo(enemy->start_x + enemy_wiggle_time, enemy->start_y, enemy, 2);
 
     }
 

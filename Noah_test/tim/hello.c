@@ -395,7 +395,7 @@ void enemy_shoot(enemy *enemy){
     spaceship *ship = &game_state.ship;
     bullet *bul;
 
-    if (!enemy->bul_cooldown){
+    if (!enemy->bul_cooldown && enemy->turn_counter >= TURN_TIME){
 
         // if (enemy->sprite == 3){
 

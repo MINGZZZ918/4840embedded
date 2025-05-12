@@ -443,7 +443,7 @@ void enemy_shoot(enemy *enemy){
                         printf("ACTIVE 1 %d, %d \n", enemy->bullets[0].pos_x, enemy->bullets[0].pos_y);
 
 
-                        calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[0], 0, 3);
+                        calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[0], 0, 4);
                         enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN;
                     }
                     else if (!enemy->bullets[1].active){
@@ -459,7 +459,7 @@ void enemy_shoot(enemy *enemy){
                         printf("ACTIVE 1 %d, %d \n", enemy->bullets[1].pos_x, enemy->bullets[1].pos_y);
 
 
-                        calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[1], 0, 3);
+                        calculate_velo(ship->pos_x, ship->pos_y, &enemy->bullets[1], 0, 4);
                         enemy->bul_cooldown = ENEMY_BULLET_COOLDOWN*2;
                     }
 

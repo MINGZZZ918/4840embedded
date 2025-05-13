@@ -806,16 +806,16 @@ int enemies_to_move(){
             rand_enemy = 4;
 
 
-        if (round_time <= 1){
+        // if (round_time <= 1){
 
-            round_pause = ROUND_WAIT-1;
-            return -1;
-        }
+        //     round_pause = ROUND_WAIT-1;
+        //     return -1;
+        // }
 
-        else if (--round_pause >= 0)
-            return -1;
+        // else if (--round_pause >= 0)
+        //     return -1;
 
-        else if (num_sent == send_per_round){
+        if (num_sent == send_per_round){
 
             printf("AHHHHHHHHHHH %d \n", num_enemies_moving);
 
@@ -831,7 +831,6 @@ int enemies_to_move(){
             if(round_time % 100 == 0) {
                 
                 printf("%ld \n", round_time);
-
 
                 num_sent ++;
                 return rand_enemy;

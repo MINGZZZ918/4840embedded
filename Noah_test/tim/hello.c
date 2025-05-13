@@ -947,6 +947,11 @@ int main(){
     update_ship();
     update_ship_bullet();
 
+    update_enemies();
+
+
+
+
 
     // for (int i =0; i<COLUMNS; i++){
     //     for(int j=0; j<ENEMY_COUNT; j++)

@@ -1141,7 +1141,6 @@ int main(){
                 round_num++;
             }
 
-            update_hardware();
 
             usleep(16000);
         }    

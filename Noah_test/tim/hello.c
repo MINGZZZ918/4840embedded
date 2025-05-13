@@ -32,7 +32,7 @@
 #define LIFE_COUNT 5
 
 #define BULLET_WIDTH 8
-#define BULLET_HIEGHT 8
+#define BULLET_HEIGHT 8
 
 
 #define ENEMY_WIDTH 16

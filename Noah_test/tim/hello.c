@@ -162,13 +162,27 @@ static gamestate game_state = {
 /**
  * Update game state and send to the device
  */
-void update_hardware() {
-    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_GAME_STATE, &game_state)) {
+void update_enemies() {
+    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_ENEMIES, &game_state)) {
         perror("ioctl(VGA_BALL_UPDATE_GAME_STATE) failed");
         exit(EXIT_FAILURE);
     }
 }
 
+
+void update_ship() {
+    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_SHIP, &game_state.ship)) {
+        perror("ioctl(VGA_BALL_UPDATE_SHIP) failed");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void update_ship_bullet() {
+    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_SHIP_BULLETS, &game_state.ship)) {
+        perror("ioctl(VGA_BALL_UPDATE_SHIP_BULLETS) failed");
+        exit(EXIT_FAILURE);
+    }
+}
 
 
 
@@ -1086,7 +1100,9 @@ int main(){
                 round_num++;
             }
 
-            update_hardware();
+            update_enemies();
+            update_ship();
+            update_ship_bullet();
 
             usleep(16000);
         }    

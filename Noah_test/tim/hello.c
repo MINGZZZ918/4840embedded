@@ -774,9 +774,6 @@ void ship_movement(){
 
 
 
-
-
-
 // taking too long to move
 // after so long I can have liek 5 go at the same time just remove %
 int enemies_to_move(){

@@ -84,11 +84,12 @@ static void write_enemies(gamestate *game_state){
 /*
  * Write all objects
  */
-static void write_all(spaceship *ship, bullet bullets[])
+static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 {
 
     int i;
     bullet *bul;
+    enemy *enemy;
 
     write_object (1, ship->pos_x,  ship->pos_y, 0, ship->active);
     dev.ship = *ship;
@@ -100,6 +101,14 @@ static void write_all(spaceship *ship, bullet bullets[])
         write_object (i+2, bul->pos_x,  bul->pos_y, 1, bul->active);
 
         dev.ship.bullets[i] = *bul;
+    }
+
+    for (i = 0; i < ENEMY_COUNT; i++) {
+
+        enemy = &enemies[i];
+
+        write_object(i+SHIP_BULLETS+2,  enemy->pos_x,  enemy->pos_y, enemy->sprite, enemy->active);
+        dev.enemies[i] = enemies[i];
     }
 
     for (i = 0; i < MAX_BULLETS; i++) {
@@ -116,7 +125,7 @@ static void write_all(spaceship *ship, bullet bullets[])
 */
 static void update_game_state(gamestate *game_state)
 {
-    write_all(&game_state->ship, game_state->bullets);
+    write_all(&game_state->ship, game_state->bullets, game_state->enemies);
 }
 
 

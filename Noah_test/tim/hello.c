@@ -946,7 +946,7 @@ int main(){
 
         update_hardware();
 
-        usleep(16000);
+        usleep(200000);
 
 
     }

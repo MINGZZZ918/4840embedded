@@ -65,8 +65,8 @@ static int vga_ball_fd;
 
 
 #define NUM_ROWS 5
-static char row_vals[NUM_ROWS] = {0,4,3,2,1};
-// static char row_vals[NUM_ROWS] = { 2, 6, 8, 10, 10 };
+// static char row_vals[NUM_ROWS] = {0,4,3,2,1};
+static char row_vals[NUM_ROWS] = { 2, 6, 8, 10, 10 };
 static char row_sprites[NUM_ROWS] = { ENEMY1, ENEMY2,ENEMY2, ENEMY3, ENEMY3};
 static int row_fronts[NUM_ROWS];
 static int row_backs[NUM_ROWS];
@@ -77,8 +77,8 @@ static int kill_count = 0;
 static int ship_velo = 2;
 
 static int powerup_timer = 0;
-#define EXTRA_BULLET_TIME 50;
-#define EXTRA_SPEED_TIME 100;
+#define EXTRA_BULLET_TIME 250;
+#define EXTRA_SPEED_TIME 500;
 
 
 
@@ -192,8 +192,6 @@ void apply_powerup(powerup *power_up){
 
             ship->lives++;
 
-            printf("LIVESSSSSSS \n");
-
             // draw an extra ship life
             break;
 
@@ -201,16 +199,12 @@ void apply_powerup(powerup *power_up){
 
             ship_velo = 3;
             powerup_timer = EXTRA_SPEED_TIME;
-            printf("SPEEEEEEEDDD \n");
-
             break;
 
         case EXTRA_BULLETS:
 
             ship->num_buls = 5;
             powerup_timer = EXTRA_BULLET_TIME;
-            printf("BUUUUUUULLLLETS \n");
-
             break;
     }
 }
@@ -226,8 +220,6 @@ void move_powerup(){
 
         game_state.ship.num_buls = 3;
         ship_velo = 2;
-
-        printf("DONEEEEEEEEE");
     }
 
     if (power_up->active){

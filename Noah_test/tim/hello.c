@@ -733,7 +733,7 @@ void bullet_movement(int new_bullet){
 
             bul->pos_y += bul->velo_y;
 
-            if (bul->pos_y < 5){
+            if (bul->pos_y <= 5){
 
                 bul->active = 0;
                 continue;
@@ -1091,13 +1091,11 @@ int main(){
                 for(int i=0; i<SHIP_BULLETS; i++)
                     if (game_state.ship.bullets[i].active) active_buls ++;
 
-                if(!active_buls) {
 
-                    printf("AHHHHHHHHHHHHHHHH %d \n", active_buls);
+                printf("AHHHHHHHHHHHHHHHH %d \n", active_buls);
 
-                    round_wait_time --;
 
-                }
+                if(!active_buls) round_wait_time --;
 
                 else {
                     bullet_movement(new_bullet);

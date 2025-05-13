@@ -44,9 +44,9 @@
 
 #define TURN_TIME 70
 
-#define ENEMY3_BULLET_COOLDOWN 30
+#define ENEMY3_BULLET_COOLDOWN 50
 
-#define ENEMY4_BULLET_COOLDOWN 20
+#define ENEMY4_BULLET_COOLDOWN 40
 
 
 #define LEFT_ARROW 0x00
@@ -221,48 +221,7 @@ void calculate_velo(int ship_x, int ship_y, void *object, int type, short scaler
     }
 }
 
-
-void turn(enemy *enemy){
-
-    spaceship *ship = &game_state.ship;
-
-
-    if (enemy->start_x <= SCREEN_WIDTH/2)
-            enemy->velo_x = -turn_x[enemy->turn_counter];
-    else
-        enemy->velo_x = turn_x[enemy->turn_counter];
-
-    enemy->velo_y = turn_y[enemy->turn_counter];
-    enemy->turn_counter++;
-
-
-
-    if (enemy->turn_counter == TURN_TIME){
-
-
-        if(enemy->sprite == 4){
-
-            enemy->velo_x = (enemy->pos_x < SCREEN_WIDTH / 2) ? 2 : -2;
-            enemy->velo_y = 1;
-        }
-
-        else if(enemy->sprite == 3){
-
-            enemy->velo_x = (enemy->pos_x < SCREEN_WIDTH / 2) ? 3 : -3;
-            enemy->velo_y = 2;
-        }
-        else {
-
-            calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 2);
-        }
-
-    }
-
-}
-
-
-
-bool aquire_bullet(enemy *enemy, int bul_num){
+bool aquire_bullet(enemy *enemy){
 
     bullet *bul;
     
@@ -278,9 +237,8 @@ bool aquire_bullet(enemy *enemy, int bul_num){
             bul->pos_y = enemy->pos_y+(ENEMY_HEIGHT);
 
             bul->enemy = enemy->pos_num;
-
-            if (bul_num == 1) enemy->bul1 = i;
-            else enemy->bul2 = i;
+            
+            enemy->bul1 = i;
 
             return 1;
         }
@@ -292,7 +250,6 @@ bool aquire_bullet(enemy *enemy, int bul_num){
 
 
 }
-
 
 void move_enemy_bul(){
 
@@ -312,37 +269,27 @@ void move_enemy_bul(){
         if (abs(ship->pos_x - bul->pos_x) <= SHIP_WIDTH
                 && abs(ship->pos_y - bul->pos_y) <= SHIP_HEIGHT){
 
-            bul->active = 0;
-            bul->enemy = -1;
+            
 
             game_state.enemies[bul->enemy].bul1 = -1;
-
-            printf("HITTTTTTTT \n");
+            
+            bul->active = 0;
+            bul->enemy = -1;
 
             ship->lives --;
         }
 
-    if (bul->active && bul->pos_y >= SCREEN_HEIGHT || bul->pos_x >= SCREEN_WIDTH || bul->pos_x < 0){
+        if (bul->pos_y >= SCREEN_HEIGHT || bul->pos_x >= SCREEN_WIDTH || bul->pos_x < 0){
 
-        bul->active = 0;
-        bul->enemy = -1;
+            game_state.enemies[bul->enemy].bul1 = -1;
 
-        game_state.enemies[bul->enemy].bul1 = -1;
+            bul->active = 0;
+            bul->enemy = -1;
 
-    }
+            
 
-
-
-
-
-
-    }
-
-
-    
-
-
-    
+        }
+    } 
 }
 
 
@@ -385,7 +332,7 @@ void enemy_shoot(enemy *enemy){
             }
         }
 
-        if(enemy->sprite == 4){
+        else if(enemy->sprite == 4){
 
             if (abs(ship->pos_x - enemy->pos_x) <= 150
                 && abs(ship->pos_y - enemy->pos_y <= 200
@@ -393,7 +340,7 @@ void enemy_shoot(enemy *enemy){
 
                 if (enemy->bul1 == -1){
 
-                    aquired = aquire_bullet(enemy, 1);
+                    aquired = aquire_bullet(enemy);
 
                     if(aquired){
 
@@ -418,10 +365,138 @@ void enemy_shoot(enemy *enemy){
     else if(enemy->turn_counter <= TURN_TIME)
         enemy->bul_cooldown --;
 
-    // if(game_state.bullets[enemy->bul2].active)
-    //     move_enemy_bul(enemy, 2);
+}
+
+
+
+
+
+
+
+
+void change_row_ends(int i, int row_num, int front){
+
+
+    if(!front){
+
+        for (int j=i-1; game_state.enemies[j].row == row_num; j--){
+
+            if(game_state.enemies[j].active && !game_state.enemies[j].moving){
+
+                row_backs[row_num] = j;
+                break;
+            }
+        }
+    }
+    else{
+
+        for (int j=i+1; game_state.enemies[j].row == row_num; j++){
+
+            if(game_state.enemies[j].active && !game_state.enemies[j].moving){
+
+                row_fronts[row_num] = j;
+                break;
+            }
+        }
+    }
+}
+
+
+int enemies_to_move(){
+
+    int active2 = 0, active3 = 0, active4 = 0;
+    enemy *enemy;
+
+
+    for (int i = 0; i< ENEMY_COUNT; i++){
+
+        enemy = &game_state.enemies[i];
+
+        switch (enemy->sprite){
+
+            case 2:
+                active2 ++;
+                break;
+
+            case 3:
+                active3 ++;
+                break;
+
+            case 4:
+                active4 ++;
+                break;
+        }
+    }
+
+    int rand_enemy = rand() % (active2 + active3 + active4);
+
+    if (rand_enemy < active2) {
+        rand_enemy = 2;
+    } else if (rand_enemy < active2 + active3) {
+        rand_enemy =  3;
+    } else {
+        rand_enemy = 4;
+    }
+
+    if (round_time < 100) return 0;
+
+    else if (round_time > 500){
+
+        if(round_time >= 750) round_time = 0;
+
+        return 0;
+    }
+    else{
+
+        if(round_time % 100 == 0) return rand_enemy;
+
+        else return 0;
+    }
 
 }
+
+
+void turn(enemy *enemy){
+
+    spaceship *ship = &game_state.ship;
+
+
+    if (enemy->start_x <= SCREEN_WIDTH/2)
+            enemy->velo_x = -turn_x[enemy->turn_counter];
+    else
+        enemy->velo_x = turn_x[enemy->turn_counter];
+
+    enemy->velo_y = turn_y[enemy->turn_counter];
+    enemy->turn_counter++;
+
+
+
+    if (enemy->turn_counter == TURN_TIME){
+
+
+        if(enemy->sprite == 4){
+
+            enemy->velo_x = (enemy->pos_x < SCREEN_WIDTH / 2) ? 2 : -2;
+            enemy->velo_y = 1;
+        }
+
+        else if(enemy->sprite == 3){
+
+            enemy->velo_x = (enemy->pos_x < SCREEN_WIDTH / 2) ? 3 : -3;
+            enemy->velo_y = 2;
+        }
+        else {
+
+            calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 2);
+        }
+
+    }
+
+}
+
+
+
+
 
 
 void enemy_attack(enemy *enemy){
@@ -546,85 +621,7 @@ void enemy_attack(enemy *enemy){
     enemy->pos_y += enemy->velo_y;
 }
 
-void change_row_ends(int i, int row_num, int front){
 
-
-    if(!front){
-
-        for (int j=i-1; game_state.enemies[j].row == row_num; j--){
-
-            if(game_state.enemies[j].active && !game_state.enemies[j].moving){
-
-                row_backs[row_num] = j;
-                break;
-            }
-        }
-    }
-    else{
-
-        for (int j=i+1; game_state.enemies[j].row == row_num; j++){
-
-            if(game_state.enemies[j].active && !game_state.enemies[j].moving){
-
-                row_fronts[row_num] = j;
-                break;
-            }
-        }
-    }
-}
-
-int enemies_to_move(){
-
-    int active2 = 0, active3 = 0, active4 = 0;
-    enemy *enemy;
-
-
-    for (int i = 0; i< ENEMY_COUNT; i++){
-
-        enemy = &game_state.enemies[i];
-
-        switch (enemy->sprite){
-
-            case 2:
-                active2 ++;
-                break;
-
-            case 3:
-                active3 ++;
-                break;
-
-            case 4:
-                active4 ++;
-                break;
-        }
-    }
-
-    int rand_enemy = rand() % (active2 + active3 + active4);
-
-    if (rand_enemy < active2) {
-        rand_enemy = 2;
-    } else if (rand_enemy < active2 + active3) {
-        rand_enemy =  3;
-    } else {
-        rand_enemy = 4;
-    }
-
-    if (round_time < 100) return 0;
-
-    else if (round_time > 500){
-
-        if(round_time >= 750) round_time = 0;
-
-        return 0;
-    }
-    else{
-
-        if(round_time % 100 == 0) return rand_enemy;
-
-        else return 0;
-    }
-
-}
 
 
 int enemy_movement(int rand_enemy){

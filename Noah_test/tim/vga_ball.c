@@ -35,6 +35,7 @@ struct vga_ball_dev {
     spaceship ship;
     bullet bullets[MAX_BULLETS];
     enemy enemies[ENEMY_COUNT];
+    powerup power_up;
 } dev;
 
 /*
@@ -101,6 +102,15 @@ static void write_ship_bullets(spaceship *ship){
 
         dev.ship.bullets[i] = *bul;
     }
+}
+
+static void write_powerups(powerup *power_up){
+
+
+    write_object (1, power_up->pos_x,  power_up->pos_y, power_up->sprite, power_up->active);
+
+    dev.power_up = *power_up;
+
 }
 
 

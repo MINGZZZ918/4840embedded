@@ -678,10 +678,7 @@ void bullet_colision(bullet *bul){
             enemy->active = 0;
             bul->active = 0;
 
-            printf("11111111111111 \n");
             memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
-
-            printf("222222222 \n");
 
             break;
         }
@@ -1012,9 +1009,14 @@ int main(){
 
             ship_movement();
             bullet_movement(new_bullet);
+
+            printf("11111111111111 \n");
             rand_enemy = enemies_to_move();
+            printf("222222222222222222 \n");
             enemies_remaining = enemy_movement(rand_enemy);
+            printf("333333333333333333333 \n");
             move_enemy_bul();
+            printf("444444444444444444444 \n");
 
 
             if(ship->lives <= 0){

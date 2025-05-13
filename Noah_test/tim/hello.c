@@ -266,8 +266,6 @@ bool aquire_bullet(enemy *enemy){
         }
     }
 
-    printf("FAILED TO ACQUIRE \n");
-
     return 0;
 
 
@@ -774,6 +772,8 @@ int enemies_to_move(){
 
     enemy *enemy;
     int num_moving = 0, rand_enemy;
+
+    printf("%ld \n", round_time);
 
 
     if (TOTAL_ACTIVE != 0){

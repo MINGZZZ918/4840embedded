@@ -954,7 +954,7 @@ int main(){
 
             switch (packet.buttons) {                
                 case Y_BUTTON:
-                    if (!prev_bullet && ship->num_bullets < MAX_BULLETS){
+                    if (!prev_bullet ){
                         new_bullet = 1; // do not allow them to hold the button to shoot
                         prev_bullet = 1;
                     }
@@ -971,7 +971,7 @@ int main(){
 
             switch (packet.bumpers) {
                 case LEFT_BUMPER:
-                    if (!prev_bullet && ship->num_bullets < MAX_BULLETS){
+                    if (!prev_bullet){
                         new_bullet = 1; // do not allow them to hold the button to shoot
                         prev_bullet = 1;
                     }
@@ -981,7 +981,7 @@ int main(){
                     break;
                     
                 case RIGHT_BUMPER:
-                    if (!prev_bullet && ship->num_bullets < MAX_BULLETS){
+                    if (!prev_bullet){
                         new_bullet = 1; // do not allow them to hold the button to shoot
                         prev_bullet = 1;
                     }
@@ -991,7 +991,7 @@ int main(){
                     break;
 
                 case LR_BUMPER:
-                    if (!prev_bullet && ship->num_bullets < MAX_BULLETS){
+                    if (!prev_bullet ){
                         new_bullet = 1; // do not allow them to hold the button to shoot
                         prev_bullet = 1;
                     }

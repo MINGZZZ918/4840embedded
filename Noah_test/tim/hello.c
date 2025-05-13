@@ -1089,7 +1089,7 @@ int main(){
                 col_active ++;
 
 
-                printf("AHHHHH %d\n", col_active);
+                printf("AHHHHH %d, %d\n", col_active, col_active);
 
                 if (col_active == COLUMNS) round_wait = 1;
             }

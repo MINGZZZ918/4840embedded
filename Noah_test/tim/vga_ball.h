@@ -5,8 +5,9 @@
 #include <stdbool.h>
 
 /* 定义最大子弹数量 */
-#define MAX_BULLETS 5
-#define ENEMY_COUNT 22
+#define SHIP_BULLETS 5
+#define MAX_BULLETS 10
+#define ENEMY_COUNT 60
 #define LIFE_COUNT 5
 
 /* Color structure */
@@ -17,23 +18,24 @@ typedef struct {
 typedef struct {
     unsigned short pos_x, pos_y;
     short velo_x, velo_y;
-    short lives, num_bullets;
-    bool active;
-} spaceship;
-
-typedef struct {
-    unsigned short pos_x, pos_y;
-    short velo_x, velo_y;
+    short enemy;
     bool active;
 } bullet;
 
 typedef struct {
     unsigned short pos_x, pos_y;
     short velo_x, velo_y;
+    short lives, num_bullets;
+    bullet bullets[SHIP_BULLETS];
+    bool active;
+} spaceship;
+
+typedef struct {
+    unsigned short pos_x, pos_y;
+    short velo_x, velo_y;
     short start_x, start_y;
-    bullet bul;
-    short move_time, bul_cooldown;
-    char sprite, turn_counter, row;
+    short move_time, bul_cooldown, bul1, bul2;
+    char sprite, turn_counter, row, col, pos_num;
     bool active, returning, moving;
 } enemy;
 

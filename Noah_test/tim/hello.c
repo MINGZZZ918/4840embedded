@@ -940,7 +940,7 @@ int main(){
 
         update_hardware();
         usleep(16000);
-    // }
+    }
 
     for (;;){
 

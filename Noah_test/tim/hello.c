@@ -1088,6 +1088,8 @@ int main(){
 
             else{
 
+                printf("AHHHHHHHHHHHHHHHH \n");
+
                 for(int i=0; i<SHIP_BULLETS; i++)
                     if (game_state.ship.bullets[i].active) active_buls ++;
 

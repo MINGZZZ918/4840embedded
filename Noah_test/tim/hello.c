@@ -254,6 +254,9 @@ void drop_powerup(enemy *enemy){
     int i = rand() % 3;
 
     power_up->pos_x = enemy->pos_x;
+
+    printf("%d, %d \n", enemy->pos_x, power_up->pos_x);
+
     power_up->pos_y = 200;
     power_up->active = 1;
 
@@ -857,9 +860,6 @@ void bullet_movement(int new_bullet){
 
         bul = &game_state.ship.bullets[i];
 
-        printf("%d, %d, %d \n", bul->active, new_bullet, num_active);
-
-
         if (bul->active){
 
             bul->pos_y += bul->velo_y;
@@ -873,7 +873,7 @@ void bullet_movement(int new_bullet){
             bullet_colision(bul);
         }
 
-        else if (!bul->active && new_bullet && num_active <= game_state.ship.num_buls) {
+        else if (!bul->active && new_bullet && num_active < game_state.ship.num_buls) {
             bul->active = 1;
             bul->pos_x = game_state.ship.pos_x+(SHIP_WIDTH/2);
             bul->pos_y = game_state.ship.pos_y-(SHIP_HEIGHT);

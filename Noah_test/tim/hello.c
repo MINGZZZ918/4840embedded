@@ -72,6 +72,15 @@ static int row_fronts[NUM_ROWS];
 static int row_backs[NUM_ROWS];
 
 
+static int kill_count = 0;
+
+static int ship_velo = 2;
+
+static int powerup_timer = 0;
+#define EXTRA_BULLET_TIME = 50;
+#define EXTRA_SPEED_TIME = 100;
+
+
 
 static int round_wait = 0, round_wait_time = 0;
 
@@ -132,7 +141,7 @@ static int round_num = 1;
 
 static gamestate game_state = {
 
-    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .active = 1},
+    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_buls = 3, .active = 1},
     .background = {.red = 0xFF, .green = 0x00, .blue = 0xFF},
     .bullets = { 0 },
     .enemies = { 0 },
@@ -171,6 +180,108 @@ void update_powerup() {
         exit(EXIT_FAILURE);
     }
 }
+
+
+
+
+void apply_powerup(powerup *power_up){
+
+    spaceship *ship = &game_state.ship;
+
+    switch (power_up->sprite){
+
+        case EXTRA_LIFE:
+
+            ship->lives++;
+
+            // draw an extra ship life
+            break;
+
+        case SHIP_SPEED:
+
+            ship_velo = 3;
+            powerup_timer = EXTRA_SPEED_TIME;
+            break;
+
+        case EXTRA_BULLETS:
+
+            ship->num_buls = 5;
+            powerup_timer = EXTRA_BULLET_TIME;
+            break;
+    }
+}
+
+
+
+void move_powerup(){
+
+    powerup *power_up = &game_state.power_up;
+    spaceship *ship = &game_state.ship;
+
+
+    if (--powerup_timer <= 0){
+
+        game_state.ship.num_buls = 3;
+        ship_velo = 2;
+    }
+
+    if (power_up->active){
+
+        power_up->pos_y -= 1;
+
+        if (ship->active && 
+            abs(ship->pos_x - power_up->pos_x) <= SHIP_WIDTH &&
+            abs(ship->pos_y - power_up->pos_y) <= SHIP_HEIGHT){
+
+            apply_powerup(power_up);
+
+            power_up->active=0;
+            kill_count = 0;
+        }
+
+        if (power_up->pos_y >= SCREEN_HEIGHT){
+
+            power_up->active=0;
+            kill_count = 10;
+        }
+
+    }
+
+}
+
+
+void drop_powerup(enemy *enemy){
+
+    powerup *power_up = &game_state.power_up;
+    int i = rand() % 3;
+
+    power_up->pos_x = enemy->pos_x;
+    power_up->pos_y = 200;
+    power_up->active = 1;
+
+    switch (i){
+        case 0:
+            power_up->sprite = SHIP_SPEED; 
+            break;
+
+        case 1:
+            power_up->sprite = EXTRA_BULLETS;
+            break;
+
+        case 2:
+            power_up->sprite = EXTRA_LIFE;
+            break;
+
+        default:
+            break;
+    }
+}
+
+
+
+// it might be the case that when we shut off the extra bullets they stop 
+// i think they will keep going though
+// only need to check num_bullets if we are getting more
 
 
 
@@ -729,6 +840,8 @@ void bullet_colision(bullet *bul){
 
             if(enemy->moving) num_enemies_moving --;
 
+            if (++ kill_count >= 15 && !game_state.power_up.active) drop_powerup(enemy);
+
             break;
         }
     }
@@ -737,6 +850,10 @@ void bullet_colision(bullet *bul){
 void bullet_movement(int new_bullet){
 
     bullet *bul;
+    int num_active = 0;
+
+    for(int i = 0; i< SHIP_BULLETS; i++) 
+        if(&game_state.ship.bullets[i].active) num_active++;
 
     for (int i = 0; i < SHIP_BULLETS; i++) {
 
@@ -755,7 +872,7 @@ void bullet_movement(int new_bullet){
             bullet_colision(bul);
         }
 
-        else if (!bul->active && new_bullet) {
+        else if (!bul->active && new_bullet && num_active <= game_state.ship.num_buls) {
             bul->active = 1;
             bul->pos_x = game_state.ship.pos_x+(SHIP_WIDTH/2);
             bul->pos_y = game_state.ship.pos_y-(SHIP_HEIGHT);
@@ -987,14 +1104,14 @@ int main(){
             switch (packet.lr_arrows) {
                 case LEFT_ARROW:
                     if(ship->pos_x > 0)
-                        ship->velo_x = -2;
+                        ship->velo_x = -ship_velo;
 
                     // printf("%d, %d \n", ship->pos_x, ship->pos_y);
                     break;
                     
                 case RIGHT_ARROW:
                     if(ship->pos_x < SCREEN_WIDTH-SHIP_WIDTH)
-                        ship->velo_x = 2;
+                        ship->velo_x = ship_velo;
 
                     // printf("%d, %d \n", ship->pos_x, ship->pos_y);
                     break;
@@ -1007,14 +1124,14 @@ int main(){
             switch (packet.ud_arrows) {
                 case UP_ARROW:
                     if (ship->pos_y < SCREEN_HEIGHT - 5)
-                        ship->velo_y = -2;
+                        ship->velo_y = -ship_velo;
 
                     // printf("%d, %d\n", ship->pos_x, ship->pos_y);
                     break;
                     
                 case DOWN_ARROW:
                     if (ship->pos_y > 0+SHIP_HEIGHT)
-                        ship->velo_y = 2;
+                        ship->velo_y = ship_velo;
 
                     // printf("%d, %d \n", ship->pos_x, ship->pos_y);
                     break;
@@ -1087,6 +1204,8 @@ int main(){
 
             if(ship->active) ship_movement();
 
+            move_powerup();
+
             if(!round_wait){
 
                 if(ship->active) bullet_movement(new_bullet);
@@ -1107,6 +1226,9 @@ int main(){
                     ship->pos_y = SHIP_INITIAL_Y;
                     round_wait = 0;
                     round_time = 0;
+
+                    kill_count /= 2;
+
                 } 
                 else{
 
@@ -1155,6 +1277,8 @@ int main(){
 
                 else{ // round end
 
+                    kill_count = 0;
+
                     for(int i=0; i<SHIP_BULLETS; i++)
                         if (ship->bullets[i].active) active_buls ++;
 
@@ -1174,6 +1298,7 @@ int main(){
             }
 
             update_ship();
+            update_powerup();
 
 
             if(ship->lives <= 0){

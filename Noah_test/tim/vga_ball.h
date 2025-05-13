@@ -54,7 +54,7 @@ typedef struct {
 typedef struct {
     unsigned short pos_x, pos_y;
     short velo_x, velo_y;
-    short lives;
+    short lives, num_buls;
     bullet bullets[SHIP_BULLETS];
     bool active;
 } spaceship;

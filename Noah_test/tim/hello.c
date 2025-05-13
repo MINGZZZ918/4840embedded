@@ -44,9 +44,9 @@
 
 #define TURN_TIME 70
 
-#define ENEMY3_BULLET_COOLDOWN 50
+#define ENEMY3_BULLET_COOLDOWN 30
 
-#define ENEMY4_BULLET_COOLDOWN 40
+#define ENEMY4_BULLET_COOLDOWN 20
 
 
 #define LEFT_ARROW 0x00
@@ -304,7 +304,6 @@ void move_enemy_bul(){
         bul = &game_state.bullets[i];
 
         if(!bul->active) continue;
-
 
         bul->pos_x += bul->velo_x;
         bul->pos_y += bul->velo_y;
@@ -656,7 +655,7 @@ int enemy_movement(int rand_enemy){
 
             num_left++;
 
-            if(enemy->active && !enemy->moving && rand_enemy == i){
+            if(!enemy->moving && rand_enemy == i){
 
                 if (enemy_wiggle > 0) change_row_ends(i, row_num, 0);
             

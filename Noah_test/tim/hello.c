@@ -440,7 +440,7 @@ void turn(enemy *enemy){
 
         else if(enemy->sprite == 3){
 
-            enemy->velo_x = (enemy->pos_x < SCREEN_WIDTH / 2) ? 3 : -3;
+            enemy->velo_x = (enemy->pos_x < SCREEN_WIDTH / 2) ? 3 : -4;
             enemy->velo_y = 2;
         }
         else {
@@ -496,13 +496,13 @@ void enemy_attack(enemy *enemy){
 
             else if (enemy->move_time == 0){
 
-                if (enemy->start_x < SCREEN_WIDTH/2 && enemy->pos_x - ship->pos_x > 10){
+                if (enemy->start_x < SCREEN_WIDTH/2 && enemy->pos_x - ship->pos_x > 10 && ship->pos_y - enemy->pos_y < 150){
                     
                     calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 2);
                     enemy->move_time++;
                 }
 
-                else if (ship->pos_x - enemy->pos_x > 10){
+                else if (ship->pos_x - enemy->pos_x > 10 && ship->pos_y - enemy->pos_y < 150){
 
                     calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 2);
                     enemy->move_time++;

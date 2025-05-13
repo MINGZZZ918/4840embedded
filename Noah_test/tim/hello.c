@@ -1129,13 +1129,18 @@ int main(){
                         if (ship->bullets[i].active) active_buls ++;
 
 
-                    if(!active_buls && !active_enemies) round_wait_time --;
+                    if(!active_buls && !active_enemies)
+                        round_wait_time --;
 
-                    if (active_enemies){
+                    // if (active_enemies){
 
-                        enemy_movement(-1);
-                        update_enemies();
-                    }
+                    //     enemy_movement(-1);
+                    //     update_enemies();
+                    // }
+                    
+                    enemy_movement(-1);
+                    update_enemies();
+
 
                     if (active_buls){
 
@@ -1146,19 +1151,19 @@ int main(){
                     }
                 }
 
-                // else{ // round end
+                else{ // round end
 
-                //     for(int i=0; i<SHIP_BULLETS; i++)
-                //         if (ship->bullets[i].active) active_buls ++;
+                    for(int i=0; i<SHIP_BULLETS; i++)
+                        if (ship->bullets[i].active) active_buls ++;
 
 
-                //     if(!active) round_wait_time --;
+                    if(!active) round_wait_time --;
 
-                //     else {
-                //         bullet_movement(new_bullet);
-                //         update_ship_bullet();
-                //     }
-                // }
+                    else {
+                        bullet_movement(new_bullet);
+                        update_ship_bullet();
+                    }
+                }
             }
 
             update_ship();

@@ -4,9 +4,11 @@
 
 module vga_ball#(
     parameter MAX_OBJECTS = 100,    // sprites数量（adress传递的值最后给obj_sprite，这个才是精灵种类，最多64种）
-    parameter SPRITE_WIDTH = 16,   // 所有精灵标准宽度
-    parameter SPRITE_HEIGHT = 16,  // 所有精灵标准高度
-    parameter STAR_COUNT    = 50     // 星星数量
+    parameter SPRITE_WIDTH = 32,   // 所有精灵标准宽度
+    parameter SPRITE_HEIGHT = 32,  // 所有精灵标准高度
+    parameter TILE_COUNT   = 3,    //tile的数量（静态贴图）
+    parameter TILE_WIDTH   = 16,   //贴图的标准宽度
+    parameter TILE_HEIGHT  = 16    //贴图的标准高度
 ) (
     input  logic        clk,
     input  logic        reset,
@@ -33,33 +35,37 @@ module vga_ball#(
     logic [5:0]     obj_sprite[MAX_OBJECTS]; // 6位精灵索引，所以最多是64个精灵
     logic           obj_active[MAX_OBJECTS]; // 活动状态位
     
-    
+    // 静态贴图相关
+    logic [10:0] tile_x[TILE_COUNT];
+    logic [9:0]  tile_y[TILE_COUNT];
+    logic [5:0]  tile_index[TILE_COUNT];
+
     // 精灵渲染相关
     localparam int SPRITE_SIZE  = SPRITE_WIDTH * SPRITE_HEIGHT; // 16*16=256
-    logic [13:0] sprite_address;
+    localparam int TILE_SIZE  = TILE_WIDTH * TILE_HEIGHT; // 16*16=256
     logic [7:0] color_address;
-    logic [7:0] rom_data;
-    logic [7:0] rom_r, rom_g, rom_b;
+    logic [13:0] sprite_address;// 为了不改变逻辑这个设为变量用if判断选哪个rom
+    logic [7:0] rom_data;// 为了不改变逻辑这个设为变量用if判断选哪个rom
     logic [23:0] sprite_data;
     logic [23:0] color_data;  // 来自 color_palette.mif 的 RGB
-    logic        transparent_part; // 精灵中的透明背景可以透出下面的精灵
-    logic [13:0] sprite_addr_reg;
-    logic [23:0] sprite_data_reg;
-    logic found; //用来判断有没有找到非透明的像素，没有就继续，直到最后
-    logic [3:0] rel_x, rel_y;
+    logic [7:0] rom_0_data;
+    logic [7:0] rom_1_data;
+    logic [7:0] rom_2_data;
+    logic [7:0] rom_3_data;
+    logic [7:0] rom_4_data;
+    logic [7:0] rom_5_data;
+    logic [13:0] sprite_0_address;
+    logic [13:0] sprite_1_address;
+    logic [13:0] sprite_2_address;
+    logic [13:0] sprite_3_address;
+    logic [13:0] sprite_4_address;
+    logic [13:0] sprite_5_address;
 
-    //星星
-    logic [10:0] star_x [STAR_COUNT];
-    logic [9:0]  star_y [STAR_COUNT];
-    logic [15:0] lfsr_reg, lfsr_next;
-    wire        star_on = lfsr_reg[0];    // 用最低位来控制星星闪烁
-    integer i;
-    logic is_star;
 
     // ROM IP module
     //rom_sprites
     soc_system_rom_sprites sprite_images (
-        .address      (sprite_addr_reg),   // ROM 索引地址
+        .address      (sprite_0_address),   // ROM 索引地址
         .chipselect   (1'b1),             // 始终使能
         .clk          (clk),              // 时钟
         .clken        (1'b1),             // 时钟使能
@@ -69,7 +75,72 @@ module vga_ball#(
         .reset_req    (1'b0),
         .write        (1'b0),
         .writedata    (32'b0),
-        .readdata     (rom_data)          // 输出：ROM中读出的颜色索引
+        .readdata     (rom_0_data)          // 输出：ROM中读出的颜色索引
+    );
+        soc_system_rom_1 rom_1 (
+        .address      (sprite_1_address),   // ROM 索引地址
+        .chipselect   (1'b1),             // 始终使能
+        .clk          (clk),              // 时钟
+        .clken        (1'b1),             // 时钟使能
+        .debugaccess  (1'b0),
+        .freeze       (1'b0),
+        .reset        (1'b0),
+        .reset_req    (1'b0),
+        .write        (1'b0),
+        .writedata    (32'b0),
+        .readdata     (rom_1_data)          // 输出：ROM中读出的颜色索引
+    );
+        soc_system_rom_2 rom_2 (
+        .address      (sprite_2_address),   // ROM 索引地址
+        .chipselect   (1'b1),             // 始终使能
+        .clk          (clk),              // 时钟
+        .clken        (1'b1),             // 时钟使能
+        .debugaccess  (1'b0),
+        .freeze       (1'b0),
+        .reset        (1'b0),
+        .reset_req    (1'b0),
+        .write        (1'b0),
+        .writedata    (32'b0),
+        .readdata     (rom_2_data)          // 输出：ROM中读出的颜色索引
+    );
+        soc_system_rom_3 rom_3 (
+        .address      (sprite_3_address),   // ROM 索引地址
+        .chipselect   (1'b1),             // 始终使能
+        .clk          (clk),              // 时钟
+        .clken        (1'b1),             // 时钟使能
+        .debugaccess  (1'b0),
+        .freeze       (1'b0),
+        .reset        (1'b0),
+        .reset_req    (1'b0),
+        .write        (1'b0),
+        .writedata    (32'b0),
+        .readdata     (rom_3_data)          // 输出：ROM中读出的颜色索引
+    );
+        soc_system_rom_4 rom_4 (
+        .address      (sprite_4_address),   // ROM 索引地址
+        .chipselect   (1'b1),             // 始终使能
+        .clk          (clk),              // 时钟
+        .clken        (1'b1),             // 时钟使能
+        .debugaccess  (1'b0),
+        .freeze       (1'b0),
+        .reset        (1'b0),
+        .reset_req    (1'b0),
+        .write        (1'b0),
+        .writedata    (32'b0),
+        .readdata     (rom_4_data)          // 输出：ROM中读出的颜色索引
+    );
+        soc_system_rom_5 rom_5 (
+        .address      (sprite_5_address),   // ROM 索引地址
+        .chipselect   (1'b1),             // 始终使能
+        .clk          (clk),              // 时钟
+        .clken        (1'b1),             // 时钟使能
+        .debugaccess  (1'b0),
+        .freeze       (1'b0),
+        .reset        (1'b0),
+        .reset_req    (1'b0),
+        .write        (1'b0),
+        .writedata    (32'b0),
+        .readdata     (rom_5_data)          // 输出：ROM中读出的颜色索引
     );
 
     //color palette
@@ -79,9 +150,9 @@ module vga_ball#(
         .address    (color_address),
         .color_data (color_data)
     );
+    // assign color_address = rom_data;
     assign color_address = rom_data;
     assign sprite_data = color_data;
-    assign {rom_r, rom_g, rom_b} = sprite_data;
 
     // Instantiate VGA counter module
     vga_counters counters(.clk50(clk), .*);
@@ -101,6 +172,7 @@ module vga_ball#(
                 obj_sprite[i] <= 6'd0;
                 obj_active[i] <= 1'b0;
             end
+
         end 
 
         else if (chipselect && write) begin
@@ -126,12 +198,52 @@ module vga_ball#(
     end
 
     // 渲染逻辑 - 确定当前像素属于哪个对象
-    //Stage0: 组合逻辑，找到最高优先级不透明像素的 ROM address
+    // Stage00: 先确定tile的位置
+    always_comb begin
+        tile_x[0] = 1280 - 3*SPRITE_WIDTH;  tile_y[0] = 0;  tile_index[0] = 6'd6;
+        tile_x[1] = 1280 - 2*SPRITE_WIDTH;  tile_y[1] = 0;  tile_index[1] = 6'd7;
+        tile_x[2] = 1280 - 1*SPRITE_WIDTH;  tile_y[2] = 0;  tile_index[2] = 6'd8;
+    end
+
+    // 渲染逻辑 - 确定当前像素属于哪个对象
+    logic [6:0] active_obj_idx;
+    logic obj_visible;
+    logic found; //用来判断有没有找到非透明的像素，没有就继续，直到最后
+    logic [3:0] rel_x, rel_y;
+    logic [3:0] tile_rel_x, tile_rel_y;
+    logic [23:0] pix; //保留当前层的rgb数据
+    logic [23:0] pix_candidate; //
+    int global_idx;
+    int local_idx;
     always_comb begin
         found = 1'b0;
-        sprite_address  = 14'd0;
-        rel_y = 10'd0;
-        rel_x = 10'd0;
+        obj_visible = 1'b0;
+        active_obj_idx = 7'd0;
+        rel_x = 4'd0;
+        rel_y = 4'd0;
+        tile_rel_y = 4'b0;
+        tile_rel_x = 4'b0;
+        pix             = {background_r,background_g,background_b};
+        pix_candidate   = {background_r,background_g,background_b};
+        sprite_address = 14'd0;
+        color_address = 8'd0;
+        sprite_0_address = 14'd0;
+        sprite_1_address = 14'd0;
+        sprite_2_address = 14'd0;
+        sprite_3_address = 14'd0;
+        sprite_4_address = 14'd0;
+        sprite_5_address = 14'd0;
+        rom_data = 8'd0;
+        rom_0_data = 8'd0;
+        rom_1_data = 8'd0;
+        rom_2_data = 8'd0;
+        rom_3_data = 8'd0;
+        rom_4_data = 8'd0;
+        rom_5_data = 8'd0;
+        global_idx = 1'b0;
+        local_idx = 1'b0;
+
+        // 从高优先级到低优先级检查对象（最后绘制的对象优先级最高）
         for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
             if (!found &&
                 obj_active[i] && 
@@ -139,88 +251,91 @@ module vga_ball#(
                 hcount[10:1] < obj_x[i][9:0] + SPRITE_WIDTH &&
                 vcount[9:0] >= obj_y[i][9:0] && 
                 vcount[9:0] < obj_y[i][9:0] + SPRITE_HEIGHT) begin
-
+                
+                active_obj_idx = i[6:0];
                 rel_x = hcount[10:1] - obj_x[i][9:0];
                 rel_y = vcount[9:0] - obj_y[i][9:0];
-                sprite_address = obj_sprite[i] * SPRITE_SIZE 
-                                + rel_y * SPRITE_WIDTH 
-                                + rel_x;
-                found = 1'b1;       // 找到第一层非透明，后面就不用再看了
-            end
-        end
-    end
+                global_idx = obj_sprite[active_obj_idx];
+                // 先计算本地索引 local_idx
+                if (global_idx <  4)       local_idx = global_idx;
+                else if (global_idx <  8)  local_idx = global_idx -  4;
+                else if (global_idx < 12)  local_idx = global_idx -  8;
+                else if (global_idx < 16)  local_idx = global_idx - 12;
+                else                        local_idx = global_idx - 16;
 
-
-    // Stage1: 寄存地址到 ROM
-    always_ff @(posedge clk or posedge reset) begin
-        if (reset) sprite_addr_reg <= 14'd0;
-        else       sprite_addr_reg <= sprite_address;
-    end
-
-    // Stage2: 寄存 palette 输出
-    always_ff @(posedge clk or posedge reset) begin
-        if (reset) sprite_data_reg <= 24'd0;
-        else       sprite_data_reg <= color_data;
-    end
-
-    // Stage3：星星逻辑
-    // 组合逻辑：多项式 x¹⁶ + x¹⁴ + 1
-    always_comb
-        lfsr_next = { lfsr_reg[14:0], lfsr_reg[15] ^ lfsr_reg[13] };
-
-    // 时钟驱动的 LFSR
-    always_ff @(posedge clk or posedge reset) begin
-        if (reset)
-            lfsr_reg <= 16'hACE1;  // 任意非全零
-        else
-            lfsr_reg <= lfsr_next;
-    end
-
-    // reset-only 时，用“同一个”lfsr_temp 给每颗星取随机点
-    integer idx;
-    always_ff @(posedge clk or posedge reset) begin
-        if (reset) begin
-            // 用一个临时变量，阻塞赋值，让每次循环都用更新过的 LFSR
-            logic [15:0] lfsr_temp;
-            lfsr_temp = 16'hC0DE;  // 初始化一个新种子（可任选）
-            for (idx = 0; idx < STAR_COUNT; idx = idx + 1) begin
-                star_x[idx] <= {1'b0, lfsr_temp[10:1]};  // 11 位横坐标
-                star_y[idx] <=  lfsr_temp[9:0];          // 10 位纵坐标
-                // 让临时 LFSR 走一步
-                lfsr_temp = { lfsr_temp[14:0], lfsr_temp[15] ^ lfsr_temp[13] };
-            end
-        end
-    end
-
-    // Stage4: 生成最终 VGA 输出    
-    always_ff @(posedge clk or posedge reset) begin
-        if (reset) begin
-            {VGA_R, VGA_G, VGA_B} <= {8'h00, 8'h80, 8'h00}; 
-            is_star <= 1'b0;
-        end 
-        else begin
-            {VGA_R, VGA_G, VGA_B} <= {background_r, background_g, background_b};
-            is_star <= 1'b0;
-            if (VGA_BLANK_n) begin
-                if (sprite_data_reg != 24'h000000) begin
-                    // 如果最高层像素不透明，就用它
-                    {VGA_R, VGA_G, VGA_B} <= sprite_data_reg[23:0];
-                    is_star <= 1'b0;
+                // 根据 global_idx 选 ROM，清零其他地址，只给对应的 sprite_n_address 赋值：
+                case (global_idx / 4)
+                    0: begin
+                        rom_data     = rom_0_data;
+                        sprite_0_address = local_idx * SPRITE_SIZE + rel_y * SPRITE_WIDTH + rel_x;
+                    end
+                    1: begin
+                        rom_data     = rom_1_data;
+                        sprite_1_address = local_idx * SPRITE_SIZE + rel_y * SPRITE_WIDTH + rel_x;
+                    end
+                    2: begin
+                        rom_data     = rom_2_data;
+                        sprite_2_address = local_idx * SPRITE_SIZE + rel_y * SPRITE_WIDTH + rel_x;
+                    end
+                    3: begin
+                        rom_data     = rom_3_data;
+                        sprite_3_address = local_idx * SPRITE_SIZE + rel_y * SPRITE_WIDTH + rel_x;
+                    end
+                    4: begin
+                        rom_data     = rom_4_data;
+                        sprite_4_address = local_idx * SPRITE_SIZE + rel_y * SPRITE_WIDTH + rel_x;
+                    end
+                    default: begin
+                        rom_data     = rom_5_data;
+                        sprite_5_address = local_idx * SPRITE_SIZE + rel_y * SPRITE_WIDTH + rel_x;
+                    end
+                endcase
+                // 送入调色板
+                // color_address  = rom_data;
+                // 原本 pix_candidate = sprite_data;
+                // 如果 rel_x==0，就把它当作透明色
+                if (rel_x == 0) begin
+                    pix_candidate = 24'h000000;
                 end else begin
-                    // 先判断星星再判断背景色
-                    for (int j = 0; j < STAR_COUNT; j++) begin
-                        if (hcount[10:1] == star_x[j] && vcount == star_y[j] && star_on) begin
-                            is_star <= 1'b1;
-                            break;
-                        end
-                    end
-                    if (is_star) begin
-                        {VGA_R, VGA_G, VGA_B} <= 24'hFFFFFF;
-                    end
+                    pix_candidate = color_data;
                 end
-            end 
+                // 只用透明色判别
+                if (pix_candidate != 24'h000000) begin
+                    pix   = pix_candidate;
+                    found = 1'b1;
+                end
+            end
         end
+        for (int i = TILE_COUNT - 1; i >= 0; i--) begin
+            if (!found &&
+                hcount[10:1] >= tile_x[i][9:0] && 
+                hcount[10:1] < tile_x[i][9:0] + TILE_WIDTH &&
+                vcount[9:0] >= tile_y[i][9:0] && 
+                vcount[9:0] < tile_y[i][9:0] + TILE_HEIGHT) begin
+                tile_rel_x = hcount[10:1] - tile_x[i][9:0];
+                tile_rel_y = vcount[9:0] - tile_y[i][9:0];
+                // 可以换一个rom
+                sprite_address = tile_index[i] * TILE_SIZE 
+                                + tile_rel_y * TILE_WIDTH 
+                                + tile_rel_x;
+                sprite_0_address = sprite_address;
+
+                if (tile_rel_x == 0) begin
+                    pix_candidate = 24'h000000;
+                end else begin
+                    pix_candidate = sprite_data;
+                end
+
+                // 只用透明色判别
+                if (pix_candidate != 24'h000000) begin
+                    pix   = pix_candidate;
+                    found = 1'b1;
+                end
+            end
+        end
+        {VGA_R, VGA_G, VGA_B} = pix;
     end
+    
 endmodule
 
 // VGA timing generator module

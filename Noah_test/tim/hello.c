@@ -223,7 +223,7 @@ bool aquire_bullet(enemy *enemy){
 
             bul->enemy = enemy->pos_num;
             
-            enemy->bul1 = i;
+            enemy->bul = i;
 
             return 1;
         }
@@ -255,7 +255,7 @@ void move_enemy_bul(){
             abs(ship->pos_y - bul->pos_y) <= SHIP_HEIGHT){
 
 
-            game_state.enemies[bul->enemy].bul1 = -1;
+            game_state.enemies[bul->enemy].bul = -1;
             
             bul->active = 0;
             bul->enemy = -1;
@@ -265,7 +265,7 @@ void move_enemy_bul(){
 
         if (bul->pos_y >= SCREEN_HEIGHT || bul->pos_x >= SCREEN_WIDTH || bul->pos_x < 0){
 
-            game_state.enemies[bul->enemy].bul1 = -1;
+            game_state.enemies[bul->enemy].bul = -1;
 
             bul->active = 0;
             bul->enemy = -1;
@@ -288,7 +288,7 @@ void enemy_shoot(enemy *enemy){
                     && abs(ship->pos_y - enemy->pos_y) <= 150
                     && ship->pos_y - 60 > enemy->pos_y){
 
-                if (enemy->bul1 == -1){
+                if (enemy->bul == -1){
 
                     printf("TRY TO SHOOT\n");
 
@@ -296,7 +296,7 @@ void enemy_shoot(enemy *enemy){
 
                     if(aquired){
                         enemy->bul_cooldown = ENEMY3_BULLET_COOLDOWN;
-                        game_state.bullets[enemy->bul1].velo_y = 3;
+                        game_state.bullets[enemy->bul].velo_y = 3;
 
                     }
                 }
@@ -309,14 +309,14 @@ void enemy_shoot(enemy *enemy){
                 && abs(ship->pos_y - enemy->pos_y <= 200
                 && ship->pos_y - 60 > enemy->pos_y)){
 
-                if (enemy->bul1 == -1){
+                if (enemy->bul == -1){
 
                     aquired = aquire_bullet(enemy);
 
                     if(aquired){
 
                         enemy->bul_cooldown = ENEMY4_BULLET_COOLDOWN;
-                        calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul1], 0, 4);
+                        calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul], 0, 4);
 
                     }
                 }

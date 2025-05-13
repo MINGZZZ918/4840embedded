@@ -18,7 +18,6 @@
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 #include "vga_ball.h"
-#include "noah/vga_ball.h"
 
 #define DRIVER_NAME "vga_ball"
 

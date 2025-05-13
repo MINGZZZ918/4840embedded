@@ -931,15 +931,19 @@ int main(){
 
     init_round_state();
 
-    int count = 0;
-
-
-
+    for (int i =0; i<COLUMNS; i++){
         for(int j=0; j<ENEMY_COUNT; j++)
-
-            printf("col: %d \n", game_state.enemies[j].col);
+            if(game_state.enemies[j].col == i) game_state.enemies[j].active = 1;
 
         update_hardware();
+        usleep(16000);
+
+
+
+
+
+    }
+
 
 
 

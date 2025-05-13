@@ -958,6 +958,7 @@ int main(){
     for (;;){
 
         round_time++;
+        active_buls = 0;
 
         enemy_wiggle_time += enemy_wiggle;
         if (abs(enemy_wiggle_time) == 80) enemy_wiggle = -enemy_wiggle;

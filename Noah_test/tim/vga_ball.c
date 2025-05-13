@@ -104,7 +104,7 @@ static void write_ship_bullets(spaceship *ship){
     }
 }
 
-static void write_powerups(powerup *power_up){
+static void write_powerup(powerup *power_up){
 
 
     write_object (1, power_up->pos_x,  power_up->pos_y, power_up->sprite, power_up->active);

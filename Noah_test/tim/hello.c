@@ -182,8 +182,6 @@ void update_powerup() {
 }
 
 
-
-
 void apply_powerup(powerup *power_up){
 
     spaceship *ship = &game_state.ship;
@@ -853,7 +851,7 @@ void bullet_movement(int new_bullet){
     int num_active = 0;
 
     for(int i = 0; i< SHIP_BULLETS; i++) 
-        if(&game_state.ship.bullets[i].active) num_active++;
+        if(game_state.ship.bullets[i].active) num_active++;
 
     for (int i = 0; i < SHIP_BULLETS; i++) {
 
@@ -1301,7 +1299,7 @@ int main(){
             }
 
             update_ship();
-            // update_powerup();
+            update_powerup();
 
 
             if(ship->lives <= 0){

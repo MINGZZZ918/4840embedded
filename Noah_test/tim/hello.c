@@ -413,6 +413,52 @@ void change_row_ends(int cur_end, int row_num, int front){
 }
 
 
+
+
+
+void enemy_return (enemy *enemy){
+
+
+    if (enemy->pos_y > SCREEN_HEIGHT || enemy->pos_x > SCREEN_WIDTH || enemy->pos_x < 0){
+
+        enemy->returning = 1;
+
+        enemy->pos_x = enemy->start_x;
+        enemy->pos_y = 0;
+
+        calculate_velo(enemy->start_x + enemy_wiggle_time, enemy->start_y, enemy, 1, 2);
+    }
+
+    
+    if (enemy->returning){
+
+
+        if (abs(enemy->pos_x - enemy->start_x + enemy_wiggle_time) < 15 && abs(enemy->pos_y -enemy->start_y) < 15){
+
+            enemy->pos_x = enemy->start_x+enemy_wiggle_time;
+            enemy->pos_y = enemy->start_y;
+
+            enemy->velo_x = 0;
+            enemy->velo_y = 0;
+
+            enemy->moving = 0;
+            enemy->returning = 0;
+            enemy->move_time = 0;
+            enemy->turn_counter = 0;
+
+            num_enemies_moving --;
+
+        }
+
+        else 
+            calculate_velo(enemy->start_x + enemy_wiggle_time, enemy->start_y, enemy, 1, 2);
+
+    }
+
+}
+
+
+
 void turn(enemy *enemy){
 
     spaceship *ship = &game_state.ship;
@@ -440,7 +486,7 @@ void turn(enemy *enemy){
 
         else if(enemy->sprite == 3){
 
-            enemy->velo_x = (enemy->pos_x < SCREEN_WIDTH / 2) ? 3 : -4;
+            enemy->velo_x = (enemy->pos_x < SCREEN_WIDTH / 2) ? 4 : -4;
             enemy->velo_y = 2;
         }
         else {
@@ -451,10 +497,6 @@ void turn(enemy *enemy){
     }
 
 }
-
-
-
-
 
 
 void enemy_attack(enemy *enemy){
@@ -553,43 +595,7 @@ void enemy_attack(enemy *enemy){
 
     }
 
-    if (enemy->pos_y > SCREEN_HEIGHT || enemy->pos_x > SCREEN_WIDTH || enemy->pos_x < 0){
-
-        enemy->returning = 1;
-
-        enemy->pos_x = enemy->start_x;
-        enemy->pos_y = 0;
-
-
-        calculate_velo(enemy->start_x + enemy_wiggle_time, enemy->start_y, enemy, 1, 2);
-    }
-
-    
-    if (enemy->returning){
-
-
-        if (abs(enemy->pos_x - enemy->start_x + enemy_wiggle_time) < 15 && abs(enemy->pos_y -enemy->start_y) < 15){
-
-            enemy->pos_x = enemy->start_x+enemy_wiggle_time;
-            enemy->pos_y = enemy->start_y;
-
-            enemy->velo_x = 0;
-            enemy->velo_y = 0;
-
-            enemy->moving = 0;
-            enemy->returning = 0;
-            enemy->move_time = 0;
-            enemy->turn_counter = 0;
-
-            num_enemies_moving --;
-
-        }
-
-        else 
-            calculate_velo(enemy->start_x + enemy_wiggle_time, enemy->start_y, enemy, 1, 2);
-
-    }
-
+    enemy_return(enemy);
 
 }
 

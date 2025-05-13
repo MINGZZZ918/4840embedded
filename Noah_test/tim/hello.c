@@ -629,7 +629,7 @@ int enemy_movement(int rand_enemy){
 
         }
 
-        if (enemy->active && ship->active
+        if (enemy->active && ship->active &&
             abs(ship->pos_x - enemy->pos_x) <= SHIP_WIDTH
             && abs(ship->pos_y - enemy->pos_y) <= SHIP_HEIGHT){
 

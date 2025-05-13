@@ -773,8 +773,6 @@ int enemies_to_move(){
     enemy *enemy;
     int num_moving = 0, rand_enemy;
 
-    printf("%ld \n", round_time);
-
 
     if (TOTAL_ACTIVE != 0){
         
@@ -814,6 +812,9 @@ int enemies_to_move(){
         else{
 
             if(round_time % 100 == 0) {
+                
+                printf("%ld \n", round_time);
+
 
                 num_sent ++;
                 return rand_enemy;

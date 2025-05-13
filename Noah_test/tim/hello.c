@@ -73,7 +73,7 @@ static int enemies_moving = 0;
 
 // static char row_vals[5] = { 2, 6, 8, 10, 10 };
 
-static char row_vals[5] = {0,0,0,0,1}
+static char row_vals[5] = {0,0,0,0,1};
 static char row_sprites[5] = { 2, 3, 3, 4, 4 };
 
 

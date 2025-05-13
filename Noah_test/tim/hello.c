@@ -71,7 +71,9 @@
 static int vga_ball_fd;
 static int enemies_moving = 0;
 
-static char row_vals[5] = { 2, 6, 8, 10, 10 };
+// static char row_vals[5] = { 2, 6, 8, 10, 10 };
+
+static char row_vals[5] = {0,0,0,0,1}
 static char row_sprites[5] = { 2, 3, 3, 4, 4 };
 
 
@@ -675,7 +677,12 @@ void bullet_colision(bullet *bul){
 
             enemy->active = 0;
             bul->active = 0;
+
+            printf("11111111111111 \n");
             memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
+
+            printf("222222222 \n");
+
             break;
         }
     }

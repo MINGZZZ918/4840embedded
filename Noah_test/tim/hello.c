@@ -837,11 +837,13 @@ void bullet_colision(bullet *bul){
             enemy->active = 0;
             bul->active = 0;
 
+            if (++ kill_count >= 15 && !game_state.power_up.active) drop_powerup(enemy);
+
+
             memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
 
             if(enemy->moving) num_enemies_moving --;
 
-            if (++ kill_count >= 15 && !game_state.power_up.active) drop_powerup(enemy);
 
             break;
         }

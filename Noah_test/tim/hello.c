@@ -1298,7 +1298,7 @@ int main(){
             }
 
             update_ship();
-            update_powerup();
+            // update_powerup();
 
 
             if(ship->lives <= 0){

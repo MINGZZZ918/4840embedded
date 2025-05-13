@@ -1130,6 +1130,7 @@ int main(){
 
                     round_wait_time = 50;
                     round_wait = 1;
+                    col_active = 0;
 
                     round_time = 0;
                     num_sent = 0;

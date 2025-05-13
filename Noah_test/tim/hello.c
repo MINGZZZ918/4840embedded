@@ -71,9 +71,9 @@
 static int vga_ball_fd;
 static int enemies_moving = 0;
 
-// static char row_vals[5] = { 2, 6, 8, 10, 10 };
+static char row_vals[5] = { 2, 6, 8, 10, 10 };
 
-static char row_vals[5] = {0,0,0,0,1};
+// static char row_vals[5] = {0,0,0,0,1};
 static char row_sprites[5] = { 2, 3, 3, 4, 4 };
 
 
@@ -163,6 +163,41 @@ void update_hardware() {
         exit(EXIT_FAILURE);
     }
 }
+
+
+
+
+
+
+
+
+void change_active_amount(char enemy_sprite){
+
+    switch(row_sprites[enemy_sprite]){
+
+        case 2:
+            active2 --;
+            break;
+
+        case 3:
+            active3 --;
+            break;
+
+        case 4:
+            active4 --;
+            break;
+    }
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -551,20 +586,27 @@ int enemy_movement(int rand_enemy){
     int cont, row_num, num_left = 0;
     enemy *enemy;
 
-    if (rand_enemy != 0){
+    if (rand_enemy != -1){
 
-        if(rand_enemy == 4) row_num = 3 + rand() % 2;
+        switch(rand_enemy){
 
-        else if(rand_enemy == 3) row_num = 1 + rand() % 2;
+            case 2:
+                row_num = 0;
+                break;
 
-        else if(rand_enemy == 2) row_num = 0;
+            case 3:
+                row_num = 1 + rand() % 2;
+                break;
 
-        if (enemy_wiggle > 0) rand_enemy = row_backs[row_num];
-        else rand_enemy = row_fronts[row_num];
+            case 4:
+                row_num = 3 + rand() % 2;
+                break;
+        }
+
+        if (enemy_wiggle > 0) rand_enemy = row_fronts[row_num];
+        else rand_enemy = row_backs[row_num];
 
     }
-
-    else rand_enemy = -1;
 
     for (int i = 0; i < ENEMY_COUNT; i++){
 
@@ -637,23 +679,7 @@ int enemy_movement(int rand_enemy){
 
 
 
-void change_active_amount(char enemy_sprite){
 
-    switch(row_sprites[enemy_sprite]){
-
-        case 2:
-            active2 --;
-            break;
-
-        case 3:
-            active3 --;
-            break;
-
-        case 4:
-            active4 --;
-            break;
-    }
-}
 
 
 void bullet_colision(bullet *bul){
@@ -743,7 +769,7 @@ void ship_movement(){
 
 
 
-
+// taking too long to move
 int enemies_to_move(){
 
     enemy *enemy;
@@ -767,11 +793,11 @@ int enemies_to_move(){
         if (round_time <= 1){
 
             round_pause = ROUND_WAIT-1;
-            return 0;
+            return -1;
         }
 
         else if (--round_pause >= 0)
-            return 0;
+            return -1;
 
         else if (num_sent == send_per_round){
 
@@ -793,9 +819,11 @@ int enemies_to_move(){
                 return rand_enemy;
             }
 
-            else return 0;
+            else return -1;
         }
     }
+
+    else return -1;
 
 }
 
@@ -1014,13 +1042,9 @@ int main(){
             ship_movement();
             bullet_movement(new_bullet);
 
-            printf("11111111111111 \n");
             rand_enemy = enemies_to_move();
-            printf("222222222222222222 \n");
             enemies_remaining = enemy_movement(rand_enemy);
-            printf("333333333333333333333 \n");
             move_enemy_bul();
-            printf("444444444444444444444 \n");
 
 
             if(ship->lives <= 0){
@@ -1030,8 +1054,6 @@ int main(){
 
             if(!enemies_remaining){
 
-                printf("111111111111111 \n");
-
                 if(round_num == 3){
 
                     printf("You Won!");
@@ -1040,8 +1062,6 @@ int main(){
 
                 round_time = 0;
                 num_sent = 0;
-
-                printf("22222222222222222222 \n");
 
                 send_per_round += send_per_round/3;
 
@@ -1054,13 +1074,7 @@ int main(){
                     row_vals[i] += round_num*2;
                 }
 
-                printf("333333333333333 \n");
-
-
                 init_round_state();
-
-                printf("4444444444444444 \n");
-
 
                 // enemies_remaining = 1;
                 round_num++;

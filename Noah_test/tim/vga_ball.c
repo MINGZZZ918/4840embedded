@@ -90,8 +90,6 @@ static void write_ship_bullets(spaceship *ship){
 
 
 
-
-
 /*
  * Write all objects
  */
@@ -128,11 +126,8 @@ static void update_game_state(gamestate *game_state)
     write_enemies(game_state->bullets, game_state->enemies);
 }
 
-
 static gamestate vb_arg;
 static spaceship vb_ship;
-
-
 
 /*
 * Handle ioctl() calls from userspace

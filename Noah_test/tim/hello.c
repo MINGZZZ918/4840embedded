@@ -162,7 +162,6 @@ void init_round_state() {
         enemy->sprite = row_sprites[row];
         enemy->pos_num = i;
         enemy->active = 1;
-
         enemy->bul1 = enemy->bul2 = -1;
         enemy->row = row;
     }
@@ -295,28 +294,29 @@ bool aquire_bullet(enemy *enemy, int bul_num){
 }
 
 
-void move_enemy_bul(enemy *enemy, int bul_num){
+void move_enemy_bul(){
 
     spaceship *ship = &game_state.ship;
-
     bullet *bul;
 
-    if (bul_num == 1) bul = &game_state.bullets[enemy->bul1];
-    else bul = &game_state.bullets[enemy->bul2];
+    for (int i = 0; i<MAX_BULLETS; i++){
+
+        bul = &game_state.bullets[i];
+
+        if(!bul->active) continue;
 
 
-    bul->pos_x += bul->velo_x;
-    bul->pos_y += bul->velo_y;
+        bul->pos_x += bul->velo_x;
+        bul->pos_y += bul->velo_y;
 
 
-    if (abs(ship->pos_x - bul->pos_x) <= SHIP_WIDTH
+        if (abs(ship->pos_x - bul->pos_x) <= SHIP_WIDTH
                 && abs(ship->pos_y - bul->pos_y) <= SHIP_HEIGHT){
 
             bul->active = 0;
             bul->enemy = -1;
 
-            if (bul_num == 1) enemy->bul1 = -1;
-            else enemy->bul2 = -1;
+            game_state.enemies[bul->enemy].bul1 = -1;
 
             printf("HITTTTTTTT \n");
 
@@ -328,10 +328,22 @@ void move_enemy_bul(enemy *enemy, int bul_num){
         bul->active = 0;
         bul->enemy = -1;
 
-        if (bul_num == 1) enemy->bul1 = -1;
-        else enemy->bul2 = -1;
+        game_state.enemies[bul->enemy].bul1 = -1;
 
     }
+
+
+
+
+
+
+    }
+
+
+    
+
+
+    
 }
 
 
@@ -406,10 +418,6 @@ void enemy_shoot(enemy *enemy){
 
     else if(enemy->turn_counter <= TURN_TIME)
         enemy->bul_cooldown --;
-
-
-    if(enemy->bul1 != -1 && game_state.bullets[enemy->bul1].active)
-        move_enemy_bul(enemy, 1);
 
     // if(game_state.bullets[enemy->bul2].active)
     //     move_enemy_bul(enemy, 2);
@@ -679,19 +687,6 @@ int enemy_movement(int rand_enemy){
                 enemy->pos_x += enemy_wiggle;
 
         }
-        
-        else {
-
-            if(enemy->bul1 != -1 && game_state.bullets[enemy->bul1].active)
-
-                enemy_shoot(enemy);    
-
-            // if(game_state.bullets[enemy->bul1].active|| 
-            //     game_state.bullets[enemy->bul1].active)
-
-            else continue;
-        }
-
 
         if (enemy->active && abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
             && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
@@ -934,6 +929,8 @@ int main(){
             bullet_movement(new_bullet);
             rand_enemy = enemies_to_move();
             enemies_remaining = enemy_movement(rand_enemy);
+            move_enemy_bul();
+
 
             if(ship->lives <= 0){
                 printf("You lost =( \n");

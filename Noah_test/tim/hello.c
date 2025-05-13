@@ -943,7 +943,7 @@ int main(){
             if (game_state.enemies[j].col = 10) {
 
                 game_state.enemies[j].active = 1;
-                printf("row: %d \n", i);
+                // printf("row: %d \n", i);
 
             }
         }

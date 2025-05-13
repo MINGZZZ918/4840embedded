@@ -128,7 +128,7 @@ static void update_game_state(gamestate *game_state)
 
 
 static gamestate vb_arg;
-static gamestate vb_ship;
+static spaceship vb_ship;
 
 /*
 * Handle ioctl() calls from userspace

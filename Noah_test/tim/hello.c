@@ -747,50 +747,54 @@ void ship_movement(){
 int enemies_to_move(){
 
     enemy *enemy;
-    int num_moving = 0;
-
-    int rand_enemy = rand() % TOTAL_ACTIVE;
-
-    if (rand_enemy < active2)
-        rand_enemy = 2;
-    
-    else if (rand_enemy < active2 + active3)
-        rand_enemy =  3;
-    
-    else 
-        rand_enemy = 4;
+    int num_moving = 0, rand_enemy;
 
 
-    if (round_time <= 1){
+    if (TOTAL_ACTIVE != 0){
+        
+        rand_enemy = rand() % TOTAL_ACTIVE;
 
-        round_pause = ROUND_WAIT-1;
-        return 0;
-    }
+        if (rand_enemy < active2)
+            rand_enemy = 2;
+        
+        else if (rand_enemy < active2 + active3)
+            rand_enemy =  3;
+        
+        else 
+            rand_enemy = 4;
 
-    else if (--round_pause >= 0)
-        return 0;
 
-    else if (num_sent == send_per_round){
+        if (round_time <= 1){
 
-        for (int i = 0; i<ENEMY_COUNT; i++)
-            if(game_state.enemies[i].moving) num_moving++;
-
-        if (!num_moving){
-
-            num_sent = 0;
-            round_pause = ROUND_WAIT/2;
-        }
-    }
-
-    else{
-
-        if(round_time % 100 == 0) {
-
-            num_sent ++;
-            return rand_enemy;
+            round_pause = ROUND_WAIT-1;
+            return 0;
         }
 
-        else return 0;
+        else if (--round_pause >= 0)
+            return 0;
+
+        else if (num_sent == send_per_round){
+
+            for (int i = 0; i<ENEMY_COUNT; i++)
+                if(game_state.enemies[i].moving) num_moving++;
+
+            if (!num_moving){
+
+                num_sent = 0;
+                round_pause = ROUND_WAIT/2;
+            }
+        }
+
+        else{
+
+            if(round_time % 100 == 0) {
+
+                num_sent ++;
+                return rand_enemy;
+            }
+
+            else return 0;
+        }
     }
 
 }

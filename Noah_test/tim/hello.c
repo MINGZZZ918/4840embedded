@@ -713,7 +713,7 @@ void bullet_colision(bullet *bul){
 
         if (enemy->active && 
             abs(enemy->pos_x - bul->pos_x + BULLET_WIDTH) <= ENEMY_WIDTH &&
-            abs(enemy->pos_y - bul->pos_y + BULLET_HEIGHT*3) <= ENEMY_HEIGHT){
+            abs(enemy->pos_y - bul->pos_y + BULLET_HEIGHT*4) <= ENEMY_HEIGHT){
 
             if(i == row_backs[enemy->row]) change_row_ends(i, enemy->row, 0);
 

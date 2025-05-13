@@ -931,7 +931,7 @@ int main(){
 
     init_round_state();
 
-    count = 0;
+    int count = 0;
 
 
 

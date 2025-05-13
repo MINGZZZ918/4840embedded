@@ -1027,7 +1027,7 @@ int main(){
 
                 round_time = 0;
                 num_sent = 0;
-                send_per_round += send_per_round/4;
+                send_per_round += send_per_round/2;
 
                 row_vals[0] ++;
 

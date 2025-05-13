@@ -953,7 +953,7 @@ int main(){
         for(int j=0; j<ENEMY_COUNT; j++)
             if(game_state.enemies[j].col == i) game_state.enemies[j].active = 1;
 
-        update_hardware();
+        update_enemies();
         usleep(16000);
     }
 
@@ -1099,7 +1099,7 @@ int main(){
 
                 else {
                     bullet_movement(new_bullet);
-                    update_bullet();
+                    update_ship_bullet();
                 }
             }
 

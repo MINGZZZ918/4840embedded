@@ -494,18 +494,15 @@ void enemy_attack(enemy *enemy){
 
             }
 
-            else if (enemy->start_x < SCREEN_WIDTH/2 && enemy->move_time == 0){
+            else if (enemy->move_time == 0){
 
-                if (enemy->pos_x - ship->pos_x > 10){
+                if (enemy->start_x < SCREEN_WIDTH/2 && enemy->pos_x - ship->pos_x > 10){
                     
                     calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 2);
                     enemy->move_time++;
                 }
-            }
 
-            else if (enemy->move_time == 0){
-
-                if (ship->pos_x - enemy->pos_x > 10){
+                else if (ship->pos_x - enemy->pos_x > 10){
 
                     calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 2);
                     enemy->move_time++;

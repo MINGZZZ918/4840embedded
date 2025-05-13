@@ -1081,16 +1081,10 @@ int main(){
 
             else if(round_wait_time == 1){
 
-
                 for(int j=0; j<ENEMY_COUNT; j++)
                     if(game_state.enemies[j].col == col_active) game_state.enemies[j].active = 1;
 
-
-                col_active ++;
-
-                printf("AHHHHH %d, %d\n", col_active, COLUMNS);
-
-                if (col_active == COLUMNS) round_wait = 1;
+                if (++col_active == COLUMNS) round_wait = 0;
             }
 
             else{

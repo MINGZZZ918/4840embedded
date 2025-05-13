@@ -302,7 +302,8 @@ void enemy_shoot(enemy *enemy){
 
     bool aquired;
 
-    if (enemy->bul_cooldown <= 0 && enemy->turn_counter >= TURN_TIME && !enemy->returning){
+    if (ship->active && enemy->bul_cooldown <= 0 && 
+        enemy->turn_counter >= TURN_TIME && !enemy->returning){
 
         if (enemy->sprite == ENEMY2){
 
@@ -1157,7 +1158,7 @@ int main(){
                         if (ship->bullets[i].active) active_buls ++;
 
                     for(int i=0; i<MAX_BULLETS; i++)
-                        if (ship->bullets[i].active) active_buls ++;
+                        if (game_state.bullets[i]active) active_buls ++;
 
 
                     if(!active_buls) round_wait_time --;

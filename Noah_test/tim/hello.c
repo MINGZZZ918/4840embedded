@@ -225,7 +225,7 @@ void move_powerup(){
 
     if (power_up->active){
 
-        power_up->pos_y -= 1;
+        power_up->pos_y += 1;
 
         if (ship->active && 
             abs(ship->pos_x - power_up->pos_x) <= SHIP_WIDTH &&

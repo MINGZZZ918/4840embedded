@@ -880,7 +880,7 @@ void init_round_state() {
         enemy->pos_y = enemy->start_y = 60 + 30 *(row+1);
         enemy->sprite = row_sprites[row];
         enemy->position = i;
-        enemy->active = 1;
+        // enemy->active = 1;
         enemy->bul = -1;
         enemy->row = row;
         enemy->col = ((space/2) + j )*(ENEMY_WIDTH + ENEMY_SPACE);

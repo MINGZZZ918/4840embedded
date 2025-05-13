@@ -5,7 +5,10 @@
 module vga_ball#(
     parameter MAX_OBJECTS = 100,    // sprites数量（adress传递的值最后给obj_sprite，这个才是精灵种类，最多64种）
     parameter SPRITE_WIDTH = 16,   // 所有精灵标准宽度
-    parameter SPRITE_HEIGHT = 16  // 所有精灵标准高度
+    parameter SPRITE_HEIGHT = 16,  // 所有精灵标准高度
+    parameter TILE_COUNT   = 3,    //tile的数量（静态贴图）
+    parameter TILE_WIDTH   = 16,   //贴图的标准宽度
+    parameter TILE_HEIGHT  = 16    //贴图的标准高度
 ) (
     input  logic        clk,
     input  logic        reset,
@@ -13,10 +16,10 @@ module vga_ball#(
     input  logic        write,
     input  logic        chipselect,
     input  logic [6:0]  address,    // 由于一次传32位，地址空间可以减小
-    output wire [7:0]  VGA_R, VGA_G, VGA_B,
     output logic        VGA_CLK, VGA_HS, VGA_VS,
     output logic        VGA_BLANK_n,
-    output logic        VGA_SYNC_n
+    output logic        VGA_SYNC_n,
+    output wire [7:0]   VGA_R, VGA_G, VGA_B
 );
 
     // 常量定义
@@ -25,27 +28,32 @@ module vga_ball#(
 
     // Background color
     logic [7:0]     background_r, background_g, background_b;
-    
+    logic [23:0]    vga_next;  //vga显示
+
     // 游戏对象数组，每个对象包含位置和精灵信息（不懂）
     logic [11:0]    obj_x[MAX_OBJECTS]; // 12位x坐标
     logic [11:0]    obj_y[MAX_OBJECTS]; // 12位y坐标
     logic [5:0]     obj_sprite[MAX_OBJECTS]; // 6位精灵索引，所以最多是64个精灵
     logic           obj_active[MAX_OBJECTS]; // 活动状态位
     
-    
+    // 静态贴图相关
+    logic [10:0] tile_x[TILE_COUNT];
+    logic [9:0]  tile_y[TILE_COUNT];
+    logic [5:0]  tile_index[TILE_COUNT];
+
     // 精灵渲染相关
     localparam int SPRITE_SIZE  = SPRITE_WIDTH * SPRITE_HEIGHT; // 16*16=256
     logic [13:0] sprite_address;
     logic [7:0] color_address;
     logic [7:0] rom_data;
-    logic [7:0] rom_r, rom_g, rom_b;
     logic [23:0] sprite_data;
     logic [23:0] color_data;  // 来自 color_palette.mif 的 RGB
-    logic        transparent_part; // 精灵中的透明背景可以透出下面的精灵
     logic [13:0] sprite_addr_reg;
     logic [23:0] sprite_data_reg;
-    logic found; //用来判断有没有找到非透明的像素，没有就继续，直到最后
     logic [3:0] rel_x, rel_y;
+    logic [3:0] tile_rel_x, tile_rel_y;
+    //logic      transparent_part; // 精灵中的透明背景可以透出下面的精灵
+
     // ROM IP module
     //rom_sprites
     soc_system_rom_sprites sprite_images (
@@ -71,13 +79,12 @@ module vga_ball#(
     );
     assign color_address = rom_data;
     assign sprite_data = color_data;
-    assign {rom_r, rom_g, rom_b} = sprite_data;
 
     // Instantiate VGA counter module
     vga_counters counters(.clk50(clk), .*);
 
     // Register update logic
-    always_ff @(posedge clk) begin //initialize
+    always_ff @(posedge clk or posedge reset) begin //initialize
         if (reset) begin
             // 初始化背景色
             background_r <= 8'h00;
@@ -97,7 +104,7 @@ module vga_ball#(
         else if (chipselect && write) begin
             case (address)
                 // 设置背景色 - 使用一个32位写入
-                5'd0: {background_r, background_g, background_b} <= writedata[23:0];
+                7'd0: {background_r, background_g, background_b} <= writedata[23:0];
                 //如果想在sw设置敌人和子弹数量可以在bg这里传，剩下8bit
                 // 对象数据更新 - 地址1到MAX_OBJECTS对应各个对象
                 default: begin
@@ -117,26 +124,45 @@ module vga_ball#(
     end
 
     // 渲染逻辑 - 确定当前像素属于哪个对象
+    // Stage00: 先确定tile的位置
+    always_comb begin
+        tile_x[0] = 1280 - 3*SPRITE_WIDTH;  tile_y[0] = 0;  tile_index[0] = 6'd6;
+        tile_x[1] = 1280 - 2*SPRITE_WIDTH;  tile_y[1] = 0;  tile_index[1] = 6'd7;
+        tile_x[2] = 1280 - 1*SPRITE_WIDTH;  tile_y[2] = 0;  tile_index[2] = 6'd8;
+    end
+
     //Stage0: 组合逻辑，找到最高优先级不透明像素的 ROM address
     always_comb begin
-        found = 1'b0;
         sprite_address  = 14'd0;
-        rel_y = 10'b0;
-        rel_x = 10'b0;
+        rel_y = 4'b0;
+        rel_x = 4'b0;
+        tile_rel_y = 4'b0;
+        tile_rel_x = 4'b0;
         for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
-            if (!found &&
-                obj_active[i] && 
+            if (obj_active[i] && 
                 hcount[10:1] >= obj_x[i][9:0] && 
                 hcount[10:1] < obj_x[i][9:0] + SPRITE_WIDTH &&
                 vcount[9:0] >= obj_y[i][9:0] && 
                 vcount[9:0] < obj_y[i][9:0] + SPRITE_HEIGHT) begin
-
                 rel_x = hcount[10:1] - obj_x[i][9:0];
                 rel_y = vcount[9:0] - obj_y[i][9:0];
                 sprite_address = obj_sprite[i] * SPRITE_SIZE 
                                 + rel_y * SPRITE_WIDTH 
                                 + rel_x;
-                found = 1'b1;       // 找到第一层非透明，后面就不用再看了
+            end
+        end
+        //找所有的静态贴图
+        for (int i = TILE_COUNT - 1; i >= 0; i--) begin
+            if (hcount[10:1] >= tile_x[i][9:0] && 
+                hcount[10:1] < tile_x[i][9:0] + TILE_WIDTH &&
+                vcount[9:0] >= tile_y[i][9:0] && 
+                vcount[9:0] < tile_y[i][9:0] + TILE_HEIGHT) begin
+                tile_rel_x = hcount[10:1] - tile_x[i][9:0];
+                tile_rel_y = vcount[9:0] - tile_y[i][9:0];
+                // 可以换一个rom
+                sprite_address = tile_index[i] * SPRITE_SIZE 
+                                + tile_rel_y * SPRITE_WIDTH 
+                                + tile_rel_x;
             end
         end
     end
@@ -156,16 +182,15 @@ module vga_ball#(
 
 
     // Stage3: 生成最终 VGA 输出（回到组合逻辑避免背景和透明不同色）
-    logic [23:0] vga_next;  
     always_comb begin
         vga_next = {background_r, background_g, background_b};
         if (VGA_BLANK_n) begin
-            vga_next = {background_r, background_g, background_b};
-            if (sprite_data != 24'h0) begin
+            if (sprite_data_reg != 24'h0) begin
                 vga_next = sprite_data_reg; // 高8位是R，sprite_data就是 readdate
             end
         end
     end
+
     assign {VGA_R, VGA_G, VGA_B} = vga_next;
 
 endmodule

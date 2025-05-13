@@ -931,10 +931,7 @@ int main(){
 
     init_round_state();
 
-
-
-
-
+    count = 0;
 
 
 
@@ -943,7 +940,7 @@ int main(){
             if (game_state.enemies[j].col = 9) {
 
                 game_state.enemies[j].active = 1;
-                printf("row: %d \n", 10);
+                printf("row: %d \n", count++);
 
             }
         }

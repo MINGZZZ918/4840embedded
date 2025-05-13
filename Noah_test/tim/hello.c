@@ -872,7 +872,7 @@ void bullet_movement(int new_bullet){
             bullet_colision(bul);
         }
 
-        printf("%d, %d, %d \n", bul->active, new_bullet, num_active)
+        printf("%d, %d, %d \n", bul->active, new_bullet, num_active);
 
         else if (!bul->active && new_bullet && num_active <= game_state.ship.num_buls) {
             bul->active = 1;

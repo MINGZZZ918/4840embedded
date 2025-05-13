@@ -932,7 +932,7 @@ int main(){
         for(int j=0; j<ENEMY_COUNT; j++)
             if(game_state.enemies[j].col == i) {
 
-                if (i < 3) printf("AHHHHHHHHHHHHHHH \n");
+                if (i == 0 || i == 1) printf("AHHHHHHHHHHHHHHH \n");
                 
                 game_state.enemies[j].active = 1;
 

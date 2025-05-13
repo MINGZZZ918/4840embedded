@@ -18,6 +18,7 @@
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 #include "vga_ball.h"
+#include "noah/vga_ball.h"
 
 #define DRIVER_NAME "vga_ball"
 
@@ -145,7 +146,7 @@ static void write_powerup(powerup *power_up){
 
     // write_object (SHIP_BULLETS+ENEMY_COUNT+2+1, power_up->pos_x,  power_up->pos_y, power_up->sprite, power_up->active);
 
-    write_object (SHIP_BULLETS+ENEMY_COUNT+2+1, power_up->pos_x,  power_up->pos_y, 3, power_up->active);
+    write_object (SHIP_BULLETS+ENEMY_COUNT+MAX_BULLETS+2, power_up->pos_x,  power_up->pos_y, 3, power_up->active);
 
 
     dev.power_up = *power_up;

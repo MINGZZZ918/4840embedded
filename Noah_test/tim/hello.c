@@ -1137,7 +1137,7 @@ int main(){
                     //     enemy_movement(-1);
                     //     update_enemies();
                     // }
-                    
+
                     enemy_movement(-1);
                     update_enemies();
 
@@ -1157,7 +1157,7 @@ int main(){
                         if (ship->bullets[i].active) active_buls ++;
 
 
-                    if(!active) round_wait_time --;
+                    if(!active_buls) round_wait_time --;
 
                     else {
                         bullet_movement(new_bullet);

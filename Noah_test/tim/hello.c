@@ -1117,7 +1117,7 @@ int main(){
                     break;
                 }
 
-                for(int i = 0; i<MAX_BULLETS i++)
+                for(int i = 0; i<MAX_BULLETS; i++)
                     if(game_state.bullets[i].active) active_buls ++;
 
 

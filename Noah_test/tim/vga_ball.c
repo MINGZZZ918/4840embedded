@@ -35,6 +35,7 @@ struct vga_ball_dev {
     spaceship ship;
     bullet bullets[MAX_BULLETS];
     enemy enemies[ENEMY_COUNT];
+    powerup power_up;
 } dev;
 
 /*
@@ -67,19 +68,32 @@ static void write_object(int idx, unsigned short x, unsigned short y, char sprit
 }
 
 
-/*
- * Write all objects
- */
-static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
-{
+
+
+static void write_ship(spaceship *ship){
+
+    int sprite;
+
+    if (ship->velo_x < 0) sprite = SHIP_LEFT;
+
+    else if (ship->velo_x > 0) sprite = SHIP_RIGHT;
+
+    else sprite = SHIP;
+
+    write_object (1, ship->pos_x,  ship->pos_y, 0, ship->active);
+
+    // write_object (1, ship->pos_x,  ship->pos_y, SHIP_EXPLOSION, !ship->active);
+
+    // write_object (1, ship->pos_x,  ship->pos_y+SHIP_HEIGHT, SHIP_EXPLOSION, !ship->active);
+
+    dev.ship = *ship;
+
+}
+
+static void write_ship_bullets(spaceship *ship){
 
     int i;
     bullet *bul;
-    enemy *enemy;
-
-    write_object (1, ship->pos_x,  ship->pos_y, 0, ship->active);
-    dev.ship = *ship;
-
 
     for (i = 0; i < SHIP_BULLETS; i++) {
 
@@ -88,6 +102,19 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 
         dev.ship.bullets[i] = *bul;
     }
+}
+
+
+/*
+ * Write all objects
+ */
+static void write_enemies(bullet bullets[], enemy enemies[])
+{
+
+    int i;
+    bullet *bul;
+    enemy *enemy;
+    char sprite;
 
     for (i = 0; i < ENEMY_COUNT; i++) {
 
@@ -101,21 +128,46 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 
         bul = &bullets[i];
 
+        if (bul->velo_x < 0) sprite = 1;
+
+        else if (bul->velo_x > 0) sprite = 2;
+
+        else sprite = 3;
+
         write_object(i+SHIP_BULLETS+ENEMY_COUNT+2,  bul->pos_x,  bul->pos_y, 1, bul->active);
         dev.bullets[i] = *bul;
     }
 }
 
+
+
+static void write_powerup(powerup *power_up){
+
+    // write_object (SHIP_BULLETS+ENEMY_COUNT+2+1, power_up->pos_x,  power_up->pos_y, power_up->sprite, power_up->active);
+
+    write_object (SHIP_BULLETS+ENEMY_COUNT+MAX_BULLETS+2, power_up->pos_x,  power_up->pos_y, 3, power_up->active);
+
+
+    dev.power_up = *power_up;
+
+}
+
+
+
+
+
 /*
 * Update all game state at once
 */
-static void update_game_state(gamestate *game_state)
+static void update_enemies(gamestate *game_state)
 {
-    write_all(&game_state->ship, game_state->bullets, game_state->enemies);
+    write_enemies(game_state->bullets, game_state->enemies);
 }
 
 
 static gamestate vb_arg;
+static spaceship vb_ship;
+static powerup vb_pu;
 
 /*
 * Handle ioctl() calls from userspace
@@ -123,11 +175,31 @@ static gamestate vb_arg;
 static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
     switch (cmd) {
-        case VGA_BALL_UPDATE_GAME_STATE:
+        case UPDATE_ENEMIES:
             if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
                 return -EACCES;
-            update_game_state(&vb_arg);
+            update_enemies(&vb_arg);
             break;
+
+        case UPDATE_SHIP:
+            if (copy_from_user(&vb_ship, (spaceship *) arg, sizeof(spaceship)))
+                return -EACCES;
+            write_ship(&vb_ship);
+            break;
+
+        case UPDATE_SHIP_BULLETS:
+            if (copy_from_user(&vb_ship, (spaceship *) arg, sizeof(spaceship)))
+                return -EACCES;
+            write_ship_bullets(&vb_ship);
+            break;
+
+        case UPDATE_POWERUP:
+            if (copy_from_user(&vb_pu, (powerup *) arg, sizeof(powerup)))
+                return -EACCES;
+            write_powerup(&vb_pu);
+            break;
+
+
 
         default:
             return -EINVAL;

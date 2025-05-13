@@ -1137,7 +1137,7 @@ int main(){
 
                 init_round_state();
 
-                // enemies_remaining = 1;
+                enemies_remaining = 1;
                 round_num++;
             }
 

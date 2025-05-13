@@ -935,15 +935,9 @@ int main(){
 
 
 
-        for(int j=0; j<ENEMY_COUNT; j++){
+        for(int j=0; j<ENEMY_COUNT; j++)
 
-            if (game_state.enemies[j].col == 10) {
-
-                game_state.enemies[j].active = 1;
-                printf("row: %d \n", count++);
-
-            }
-        }
+            printf("col: %d \n", game_state.enemies[j].col);
 
         update_hardware();
 

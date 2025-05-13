@@ -1081,6 +1081,8 @@ int main(){
 
             else if(round_wait_time == 1){
 
+                printf("AHHHHHHHHHH \n");
+
                 for(int j=0; j<ENEMY_COUNT; j++)
                     if(game_state.enemies[j].col == col_active++) game_state.enemies[j].active = 1;
 
@@ -1091,10 +1093,6 @@ int main(){
 
                 for(int i=0; i<SHIP_BULLETS; i++)
                     if (game_state.ship.bullets[i].active) active_buls ++;
-
-
-                printf("AHHHHHHHHHHHHHHHH %d \n", active_buls);
-
 
                 if(!active_buls) round_wait_time --;
 

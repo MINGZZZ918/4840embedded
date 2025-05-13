@@ -26,9 +26,9 @@
 #define ENEMY_BULLET_LEFT 8
 #define ENEMY_BULLET_RIGHT 9
 
-#define EXTRA_LIFE 10
-#define SHIP_SPEED 11
-#define EXTRA_BULLETS 12
+#define EXTRA_LIFE 2
+#define SHIP_SPEED 3
+#define EXTRA_BULLETS 4
 
 #define SHIP_FLAME 13
 #define SHIP_EXPLOSION 14

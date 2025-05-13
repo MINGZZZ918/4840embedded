@@ -192,6 +192,8 @@ void apply_powerup(powerup *power_up){
 
             ship->lives++;
 
+            printf("LIVESSSSSSS \n",);
+
             // draw an extra ship life
             break;
 
@@ -199,16 +201,19 @@ void apply_powerup(powerup *power_up){
 
             ship_velo = 3;
             powerup_timer = EXTRA_SPEED_TIME;
+            printf("SPEEEEEEEDDD \n",);
+
             break;
 
         case EXTRA_BULLETS:
 
             ship->num_buls = 5;
             powerup_timer = EXTRA_BULLET_TIME;
+            printf("BUUUUUUULLLLETS \n",);
+
             break;
     }
 }
-
 
 
 void move_powerup(){
@@ -221,6 +226,8 @@ void move_powerup(){
 
         game_state.ship.num_buls = 3;
         ship_velo = 2;
+
+        printf("DONEEEEEEEEE");
     }
 
     if (power_up->active){
@@ -255,14 +262,13 @@ void drop_powerup(enemy *enemy){
 
     power_up->pos_x = enemy->pos_x;
 
-    printf("%d, %d \n", enemy->pos_x, power_up->pos_x);
-
     power_up->pos_y = 200;
     power_up->active = 1;
 
     switch (i){
         case 0:
-            power_up->sprite = SHIP_SPEED; 
+            power_up->sprite = SHIP_SPEED;
+
             break;
 
         case 1:

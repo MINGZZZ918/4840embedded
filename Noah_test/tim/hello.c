@@ -944,19 +944,20 @@ int main(){
     printf("Game Begins! \n");
 
     init_round_state();
-
-
-    // for (int i =0; i<COLUMNS; i++){
-    //     for(int j=0; j<ENEMY_COUNT; j++)
-    //         if(game_state.enemies[j].col == i) game_state.enemies[j].active = 1;
-
-    //     update_enemies();
-    //     usleep(16000);
-    // }
-
-    update_enemies();
     update_ship();
     update_ship_bullet();
+
+
+    for (int i =0; i<COLUMNS; i++){
+        for(int j=0; j<ENEMY_COUNT; j++)
+            if(game_state.enemies[j].col == i) game_state.enemies[j].active = 1;
+
+        update_enemies();
+        usleep(16000);
+    }
+
+    // update_enemies();
+
 
     for (;;){
 

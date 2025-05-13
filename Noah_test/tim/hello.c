@@ -553,11 +553,24 @@ void enemy_attack(enemy *enemy){
 
             else{
 
-                if(enemy->move_time < 75)
-                    calculate_velo(ship->pos_x -200, ship->pos_y, enemy, 1, 2);
+                if(enemy->move_time < 75){
 
-                else
-                    calculate_velo(ship->pos_x +200, ship->pos_y, enemy, 1, 2);
+                    if (enemy->start_x < SCREEN_WIDTH/2)
+                        calculate_velo(ship->pos_x -200, ship->pos_y, enemy, 1, 2);
+
+                    else
+                        calculate_velo(ship->pos_x +200, ship->pos_y, enemy, 1, 2);
+                }
+                
+                else{
+                    
+                    if (enemy->start_x < SCREEN_WIDTH/2)
+                        calculate_velo(ship->pos_x +200, ship->pos_y, enemy, 1, 2);
+
+                    else
+                        calculate_velo(ship->pos_x -200, ship->pos_y, enemy, 1, 2);
+
+                }
 
                 if(++ enemy->move_time > 150){
 

@@ -1074,7 +1074,6 @@ int main(){
                 enemies_remaining = enemy_movement(rand_enemy);
                 move_enemy_bul();
 
-
                 update_enemies();
                 update_ship_bullet();
             }

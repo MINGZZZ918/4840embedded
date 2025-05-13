@@ -42,7 +42,7 @@
 
 #define NUM_ENEMIES 5 // how many different sprites we have
 
-#define TURN_TIME 70
+
 
 #define ENEMY3_BULLET_COOLDOWN 50
 
@@ -69,41 +69,28 @@
 
 /* File descriptor for the VGA ball device */
 static int vga_ball_fd;
-static int enemies_moving = 0;
 
-static char row_vals[5] = { 2, 6, 8, 10, 10 };
+
+
+
+
 
 // static char row_vals[5] = {0,0,0,0,1};
+static char row_vals[5] = { 2, 6, 8, 10, 10 };
 static char row_sprites[5] = { 2, 3, 3, 4, 4 };
-
-
 static int row_fronts[5];
 static int row_backs[5];
+
+
+
+
 
 
 static int enemy_wiggle = 1;
 static int enemy_wiggle_time = 0;
 
 
-static short turn_x[TURN_TIME] = {2,2,2,2,2,2,2,2,
-                    2,2,2,2,2,2,2,2,
-                    2,2,2,2,2,2,2,2,
-                    2,2,2,2,2,2,2,2,
-                    2,2,2,2,2,2,2,2,
-                    2,2,2,2,2,2,2,2,
-                    0,0,0,0,0,0,0,0,
-                    0,0,0,0,0,0,0,0,
-                    0,0,0,0,0,0};
 
-static short turn_y[TURN_TIME] = {-2,-2,-2,-2,-2,-2,-2,-2,
-                    -2,-2,-2,-2,-2,-2,-2,-2,
-                    -2,-2,-2,-2,-2,-2,-2,-2,
-                    0,0,0,0,0,0,0,0,
-                    2,2,2,2,2,2,2,2,
-                    2,2,2,2,2,2,2,2,
-                    2,2,2,2,2,2,2,2,
-                    2,2,2,2,2,2,2,2,
-                    2,2,2,2,2,2};
 
 
 static int moving = 300;
@@ -123,6 +110,33 @@ static const background_color colors[] = {
 
 
 
+#define TURN_TIME 70
+static short turn_x[TURN_TIME] = {1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0};
+
+static short turn_y[TURN_TIME] = {-1,-1,-1,-1,-1,-1,-1,-1,
+                    -1,-1,-1,-1,-1,-1,-1,-1,
+                    -1,-1,-1,-1,-1,-1,-1,-1,
+                    0,0,0,0,0,0,0,0,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1,1,1,
+                    1,1,1,1,1,1};
+
+
+
+
+
+
+static int num_enemies_moving = 0;
 
 
 
@@ -406,12 +420,13 @@ void turn(enemy *enemy){
 
     if (enemy->start_x <= SCREEN_WIDTH/2)
             enemy->velo_x = -turn_x[enemy->turn_counter];
+
     else
         enemy->velo_x = turn_x[enemy->turn_counter];
 
+
     enemy->velo_y = turn_y[enemy->turn_counter];
     enemy->turn_counter++;
-
 
 
     if (enemy->turn_counter == TURN_TIME){
@@ -419,7 +434,7 @@ void turn(enemy *enemy){
 
         if(enemy->sprite == 4){
 
-            enemy->velo_x = (enemy->pos_x < SCREEN_WIDTH / 2) ? 2 : -2;
+            enemy->velo_x = (enemy->pos_x < SCREEN_WIDTH / 2) ? 3 : -3;
             enemy->velo_y = 1;
         }
 
@@ -430,7 +445,7 @@ void turn(enemy *enemy){
         }
         else {
 
-            calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 2);
+            calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 3);
         }
 
     }
@@ -558,7 +573,7 @@ void enemy_attack(enemy *enemy){
             enemy->move_time = 0;
             enemy->turn_counter = 0;
 
-            enemies_moving --;
+            num_enemies_moving --;
 
         }
 
@@ -621,10 +636,10 @@ int enemy_movement(int rand_enemy){
                 else change_row_ends(i, row_num, 0);
 
                 enemy-> velo_x = 0;
-                enemy->velo_y = -4;
+                enemy->velo_y = -5;
 
                 enemy->moving = 1;
-                enemies_moving ++;
+                num_enemies_moving ++;
             }
 
             if(enemy->moving) {
@@ -768,10 +783,11 @@ void ship_movement(){
 
 
 // taking too long to move
+// after so long I can have liek 5 go at the same time just remove %
 int enemies_to_move(){
 
     enemy *enemy;
-    int num_moving = 0, rand_enemy;
+    int rand_enemy;
 
 
     if (TOTAL_ACTIVE != 0){
@@ -799,10 +815,7 @@ int enemies_to_move(){
 
         else if (num_sent == send_per_round){
 
-            for (int i = 0; i<ENEMY_COUNT; i++)
-                if(game_state.enemies[i].moving) num_moving++;
-
-            if (!num_moving){
+            if (!num_enemies_moving){
 
                 num_sent = 0;
                 round_pause = ROUND_WAIT/2;

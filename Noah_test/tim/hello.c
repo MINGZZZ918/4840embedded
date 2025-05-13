@@ -618,9 +618,9 @@ int enemy_movement(int rand_enemy){
 
             if(!enemy->moving && rand_enemy == i){
 
-                if (enemy_wiggle > 0) change_row_ends(i, row_num, 0);
+                if (enemy_wiggle > 0) change_row_ends(i, row_num, 1);
             
-                else change_row_ends(i, row_num, 1);
+                else change_row_ends(i, row_num, 0);
 
                 enemy-> velo_x = 0;
                 enemy->velo_y = -4;

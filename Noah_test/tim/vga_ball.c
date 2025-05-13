@@ -77,7 +77,6 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
     bullet *bul;
     enemy *enemy;
 
-
     write_object (1, ship->pos_x,  ship->pos_y, 0, ship->active);
     dev.ship = *ship;
 
@@ -112,7 +111,6 @@ static void write_all(spaceship *ship, bullet bullets[], enemy enemies[])
 */
 static void update_game_state(gamestate *game_state)
 {
-    write_background(&game_state->background);
     write_all(&game_state->ship, game_state->bullets, game_state->enemies);
 }
 

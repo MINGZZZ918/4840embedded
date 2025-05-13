@@ -25,7 +25,7 @@ typedef struct {
 typedef struct {
     unsigned short pos_x, pos_y;
     short velo_x, velo_y;
-    short lives, num_bullets;
+    short lives;
     bullet bullets[SHIP_BULLETS];
     bool active;
 } spaceship;
@@ -34,8 +34,9 @@ typedef struct {
     unsigned short pos_x, pos_y;
     short velo_x, velo_y;
     short start_x, start_y;
-    short move_time, bul_cooldown, bul1, bul2;
-    char sprite, turn_counter, row, col, pos_num;
+
+    short move_time, turn_counter, bul_cooldown, bul;
+    char sprite, row, col, position;
     bool active, returning, moving;
 } enemy;
 

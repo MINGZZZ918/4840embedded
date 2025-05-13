@@ -667,7 +667,6 @@ int enemy_movement(int rand_enemy){
                         row_backs[enemy->row] = i;
 
 
-
                     if(i < row_fronts[enemy->row] || 
                         !game_state.enemies[row_fronts[enemy->row]].active)
                     
@@ -731,6 +730,8 @@ void bullet_colision(bullet *bul){
             bul->active = 0;
 
             memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
+
+            num_enemies_moving --;
 
             break;
         }
@@ -827,6 +828,8 @@ int enemies_to_move(){
             return -1;
 
         else if (num_sent == send_per_round){
+
+            printf("AHHHHHHHHHHH %d \n"num_enemies_moving);
 
             if (!num_enemies_moving){
 
@@ -1090,7 +1093,7 @@ int main(){
                 round_time = 0;
                 num_sent = 0;
 
-                send_per_round += send_per_round/3;
+                send_per_round += send_per_round/4;
 
                 active2 = active3 = active4 = 0;
 

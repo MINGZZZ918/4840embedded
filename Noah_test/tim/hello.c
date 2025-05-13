@@ -32,7 +32,7 @@
 #define LIFE_COUNT 5
 
 #define BULLET_WIDTH 8
-#define BULLET_HEIGHT 8
+#define BULLET_HEIGHT 4
 
 
 #define ENEMY_WIDTH 16
@@ -675,7 +675,7 @@ void move_enemy_bul(){
 
         if (ship->active && 
             abs(ship->pos_x - bul->pos_x - BULLET_WIDTH) <= SHIP_WIDTH &&
-            abs(ship->pos_y - bul->pos_y - BULLET_HEIGHT) <= SHIP_HEIGHT){
+            abs(ship->pos_y - bul->pos_y - BULLET_HEIGHT*3) <= SHIP_HEIGHT){
 
 
             game_state.enemies[bul->enemy].bul = -1;

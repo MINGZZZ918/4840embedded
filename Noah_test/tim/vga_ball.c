@@ -71,7 +71,20 @@ static void write_object(int idx, unsigned short x, unsigned short y, char sprit
 
 static void write_ship(spaceship *ship){
 
+    int sprite;
+
+    if (ship->velo_x < 0) sprite = SHIP_LEFT;
+
+    else if (ship->velo_x > 0) sprite = SHIP_RIGHT;
+
+    else sprite = SHIP;
+
     write_object (1, ship->pos_x,  ship->pos_y, 0, ship->active);
+
+    // write_object (1, ship->pos_x,  ship->pos_y, SHIP_EXPLOSION, !ship->active);
+
+    // write_object (1, ship->pos_x,  ship->pos_y+SHIP_HEIGHT, SHIP_EXPLOSION, !ship->active);
+
     dev.ship = *ship;
 
 }
@@ -100,6 +113,7 @@ static void write_enemies(bullet bullets[], enemy enemies[])
     int i;
     bullet *bul;
     enemy *enemy;
+    char sprite;
 
     for (i = 0; i < ENEMY_COUNT; i++) {
 
@@ -113,6 +127,12 @@ static void write_enemies(bullet bullets[], enemy enemies[])
 
         bul = &bullets[i];
 
+        if (bul->velo_x < 0) sprite = 1;
+
+        else if (bul->velo_x > 0) sprite = 2;
+
+        else sprite = 3;
+
         write_object(i+SHIP_BULLETS+ENEMY_COUNT+2,  bul->pos_x,  bul->pos_y, 1, bul->active);
         dev.bullets[i] = *bul;
     }
@@ -121,7 +141,7 @@ static void write_enemies(bullet bullets[], enemy enemies[])
 /*
 * Update all game state at once
 */
-static void update_game_state(gamestate *game_state)
+static void update_enemies(gamestate *game_state)
 {
     write_enemies(game_state->bullets, game_state->enemies);
 }
@@ -129,6 +149,7 @@ static void update_game_state(gamestate *game_state)
 
 static gamestate vb_arg;
 static spaceship vb_ship;
+static powerup vb_pu;
 
 /*
 * Handle ioctl() calls from userspace
@@ -136,23 +157,32 @@ static spaceship vb_ship;
 static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
     switch (cmd) {
-        case VGA_BALL_UPDATE_ENEMIES:
+        case UPDATE_ENEMIES:
             if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
                 return -EACCES;
-            update_game_state(&vb_arg);
+            update_enemies(&vb_arg);
             break;
 
-        case VGA_BALL_UPDATE_SHIP:
+        case UPDATE_SHIP:
             if (copy_from_user(&vb_ship, (spaceship *) arg, sizeof(spaceship)))
                 return -EACCES;
             write_ship(&vb_ship);
             break;
 
-        case VGA_BALL_UPDATE_SHIP_BULLETS:
+        case UPDATE_SHIP_BULLETS:
             if (copy_from_user(&vb_ship, (spaceship *) arg, sizeof(spaceship)))
                 return -EACCES;
             write_ship_bullets(&vb_ship);
             break;
+
+        case UPDATE_POWERUP:
+            if (copy_from_user(&vb_pu, (powerup *) arg, sizeof(powerup)))
+                return -EACCES;
+            write_powerup(&vb_pu);
+            break;
+
+
+
         default:
             return -EINVAL;
     }

@@ -17,6 +17,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include "noah/vga_ball.h"
 #include "vga_ball.h"
 #include "controller.h"
 
@@ -27,22 +28,16 @@
 
 #define COLOR_COUNT 5
 
-#define SHIP_WIDTH 16
-#define SHIP_HEIGHT 16
 #define SHIP_INITIAL_X 200
 #define SHIP_INITIAL_Y 400
+#define LIFE_COUNT 5
+
 
 #define ENEMY_WIDTH 16
 #define ENEMY_HEIGHT 16
 
 #define ENEMY_SPACE 10
 #define COLUMNS 22
-
-#define LIFE_COUNT 5
-
-#define NUM_ENEMIES 5 // how many different sprites we have
-
-
 
 #define ENEMY3_BULLET_COOLDOWN 50
 
@@ -63,34 +58,23 @@
 
 
 
-
-
-
-
 /* File descriptor for the VGA ball device */
 static int vga_ball_fd;
 
 
+#define NUM_ROWS 5
+static char row_vals[NUM_ROWS] = {0,4,3,2,1};
+// static char row_vals[NUM_ROWS] = { 2, 6, 8, 10, 10 };
+static char row_sprites[NUM_ROWS] = { ENEMY1, ENEMY2,ENEMY2, ENEMY3, ENEMY3};
+static int row_fronts[NUM_ROWS];
+static int row_backs[NUM_ROWS];
 
 
 
-
-static char row_vals[5] = {0,4,3,2,1};
-// static char row_vals[5] = { 2, 6, 8, 10, 10 };
-static char row_sprites[5] = { 2, 3, 3, 4, 4 };
-static int row_fronts[5];
-static int row_backs[5];
-
-
-
-
-
+static int round_wait = 0, round_wait_time = 0;
 
 static int enemy_wiggle = 1;
 static int enemy_wiggle_time = 0;
-
-
-
 
 
 static int moving = 300;
@@ -132,8 +116,6 @@ static short turn_y[TURN_TIME] = {-1,-1,-1,-1,-1,-1,-1,-1,
                     1,1,1,1,1,1};
 
 
-
-
 static int num_enemies_moving = 0;
 
 
@@ -151,30 +133,39 @@ static gamestate game_state = {
     .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .active = 1},
     .background = {.red = 0xFF, .green = 0x00, .blue = 0xFF},
     .bullets = { 0 },
-    .enemies = { 0 }
+    .enemies = { 0 },
+    .power_up = { 0 }
 };
 
 /**
  * Update game state and send to the device
  */
 void update_enemies() {
-    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_ENEMIES, &game_state)) {
-        perror("ioctl(VGA_BALL_UPDATE_GAME_STATE) failed");
+    if (ioctl(vga_ball_fd, UPDATE_ENEMIES, &game_state)) {
+        perror("ioctl(UPDATE_ENEMIES) failed");
         exit(EXIT_FAILURE);
     }
 }
 
 
 void update_ship() {
-    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_SHIP, &game_state.ship)) {
-        perror("ioctl(VGA_BALL_UPDATE_SHIP) failed");
+    if (ioctl(vga_ball_fd, UPDATE_SHIP, &game_state.ship)) {
+        perror("ioctl(UPDATE_SHIP) failed");
         exit(EXIT_FAILURE);
     }
 }
 
 void update_ship_bullet() {
-    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_SHIP_BULLETS, &game_state.ship)) {
-        perror("ioctl(VGA_BALL_UPDATE_SHIP_BULLETS) failed");
+    if (ioctl(vga_ball_fd, UPDATE_SHIP_BULLETS, &game_state.ship)) {
+        perror("ioctl(UPDATE_SHIP_BULLETS) failed");
+        exit(EXIT_FAILURE);
+    }
+}
+
+
+void update_powerup() {
+    if (ioctl(vga_ball_fd, UPDATE_POWERUP, &game_state.power_up)) {
+        perror("ioctl(UPDATE_POWERUP) failed");
         exit(EXIT_FAILURE);
     }
 }
@@ -314,7 +305,7 @@ void enemy_shoot(enemy *enemy){
 
     if (enemy->bul_cooldown <= 0 && enemy->turn_counter >= TURN_TIME && !enemy->returning){
 
-        if (enemy->sprite == 3){
+        if (enemy->sprite == ENEMY2){
 
             if (abs(ship->pos_x - enemy->pos_x) <= 40
                     && abs(ship->pos_y - enemy->pos_y) <= 150
@@ -333,7 +324,7 @@ void enemy_shoot(enemy *enemy){
             }
         }
 
-        else if(enemy->sprite == 4){
+        else if(enemy->sprite == ENEMY3){
 
             if (abs(ship->pos_x - enemy->pos_x) <= 150
                 && abs(ship->pos_y - enemy->pos_y <= 200
@@ -419,13 +410,13 @@ void turn(enemy *enemy){
     if (enemy->turn_counter == TURN_TIME){
 
 
-        if(enemy->sprite == 4){
+        if(enemy->sprite == ENEMY1){
 
             enemy->velo_x = (enemy->pos_x < SCREEN_WIDTH / 2) ? 2 : -2;
             enemy->velo_y = 1;
         }
 
-        else if(enemy->sprite == 3){
+        else if(enemy->sprite == ENEMY2){
 
             enemy->velo_x = (enemy->pos_x < SCREEN_WIDTH / 2) ? 4 : -4;
             enemy->velo_y = 2;
@@ -456,9 +447,15 @@ void enemy_attack(enemy *enemy){
 
     else{
 
-        if (enemy->sprite == 2){
+        if (enemy->sprite == ENEMY1){
 
-            if(++enemy->move_time < 200)
+            if (!ship->active){
+
+                enemy->velo_x = 0;
+                enemy->velo_y = 2;
+            }
+
+            else if(++enemy->move_time < 200)
                 calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 3);
             else{
 
@@ -467,10 +464,10 @@ void enemy_attack(enemy *enemy){
             }
         }
 
-        else if (enemy->sprite == 3){
+        else if (enemy->sprite == ENEMY2){
 
 
-            if (enemy->pos_y >= ship->pos_y+10) {
+            if (enemy->pos_y >= ship->pos_y+10 || !ship ->active) {
 
                 enemy->velo_x = (enemy->pos_x > ship->pos_x) ? 1 : -1;
                 enemy->velo_y = 2;
@@ -520,7 +517,13 @@ void enemy_attack(enemy *enemy){
 
         else{
 
-            if(++enemy->move_time == 150){
+            if (!ship->active){
+
+                enemy->velo_x = (enemy->pos_x > ship->pos_x) ? 1 : -1;
+                enemy->velo_y = 2;
+            }
+
+            else if(++enemy->move_time == 150){
 
                 cont = rand() % 4;
 
@@ -555,6 +558,7 @@ int enemy_movement(int rand_enemy){
 
     int cont, row_num, num_left = 0;
     enemy *enemy;
+    ship *ship = &game_state.ship;
 
     if (rand_enemy != -1){
 
@@ -626,8 +630,9 @@ int enemy_movement(int rand_enemy){
 
         }
 
-        if (enemy->active && abs(game_state.ship.pos_x - enemy->pos_x) <= SHIP_WIDTH
-            && abs(game_state.ship.pos_y - enemy->pos_y) <= SHIP_HEIGHT){
+        if (enemy->active && ship->active
+            abs(ship->pos_x - enemy->pos_x) <= SHIP_WIDTH
+            && abs(ship->pos_y - enemy->pos_y) <= SHIP_HEIGHT){
 
                 enemy->active = 0;
 
@@ -638,17 +643,17 @@ int enemy_movement(int rand_enemy){
                 memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
 
 
-                game_state.ship.lives -= 1;
+                ship->lives --;
+                ship->active = 0;
+                /////////////// explosion here ///////////////////////////
+                round_wait = 1;
+                round_wait_time = ROUND_WAIT;
                 num_left --;
             }
     }
 
     return num_left;
 }
-
-
-
-
 
 void move_enemy_bul(){
 
@@ -665,7 +670,8 @@ void move_enemy_bul(){
         bul->pos_y += bul->velo_y;
 
 
-        if (abs(ship->pos_x - bul->pos_x) <= SHIP_WIDTH &&
+        if (shiip->active && 
+            abs(ship->pos_x - bul->pos_x) <= SHIP_WIDTH &&
             abs(ship->pos_y - bul->pos_y) <= SHIP_HEIGHT){
 
 
@@ -675,6 +681,11 @@ void move_enemy_bul(){
             bul->enemy = -1;
 
             ship->lives --;
+            ship->active = 0;
+            /////////// explosion here ///////////////////////////
+            round_wait = 1;
+            round_wait_time = ROUND_WAIT;
+
         }
 
         if (bul->pos_y >= SCREEN_HEIGHT || bul->pos_x >= SCREEN_WIDTH || bul->pos_x < 0){
@@ -686,7 +697,6 @@ void move_enemy_bul(){
         }
     } 
 }
-
 
 
 
@@ -751,7 +761,6 @@ void bullet_movement(int new_bullet){
         }
     }
 }
-
 
 
 
@@ -913,7 +922,7 @@ int main(){
     spaceship *ship = &game_state.ship;
     controller_packet packet;
     int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy;
-    int col_active = 0, round_wait = 0, active_buls = 0, round_wait_time = 0;
+    int col_active = 0, active_buls = 0, active_enemies = 0;
     int bumpers = 0, buttons = 0;
 
     srand((unsigned)time(NULL));
@@ -959,6 +968,7 @@ int main(){
 
         round_time++;
         active_buls = 0;
+        active_enemies = 0;
 
         enemy_wiggle_time += enemy_wiggle;
         if (abs(enemy_wiggle_time) == 80) enemy_wiggle = -enemy_wiggle;
@@ -1065,11 +1075,21 @@ int main(){
                     break;
             }
 
-            ship_movement();
+
+            // set round wait 
+            // if the ship is not active wait until all enemies stop moving 
+            // make the enemies go back faster if ship is not moving 
+            // then set round wait time and make ship active
+
+            // only kill enemy if ship is active
+
+
+
+            if(ship->active) ship_movement();
 
             if(!round_wait){
 
-                bullet_movement(new_bullet);
+                if(ship->active) bullet_movement(new_bullet);
                 rand_enemy = enemies_to_move();
                 enemies_remaining = enemy_movement(rand_enemy);
                 move_enemy_bul();
@@ -1080,27 +1100,68 @@ int main(){
 
             else if(round_wait_time == 1){
 
-                printf("HELOOOOOOOOOOOOOOOOOOOOOOOOOOOOO \n");
+                if(!ship->active){
 
-                for(int j=0; j<ENEMY_COUNT; j++)
-                    if(game_state.enemies[j].col == col_active) game_state.enemies[j].active = 1;
+                    ship->active = 1;
+                    ship->pos_x = SHIP_INITIAL_X;
+                    ship->pos_y = SHIP_INITIAL_Y;
+                    round_wait = 0;
+                    round_time = 0;
+                } 
+                else{
 
-                update_enemies();
+                    for(int j=0; j<ENEMY_COUNT; j++)
+                        if(game_state.enemies[j].col == col_active) game_state.enemies[j].active = 1;
 
-                if (++col_active == COLUMNS) round_wait = 0;
+                    update_enemies();
+
+                    if (++col_active == COLUMNS) round_wait = 0;
+                }
             }
 
             else{
 
-                for(int i=0; i<SHIP_BULLETS; i++)
-                    if (game_state.ship.bullets[i].active) active_buls ++;
+                if(!ship->active) { // lost life
 
-                if(!active_buls) round_wait_time --;
+                    for(int i=0; i<ENEMY_COUNT; i++)
+                        if (game_state.enemies[i].active) active_enemies ++;
 
-                else {
-                    bullet_movement(new_bullet);
-                    update_ship_bullet();
+                    for(int i=0; i<SHIP_BULLETS; i++)
+                        if (ship->bullets[i].active) active_buls ++;
+
+
+                    if(!active_buls && !active_enemies) round_wait_time --;
+
+                    else if (active_enemies){
+
+                        enemy_movement(-1);
+                        update_enemies();
+                    }
+
+                    else if (active_buls){
+
+                        if (!ship->active) bullet_movement(0);
+
+                        else bullet_movement(new_bullet);
+
+                        
+                        update_ship_bullet();
+                    }
                 }
+
+                // else{ // round end
+
+                //     for(int i=0; i<SHIP_BULLETS; i++)
+                //         if (ship->bullets[i].active) active_buls ++;
+
+
+                //     if(!active) round_wait_time --;
+
+                //     else {
+                //         bullet_movement(new_bullet);
+                //         update_ship_bullet();
+                //     }
+                // }
             }
 
             update_ship();

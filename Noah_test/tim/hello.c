@@ -272,7 +272,7 @@ bool aquire_bullet(enemy *enemy){
             bul->pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
             bul->pos_y = enemy->pos_y+(ENEMY_HEIGHT);
 
-            bul->enemy = enemy->pos_num;
+            bul->enemy = enemy->position;
             
             enemy->bul = i;
 
@@ -876,7 +876,7 @@ void init_round_state() {
                                     
         enemy->pos_y = enemy->start_y = 60 + 30 *(row+1);
         enemy->sprite = row_sprites[row];
-        enemy->pos_num = i;
+        enemy->position = i;
         enemy->active = 1;
         enemy->bul = -1;
         enemy->row = row;

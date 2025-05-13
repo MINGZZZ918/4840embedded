@@ -464,6 +464,10 @@ void enemy_attack(enemy *enemy){
     int cont;
 
 
+    enemy->pos_x += enemy->velo_x;
+    enemy->pos_y += enemy->velo_y;
+
+
     if (enemy->turn_counter < TURN_TIME)
         turn(enemy);
 
@@ -582,8 +586,7 @@ void enemy_attack(enemy *enemy){
 
     }
 
-    enemy->pos_x += enemy->velo_x;
-    enemy->pos_y += enemy->velo_y;
+
 }
 
 
@@ -635,8 +638,8 @@ int enemy_movement(int rand_enemy){
             
                 else change_row_ends(i, row_num, 0);
 
-                enemy-> velo_x = 0;
-                enemy->velo_y = -5;
+                enemy->velo_x = (enemy->start_x < SCREEN_WIDTH/2) ? -1 : 1;
+                enemy->velo_y = -4;
 
                 enemy->moving = 1;
                 num_enemies_moving ++;

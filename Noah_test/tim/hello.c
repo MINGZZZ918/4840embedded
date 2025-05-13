@@ -497,9 +497,8 @@ void enemy_attack(enemy *enemy){
 
             else if (enemy->move_time == 0 && abs(ship->pos_x - enemy->pos_x) > 10){
 
-                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 3);
-                    enemy->move_time++;
-                }
+                calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 3);
+                enemy->move_time++;
             }
 
             else{

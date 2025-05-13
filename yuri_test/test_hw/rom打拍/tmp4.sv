@@ -131,8 +131,23 @@ module vga_ball#(
         tile_x[2] = 1280 - 1*SPRITE_WIDTH;  tile_y[2] = 0;  tile_index[2] = 6'd8;
     end
     logic sprite_hit;
-    logic sprite_hit_reg;
+    //logic sprite_hit_reg;
+
     //Stage0: 组合逻辑，找到最高优先级不透明像素的 ROM address
+    logic [10:0] hcount_next;
+    logic [9:0]  vcount_next;
+    logic [10:0] h1, h2;
+    logic [9:0]  v1, v2;
+
+    always_ff @(posedge clk) begin
+        h1 <= hcount;
+        h2 <= h1;
+        hcount_next <= h2;   // 这样 hcount_next 实际上是 hcount 延迟了两拍
+        v1 <= vcount;
+        v2 <= v1;
+        vcount_next <= v2; 
+    end
+
     always_comb begin
         sprite_address  = 14'd0;
         sprite_hit     = 1'b0;      // 默认不命中
@@ -142,13 +157,13 @@ module vga_ball#(
         tile_rel_x = 4'b0;
         for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
             if (obj_active[i] && 
-                hcount[10:1] >= obj_x[i][9:0] && 
-                hcount[10:1] < obj_x[i][9:0] + SPRITE_WIDTH &&
-                vcount[9:0] >= obj_y[i][9:0] && 
-                vcount[9:0] < obj_y[i][9:0] + SPRITE_HEIGHT) begin
+                hcount_next[10:1] >= obj_x[i][9:0] && 
+                hcount_next[10:1] < obj_x[i][9:0] + SPRITE_WIDTH &&
+                vcount_next[9:0] >= obj_y[i][9:0] && 
+                vcount_next[9:0] < obj_y[i][9:0] + SPRITE_HEIGHT) begin
                 sprite_hit = 1'b1;   // 命中一个对象
-                rel_x = hcount[10:1] - obj_x[i][9:0];
-                rel_y = vcount[9:0] - obj_y[i][9:0];
+                rel_x = hcount_next[10:1] - obj_x[i][9:0];
+                rel_y = vcount_next[9:0] - obj_y[i][9:0];
                 sprite_address = obj_sprite[i] * SPRITE_SIZE 
                                 + rel_y * SPRITE_WIDTH 
                                 + rel_x;
@@ -156,13 +171,13 @@ module vga_ball#(
         end
         //找所有的静态贴图
         for (int i = TILE_COUNT - 1; i >= 0; i--) begin
-            if (hcount[10:1] >= tile_x[i][9:0] && 
-                hcount[10:1] < tile_x[i][9:0] + TILE_WIDTH &&
-                vcount[9:0] >= tile_y[i][9:0] && 
-                vcount[9:0] < tile_y[i][9:0] + TILE_HEIGHT) begin
+            if (hcount_next[10:1] >= tile_x[i][9:0] && 
+                hcount_next[10:1] < tile_x[i][9:0] + TILE_WIDTH &&
+                vcount_next[9:0] >= tile_y[i][9:0] && 
+                vcount_next[9:0] < tile_y[i][9:0] + TILE_HEIGHT) begin
                 sprite_hit = 1'b1;   // 命中一个对象
-                tile_rel_x = hcount[10:1] - tile_x[i][9:0];
-                tile_rel_y = vcount[9:0] - tile_y[i][9:0];
+                tile_rel_x = hcount_next[10:1] - tile_x[i][9:0];
+                tile_rel_y = vcount_next[9:0] - tile_y[i][9:0];
                 // 可以换一个rom
                 sprite_address = tile_index[i] * SPRITE_SIZE 
                                 + tile_rel_y * SPRITE_WIDTH 
@@ -170,6 +185,25 @@ module vga_ball#(
             end
         end
     end
+
+    // 新增两级寄存
+    logic sprite_hit_r1, sprite_hit_r2;
+    always_ff @(posedge clk or posedge reset) begin
+        if (reset) begin
+            sprite_hit_r1 <= 1'b0;
+            sprite_hit_r2 <= 1'b0;
+        end else begin
+            sprite_hit_r1 <= sprite_hit;      // 第一次打拍
+            sprite_hit_r2 <= sprite_hit_r1;   // 第二次打拍
+        end
+    end
+
+    logic sprite_hit_r3;
+    always_ff @(posedge clk or posedge reset) begin
+        if (reset)      sprite_hit_r3 <= 1'b0;
+        else            sprite_hit_r3 <= sprite_hit_r2;
+    end
+
 
 
     // Stage1: 寄存地址到 ROM
@@ -196,7 +230,7 @@ module vga_ball#(
     //   非可见区时：一律输出黑（也可以改成别的颜色）
     always_comb begin
         if (VGA_BLANK_n) begin              // active video
-            if (sprite_hit) begin       // 只有真正命中的像素才画精灵
+            if (sprite_hit_r3) begin       // 只有真正命中的像素才画精灵
                 if (sprite_data_reg != 24'h000000)
                     vga_next = sprite_data_reg;
                 else

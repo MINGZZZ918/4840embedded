@@ -51,7 +51,9 @@ typedef struct {
 #define VGA_BALL_MAGIC 'v'
 
 /* ioctls and their arguments */
-#define VGA_BALL_UPDATE_GAME_STATE   _IOW(VGA_BALL_MAGIC, 1, gamestate)
+#define VGA_BALL_UPDATE_ENEMIES   _IOW(VGA_BALL_MAGIC, 1, gamestate)
+#define VGA_BALL_UPDATE_SHIP   _IOW(VGA_BALL_MAGIC, 2, spaceship)
+#define VGA_BALL_UPDATE_SHIP_BULLETS   _IOW(VGA_BALL_MAGIC, 3, spaceship)
 
 
 #endif /* _VGA_BALL_H */

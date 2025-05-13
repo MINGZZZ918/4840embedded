@@ -162,12 +162,28 @@ static gamestate game_state = {
 /**
  * Update game state and send to the device
  */
-void update_hardware() {
-    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_GAME_STATE, &game_state)) {
+void update_enemies() {
+    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_ENEMIES, &game_state)) {
         perror("ioctl(VGA_BALL_UPDATE_GAME_STATE) failed");
         exit(EXIT_FAILURE);
     }
 }
+
+
+void update_ship() {
+    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_SHIP, &game_state.ship)) {
+        perror("ioctl(VGA_BALL_UPDATE_SHIP) failed");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void update_ship_bullet() {
+    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_SHIP_BULLETS, &game_state.ship)) {
+        perror("ioctl(VGA_BALL_UPDATE_SHIP_BULLETS) failed");
+        exit(EXIT_FAILURE);
+    }
+}
+
 
 
 
@@ -899,7 +915,8 @@ int main(){
 
     spaceship *ship = &game_state.ship;
     controller_packet packet;
-    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy, col_active = 0;
+    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy;
+    int col_active = 0, round_wait = 0, active_buls = 0, round_wait_time = 0;
     int bumpers = 0, buttons = 0;
 
     srand((unsigned)time(NULL));
@@ -930,6 +947,7 @@ int main(){
     printf("Game Begins! \n");
 
     init_round_state();
+    update_ship();
 
     for (int i =0; i<COLUMNS; i++){
         for(int j=0; j<ENEMY_COUNT; j++)
@@ -937,174 +955,202 @@ int main(){
 
         update_hardware();
         usleep(16000);
-
-
-
-
-
     }
 
+    for (;;){
 
+        round_time++;
 
+        enemy_wiggle_time += enemy_wiggle;
+        if (abs(enemy_wiggle_time) == 80) enemy_wiggle = -enemy_wiggle;
 
-    // for (;;){
+        new_bullet = 0;
 
-    //     round_time++;
+        if (ship->lives == 0) break;
 
-    //     enemy_wiggle_time += enemy_wiggle;
-    //     if (abs(enemy_wiggle_time) == 80) enemy_wiggle = -enemy_wiggle;
-
-    //     new_bullet = 0;
-
-    //     if (ship->lives == 0) break;
-
-    //     libusb_interrupt_transfer(controller, endpoint_address,
-    //         (unsigned char *) &packet, sizeof(packet), &transferred, 0);
+        libusb_interrupt_transfer(controller, endpoint_address,
+            (unsigned char *) &packet, sizeof(packet), &transferred, 0);
             
-    //     if (transferred == sizeof(packet)) {
+        if (transferred == sizeof(packet)) {
 
-    //         switch (packet.lr_arrows) {
-    //             case LEFT_ARROW:
-    //                 if(ship->pos_x > 0)
-    //                     ship->velo_x = -2;
+            switch (packet.lr_arrows) {
+                case LEFT_ARROW:
+                    if(ship->pos_x > 0)
+                        ship->velo_x = -2;
 
-    //                 // printf("%d, %d \n", ship->pos_x, ship->pos_y);
-    //                 break;
+                    // printf("%d, %d \n", ship->pos_x, ship->pos_y);
+                    break;
                     
-    //             case RIGHT_ARROW:
-    //                 if(ship->pos_x < SCREEN_WIDTH-SHIP_WIDTH)
-    //                     ship->velo_x = 2;
+                case RIGHT_ARROW:
+                    if(ship->pos_x < SCREEN_WIDTH-SHIP_WIDTH)
+                        ship->velo_x = 2;
 
-    //                 // printf("%d, %d \n", ship->pos_x, ship->pos_y);
-    //                 break;
+                    // printf("%d, %d \n", ship->pos_x, ship->pos_y);
+                    break;
 
-    //             default:
-    //                 ship->velo_x = 0;
-    //                 break;
-    //         }
+                default:
+                    ship->velo_x = 0;
+                    break;
+            }
 
-    //         switch (packet.ud_arrows) {
-    //             case UP_ARROW:
-    //                 if (ship->pos_y < SCREEN_HEIGHT - 5)
-    //                     ship->velo_y = -2;
+            switch (packet.ud_arrows) {
+                case UP_ARROW:
+                    if (ship->pos_y < SCREEN_HEIGHT - 5)
+                        ship->velo_y = -2;
 
-    //                 // printf("%d, %d\n", ship->pos_x, ship->pos_y);
-    //                 break;
+                    // printf("%d, %d\n", ship->pos_x, ship->pos_y);
+                    break;
                     
-    //             case DOWN_ARROW:
-    //                 if (ship->pos_y > 0+SHIP_HEIGHT)
-    //                     ship->velo_y = 2;
+                case DOWN_ARROW:
+                    if (ship->pos_y > 0+SHIP_HEIGHT)
+                        ship->velo_y = 2;
 
-    //                 // printf("%d, %d \n", ship->pos_x, ship->pos_y);
-    //                 break;
+                    // printf("%d, %d \n", ship->pos_x, ship->pos_y);
+                    break;
 
-    //             default:
-    //                 ship->velo_y = 0;
-    //                 break;
-    //         }
+                default:
+                    ship->velo_y = 0;
+                    break;
+            }
 
-    //         switch (packet.buttons) {                
-    //             case Y_BUTTON:
-    //                 if (!prev_bullet ){
-    //                     new_bullet = 1; // do not allow them to hold the button to shoot
-    //                     prev_bullet = 1;
-    //                 }
+            switch (packet.buttons) {                
+                case Y_BUTTON:
+                    if (!prev_bullet ){
+                        new_bullet = 1; // do not allow them to hold the button to shoot
+                        prev_bullet = 1;
+                    }
 
-    //                 buttons = 1;
-    //                 // printf("Bullet \n");
-    //                 break;
+                    buttons = 1;
+                    // printf("Bullet \n");
+                    break;
 
-    //             default:
-    //                 if (!bumpers) prev_bullet = 0;
-    //                 buttons = 0;
-    //                 break;
-    //         }
+                default:
+                    if (!bumpers) prev_bullet = 0;
+                    buttons = 0;
+                    break;
+            }
 
-    //         switch (packet.bumpers) {
-    //             case LEFT_BUMPER:
-    //                 if (!prev_bullet){
-    //                     new_bullet = 1; // do not allow them to hold the button to shoot
-    //                     prev_bullet = 1;
-    //                 }
+            switch (packet.bumpers) {
+                case LEFT_BUMPER:
+                    if (!prev_bullet){
+                        new_bullet = 1; // do not allow them to hold the button to shoot
+                        prev_bullet = 1;
+                    }
 
-    //                 bumpers = 1;
+                    bumpers = 1;
 
-    //                 break;
+                    break;
                     
-    //             case RIGHT_BUMPER:
-    //                 if (!prev_bullet){
-    //                     new_bullet = 1; // do not allow them to hold the button to shoot
-    //                     prev_bullet = 1;
-    //                 }
+                case RIGHT_BUMPER:
+                    if (!prev_bullet){
+                        new_bullet = 1; // do not allow them to hold the button to shoot
+                        prev_bullet = 1;
+                    }
 
-    //                 bumpers = 1;
+                    bumpers = 1;
 
-    //                 break;
+                    break;
 
-    //             case LR_BUMPER:
-    //                 if (!prev_bullet ){
-    //                     new_bullet = 1; // do not allow them to hold the button to shoot
-    //                     prev_bullet = 1;
-    //                 }
-    //                 bumpers = 1;
-    //                 break;
+                case LR_BUMPER:
+                    if (!prev_bullet ){
+                        new_bullet = 1; // do not allow them to hold the button to shoot
+                        prev_bullet = 1;
+                    }
+                    bumpers = 1;
+                    break;
 
-    //             default:
-    //                 if (!buttons) prev_bullet = 0; // only reset bullets if the y button has not been pressed
-    //                 bumpers = 0;
-    //                 // printf("bumpers\n");
-    //                 break;
-    //         }
-
-    //         ship_movement();
-    //         bullet_movement(new_bullet);
-
-    //         rand_enemy = enemies_to_move();
-    //         enemies_remaining = enemy_movement(rand_enemy);
-    //         move_enemy_bul();
+                default:
+                    if (!buttons) prev_bullet = 0; // only reset bullets if the y button has not been pressed
+                    bumpers = 0;
+                    // printf("bumpers\n");
+                    break;
+            }
 
 
-    //         if(ship->lives <= 0){
-    //             printf("You lost =( \n");
-    //             break;
-    //         }
+            ship_movement();
 
-    //         if(!enemies_remaining){
+            if(!round_wait){
 
-    //             if(round_num == 3){
-
-    //                 printf("You Won!");
-    //                 break;
-    //             }
-
-    //             enemy_wiggle_time = 0;
-    //             enemy_wiggle = 1;
+                bullet_movement(new_bullet);
+                rand_enemy = enemies_to_move();
+                enemies_remaining = enemy_movement(rand_enemy);
+                move_enemy_bul();
 
 
-    //             round_time = 0;
-    //             num_sent = 0;
+                update_enemies();
+                update_ship_bullet();
+            }
 
-    //             send_per_round += send_per_round/4;
+            else if(round_wait_time == 1){
 
-    //             active2 = active3 = active4 = 0;
+                for(int j=0; j<ENEMY_COUNT; j++)
+                    if(game_state.enemies[j].col == col_active++) game_state.enemies[j].active = 1;
 
-    //             row_vals[0] ++;
+                if (col_active == COLUMNS) round_wait = 0;
+            }
 
-    //             for(int i =1; i<5; i++){
+            else{
 
-    //                 row_vals[i] += round_num*2;
-    //             }
+                for(int i=0; i<SHIP_BULLETS; i++)
+                    if (game_state.ship.bullets[i].active) active_buls ++;
 
-    //             init_round_state();
 
-    //             // enemies_remaining = 1;
-    //             round_num++;
-    //         }
+                if(!active_buls) round_wait_time --;
 
-    //         update_hardware();
+                else {
+                    bullet_movement(new_bullet);
+                    update_bullet();
+                }
+            }
 
-    //         usleep(16000);
-    //     }    
-    // }
+
+            update_ship();
+
+
+
+            if(ship->lives <= 0){
+                printf("You lost =( \n");
+                break;
+            }
+
+            if(!enemies_remaining){
+
+                if(round_num == 3){
+
+                    printf("You Won!");
+                    break;
+                }
+
+                round_wait_time = 50;
+                round_wait = 1;
+
+                enemy_wiggle_time = 0;
+                enemy_wiggle = 1;
+
+
+                round_time = 0;
+                num_sent = 0;
+
+                send_per_round += send_per_round/4;
+
+                active2 = active3 = active4 = 0;
+
+                row_vals[0] ++;
+
+                for(int i =1; i<5; i++){
+
+                    row_vals[i] += round_num*2;
+                }
+
+                init_round_state();
+
+                // enemies_remaining = 1;
+                round_num++;
+            }
+
+
+            usleep(16000);
+        }    
+    }
 
 }

@@ -210,17 +210,21 @@ void apply_powerup(powerup *power_up){
 }
 
 
-void move_powerup(){
 
-    powerup *power_up = &game_state.power_up;
-    spaceship *ship = &game_state.ship;
-
+void active_powerup(){
 
     if (--powerup_timer <= 0){
 
         game_state.ship.num_buls = 3;
         ship_velo = 2;
     }
+}
+
+
+void move_powerup(){
+
+    powerup *power_up = &game_state.power_up;
+    spaceship *ship = &game_state.ship;
 
     if (power_up->active){
 
@@ -1209,6 +1213,7 @@ int main(){
 
             if(!round_wait){
 
+                active_powerup();
                 if(ship->active) bullet_movement(new_bullet);
                 rand_enemy = enemies_to_move();
                 enemies_remaining = enemy_movement(rand_enemy);

@@ -218,15 +218,15 @@ void change_active_amount(char enemy_sprite){
 void calculate_velo(int ship_x, int ship_y, void *object, int type, short scaler){
 
     float new_x, new_y, mag;
-    enemy *e;
+    enemy *enemyy;
     bullet *bul;
 
     if (type) {
 
-        e = (enemy *)object;
+        enemyy = (enemy *)object;
 
-        new_x = ship_x - e->pos_x;
-        new_y = ship_y - e->pos_y;
+        new_x = ship_x - enemyy->pos_x;
+        new_y = ship_y - enemyy->pos_y;
     }
 
     else {
@@ -247,8 +247,8 @@ void calculate_velo(int ship_x, int ship_y, void *object, int type, short scaler
 
     if (type) {
 
-        e->velo_x = (short)new_x;
-        e->velo_y = (short)new_y;
+        enemyy->velo_x = (short)new_x;
+        enemyy->velo_y = (short)new_y;
     }
     else{
 
@@ -477,10 +477,9 @@ void enemy_attack(enemy *enemy){
 
             if(++enemy->move_time < 200)
                 calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 3);
-
             else{
 
-                enemy->velo_x = (enemy->pos_x > ship->pos_x ) ? 1 : -1;
+                enemy->velo_x = 0;
                 enemy->velo_y = 2;
             }
         }
@@ -495,12 +494,22 @@ void enemy_attack(enemy *enemy){
 
             }
 
+            else if (enemy->start_x < SCREEN_WIDTH/2 && enemy->move_time == 0){
+
+                if (enemy->pos_x - ship->pos_x > 10){
+                    
+                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 2);
+                    enemy->move_time++;
+                }
+            }
+
             else if (enemy->move_time == 0){
 
-                calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 3);
+                if (ship->pos_x - enemy->pos_x > 10){
 
-                if (abs(ship->pos_x - enemy->pos_x) < 10)
+                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 2);
                     enemy->move_time++;
+                }
             }
 
             else{
@@ -538,13 +547,11 @@ void enemy_attack(enemy *enemy){
                 enemy->velo_x = 0;
                 enemy->velo_y = 2;
             }
-            
             else if (enemy->pos_y > ship->pos_y){
 
                 enemy->velo_x = (enemy->pos_x > ship->pos_x) ? 1 : -1;
                 enemy->velo_y = 2;
             }
-
         }
 
     }

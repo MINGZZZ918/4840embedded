@@ -311,7 +311,7 @@ void enemy_shoot(enemy *enemy){
 
                     printf("TRY TO SHOOT\n");
 
-                    aquired = aquire_bullet(enemy, 1);
+                    aquired = aquire_bullet(enemy);
 
                     if(aquired){
                         enemy->bul_cooldown = ENEMY3_BULLET_COOLDOWN;

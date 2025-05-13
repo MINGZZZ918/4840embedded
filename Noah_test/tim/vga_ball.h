@@ -52,7 +52,6 @@ typedef struct {
 
 /* ioctls and their arguments */
 #define VGA_BALL_UPDATE_GAME_STATE   _IOW(VGA_BALL_MAGIC, 1, gamestate)
-#define VGA_BALL_UPDATE_ENEMIES   _IOW(VGA_BALL_MAGIC, 2, gamestate)
 
 
 #endif /* _VGA_BALL_H */

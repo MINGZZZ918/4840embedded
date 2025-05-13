@@ -67,20 +67,6 @@ static void write_object(int idx, unsigned short x, unsigned short y, char sprit
 }
 
 
-static void write_enemies(gamestate *game_state){
-
-    int i;
-    enemy *enemy;
-
-    for (i = 0; i < ENEMY_COUNT; i++) {
-
-        enemy = &game_state->enemies[i];
-
-        write_object(i+SHIP_BULLETS+2,  enemy->pos_x,  enemy->pos_y, enemy->sprite, enemy->active);
-        dev.enemies[i] = game_state->enemies[i];
-    }
-}
-
 /*
  * Write all objects
  */
@@ -141,12 +127,6 @@ static long vga_ball_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
             if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
                 return -EACCES;
             update_game_state(&vb_arg);
-            break;
-
-        case VGA_BALL_UPDATE_ENEMIES:
-            if (copy_from_user(&vb_arg, (gamestate *) arg, sizeof(gamestate)))
-                return -EACCES;
-            write_enemies(&vb_arg);
             break;
 
         default:

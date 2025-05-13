@@ -170,14 +170,6 @@ void update_hardware() {
 }
 
 
-void update_enemies() {
-    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_ENEMIES, &game_state)) {
-        perror("ioctl(VGA_BALL_UPDATE_GAME_ENEMIES) failed");
-        exit(EXIT_FAILURE);
-    }
-}
-
-
 
 
 

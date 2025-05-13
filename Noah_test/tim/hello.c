@@ -863,7 +863,7 @@ void init_round_state() {
         enemy->pos_y = enemy->start_y = 60 + 30 *(row+1);
         enemy->sprite = row_sprites[row];
         enemy->position = i;
-        enemy->active = 1;
+        // enemy->active = 1;
         enemy->bul = -1;
         enemy->row = row;
         enemy->col = (space/2) + j;
@@ -928,12 +928,18 @@ int main(){
 
     init_round_state();
 
-    // for (int i =0; i<COLUMNS; i++){
-    //     for(int j=0; j<ENEMY_COUNT; j++)
-    //         if(game_state.enemies[j].col == i) game_state.enemies[j].active = 1;
+    for (int i =0; i<COLUMNS; i++){
+        for(int j=0; j<ENEMY_COUNT; j++)
+            if(game_state.enemies[j].col == i) {
 
-    //     update_hardware();
-    //     usleep(16000);
+                if (i < 3) printf("AHHHHHHHHHHHHHHH \n");
+                
+                game_state.enemies[j].active = 1;
+
+            }
+
+        update_hardware();
+        usleep(16000);
     // }
 
     for (;;){

@@ -934,9 +934,12 @@ int main(){
 
     for (int i = 0; i<20; i++){
 
-        for(int j=0; j<ENEMY_COUNT; j++)
+        for(int j=0; j<ENEMY_COUNT; j++){
+
+            printf("row: %d \n", i);
 
             if (game_state.enemies[j].col = i) game_state.enemies[j].active = 1;
+        }
 
         update_hardware();
 

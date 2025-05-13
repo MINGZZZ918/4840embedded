@@ -818,7 +818,7 @@ int enemies_to_move(){
 
         else if (num_sent == send_per_round){
 
-            printf("AHHHHHHHHHHH %d \n", num_enemies_moving);
+            // printf("AHHHHHHHHHHH %d \n", num_enemies_moving);
 
             if (!num_enemies_moving){
 
@@ -1114,6 +1114,8 @@ int main(){
             }
 
             if(!enemies_remaining){
+
+                printf("AHHHHHHHHHHHHHHHHHHH \n");
 
                 if(round_num == 3){
 

@@ -525,7 +525,14 @@ void enemy_attack(enemy *enemy){
         else if (enemy->sprite == 3){
 
 
-            if (enemy->start_x < SCREEN_WIDTH/2 && enemy->move_time == 0){
+            if (enemy->pos_y >= ship->pos_y) {
+
+                enemy->velo_x = (enemy->pos_x > ship->pos_x) ? 1 : -1;
+                enemy->velo_y = 2;
+                
+            }
+
+            else if (enemy->start_x < SCREEN_WIDTH/2 && enemy->move_time == 0){
 
                 if (enemy->pos_x - ship->pos_x > 10){
                     

@@ -17,7 +17,6 @@
 #include <math.h>
 #include <pthread.h>
 #include <fcntl.h>
-#include "noah/vga_ball.h"
 #include "vga_ball.h"
 #include "controller.h"
 

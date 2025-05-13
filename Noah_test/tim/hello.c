@@ -1123,7 +1123,7 @@ int main(){
                 if(!ship->active) { // lost life
 
                     for(int i=0; i<ENEMY_COUNT; i++)
-                        if (game_state.enemies[i].active) active_enemies ++;
+                        if (game_state.enemies[i].moving) active_enemies ++;
 
                     for(int i=0; i<SHIP_BULLETS; i++)
                         if (ship->bullets[i].active) active_buls ++;

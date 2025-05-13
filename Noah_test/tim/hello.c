@@ -848,7 +848,15 @@ void init_round_state() {
 
             row_backs[row] = i-1;
 
-            if (++row >= 5) break;
+            if (++row >= 5){
+
+                for(int j = i; j<ENEMY_COUNT; j++) 
+                    game_state.enemies[j].col = -1;
+
+                break;
+            }
+            
+            
 
             j = 0;
             space = COLUMNS - row_vals[row];

@@ -141,7 +141,7 @@ static int round_num = 1;
 
 static gamestate game_state = {
 
-    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_buls = 3, .active = 1},
+    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_buls = 3, .bullets = { 0 }, .active = 1},
     .background = {.red = 0xFF, .green = 0x00, .blue = 0xFF},
     .bullets = { 0 },
     .enemies = { 0 },

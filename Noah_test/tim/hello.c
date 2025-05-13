@@ -192,7 +192,7 @@ void apply_powerup(powerup *power_up){
 
             ship->lives++;
 
-            printf("LIVESSSSSSS \n",);
+            printf("LIVESSSSSSS \n");
 
             // draw an extra ship life
             break;
@@ -201,7 +201,7 @@ void apply_powerup(powerup *power_up){
 
             ship_velo = 3;
             powerup_timer = EXTRA_SPEED_TIME;
-            printf("SPEEEEEEEDDD \n",);
+            printf("SPEEEEEEEDDD \n");
 
             break;
 
@@ -209,7 +209,7 @@ void apply_powerup(powerup *power_up){
 
             ship->num_buls = 5;
             powerup_timer = EXTRA_BULLET_TIME;
-            printf("BUUUUUUULLLLETS \n",);
+            printf("BUUUUUUULLLLETS \n");
 
             break;
     }

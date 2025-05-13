@@ -17,6 +17,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include "noah/vga_ball.h"
 #include "vga_ball.h"
 #include "controller.h"
 
@@ -1138,6 +1139,7 @@ int main(){
                     // }
 
                     enemy_movement(-1);
+                    move_enemy_bul();
                     update_enemies();
 
 
@@ -1155,11 +1157,15 @@ int main(){
                     for(int i=0; i<SHIP_BULLETS; i++)
                         if (ship->bullets[i].active) active_buls ++;
 
+                    for(int i=0; i<MAX_BULLETS; i++)
+                        if (ship->bullets[i].active) active_buls ++;
+
 
                     if(!active_buls) round_wait_time --;
 
                     else {
                         bullet_movement(new_bullet);
+                        move_enemy_bul();
                         update_ship_bullet();
                     }
                 }

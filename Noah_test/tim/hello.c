@@ -1158,7 +1158,7 @@ int main(){
                         if (ship->bullets[i].active) active_buls ++;
 
                     for(int i=0; i<MAX_BULLETS; i++)
-                        if (game_state.bullets[i]active) active_buls ++;
+                        if (game_state.bullets[i].active) active_buls ++;
 
 
                     if(!active_buls) round_wait_time --;

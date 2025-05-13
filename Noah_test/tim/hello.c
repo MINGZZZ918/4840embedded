@@ -674,8 +674,8 @@ void move_enemy_bul(){
 
 
         if (ship->active && 
-            abs(ship->pos_x - bul->pos_x - ENEMY_WIDTH) <= SHIP_WIDTH &&
-            abs(ship->pos_y - bul->pos_y - ENEMY_HEIGHT) <= SHIP_HEIGHT){
+            abs(ship->pos_x - bul->pos_x - BULLET_WIDTH) <= SHIP_WIDTH &&
+            abs(ship->pos_y - bul->pos_y - BULLET_HEIGHT) <= SHIP_HEIGHT){
 
 
             game_state.enemies[bul->enemy].bul = -1;

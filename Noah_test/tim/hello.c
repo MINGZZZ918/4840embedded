@@ -75,8 +75,8 @@ static int vga_ball_fd;
 
 
 
-// static char row_vals[5] = {0,0,0,0,1};
-static char row_vals[5] = { 2, 6, 8, 10, 10 };
+static char row_vals[5] = {0,4,3,2,1};
+// static char row_vals[5] = { 2, 6, 8, 10, 10 };
 static char row_sprites[5] = { 2, 3, 3, 4, 4 };
 static int row_fronts[5];
 static int row_backs[5];
@@ -1081,7 +1081,7 @@ int main(){
 
             else if(round_wait_time == 1){
 
-                printf("AHHHHHHHHHH \n");
+                printf("AHHHHHHHHHH %d \n", col_active);
 
                 for(int j=0; j<ENEMY_COUNT; j++)
                     if(game_state.enemies[j].col == col_active++) game_state.enemies[j].active = 1;

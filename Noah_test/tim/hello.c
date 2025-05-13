@@ -877,7 +877,7 @@ void init_round_state() {
         // enemy->active = 1;
         enemy->bul = -1;
         enemy->row = row;
-        enemy->col = (space/2) + j *(ENEMY_WIDTH + ENEMY_SPACE);
+        enemy->col = (space/2) + j;
 
 
         switch(row_sprites[row]){

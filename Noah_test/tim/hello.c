@@ -30,7 +30,7 @@
 #define SHIP_WIDTH 16
 #define SHIP_HEIGHT 16
 #define SHIP_INITIAL_X 200
-#define SHIP_INITIAL_Y 240
+#define SHIP_INITIAL_Y 400
 
 #define ENEMY_WIDTH 16
 #define ENEMY_HEIGHT 16

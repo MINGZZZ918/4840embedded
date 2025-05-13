@@ -134,8 +134,6 @@ static short turn_y[TURN_TIME] = {-1,-1,-1,-1,-1,-1,-1,-1,
 
 
 
-
-
 static int num_enemies_moving = 0;
 
 
@@ -155,13 +153,6 @@ static gamestate game_state = {
     .bullets = { 0 },
     .enemies = { 0 }
 };
-
-
-
-
-
-
-
 
 
 
@@ -469,7 +460,7 @@ void enemy_attack(enemy *enemy){
         else if (enemy->sprite == 3){
 
 
-            if (enemy->pos_y >= ship->pos_y) {
+            if (enemy->pos_y >= ship->pos_y+10) {
 
                 enemy->velo_x = (enemy->pos_x > ship->pos_x) ? 1 : -1;
                 enemy->velo_y = 2;
@@ -512,13 +503,9 @@ void enemy_attack(enemy *enemy){
 
                 }
 
-                if(++ enemy->move_time > 150){
-
-                    enemy->velo_x = (enemy->pos_x > ship->pos_x) ? 1 : -1;
-                    enemy->velo_y = 2;
-                }
+                if(++ enemy->move_time > 150)
+                    calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 2);
             }
-
         }
 
         else{
@@ -879,9 +866,10 @@ void init_round_state() {
         enemy->pos_y = enemy->start_y = 60 + 30 *(row+1);
         enemy->sprite = row_sprites[row];
         enemy->position = i;
-        enemy->active = 1;
+        // enemy->active = 1;
         enemy->bul = -1;
         enemy->row = row;
+        enemy->col = ((space/2) + j )*(ENEMY_WIDTH + ENEMY_SPACE);
 
 
         switch(row_sprites[row]){
@@ -902,7 +890,6 @@ void init_round_state() {
 }
 
 
-
 struct libusb_device_handle *controller;
 
 uint8_t endpoint_address;
@@ -912,7 +899,7 @@ int main(){
 
     spaceship *ship = &game_state.ship;
     controller_packet packet;
-    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy;
+    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy, col_active = 0;
     int bumpers = 0, buttons = 0;
 
     srand((unsigned)time(NULL));
@@ -943,7 +930,21 @@ int main(){
     printf("Game Begins! \n");
 
     init_round_state();
-    update_hardware();
+
+
+    for (int i = 0; i<20; i++){
+
+        for(int j=0; j<ENEMY_COUNT; j++)
+
+            if (game_state.enemies[j].col = i) game_state.enemies[j] = 1;
+
+        update_hardware();
+
+        usleep(16000);
+
+
+    }
+
 
 
     for (;;){
@@ -1075,6 +1076,10 @@ int main(){
                     printf("You Won!");
                     break;
                 }
+
+                enemy_wiggle_time = 0;
+                enemy_wiggle = 1;
+
 
                 round_time = 0;
                 num_sent = 0;

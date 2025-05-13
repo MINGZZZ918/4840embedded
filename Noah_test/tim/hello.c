@@ -824,7 +824,7 @@ int enemies_to_move(){
         }
     }
 
-    else return -1;
+    return -1;
 
 }
 

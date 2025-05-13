@@ -557,7 +557,7 @@ int enemy_movement(int rand_enemy){
 
     int cont, row_num, num_left = 0;
     enemy *enemy;
-    ship *ship = &game_state.ship;
+    spaceship *ship = &game_state.ship;
 
     if (rand_enemy != -1){
 
@@ -669,7 +669,7 @@ void move_enemy_bul(){
         bul->pos_y += bul->velo_y;
 
 
-        if (shiip->active && 
+        if (ship->active && 
             abs(ship->pos_x - bul->pos_x) <= SHIP_WIDTH &&
             abs(ship->pos_y - bul->pos_y) <= SHIP_HEIGHT){
 

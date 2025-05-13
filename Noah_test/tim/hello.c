@@ -937,7 +937,7 @@ int main(){
 
         for(int j=0; j<ENEMY_COUNT; j++){
 
-            if (game_state.enemies[j].col = 9) {
+            if (game_state.enemies[j].col == 9) {
 
                 game_state.enemies[j].active = 1;
                 printf("row: %d \n", count++);

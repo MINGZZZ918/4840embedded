@@ -757,7 +757,6 @@ int enemies_to_move(){
         rand_enemy = 4;
 
 
-
     if (round_time <= 1){
 
         round_pause = ROUND_WAIT-1;
@@ -895,7 +894,6 @@ int main(){
     update_hardware();
 
 
-
     for (;;){
 
         round_time++;
@@ -1019,6 +1017,8 @@ int main(){
 
             if(!enemies_remaining){
 
+                printf("111111111111111 \n");
+
                 if(round_num == 3){
 
                     printf("You Won!");
@@ -1027,7 +1027,12 @@ int main(){
 
                 round_time = 0;
                 num_sent = 0;
-                send_per_round += send_per_round/2;
+
+                printf("22222222222222222222 \n");
+
+                send_per_round += send_per_round/3;
+
+                active2 = active3 = active4 = 0;
 
                 row_vals[0] ++;
 
@@ -1036,7 +1041,13 @@ int main(){
                     row_vals[i] += round_num*2;
                 }
 
+                printf("333333333333333 \n");
+
+
                 init_round_state();
+
+                printf("4444444444444444 \n");
+
 
                 // enemies_remaining = 1;
                 round_num++;

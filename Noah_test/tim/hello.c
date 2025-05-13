@@ -162,28 +162,12 @@ static gamestate game_state = {
 /**
  * Update game state and send to the device
  */
-void update_enemies() {
-    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_ENEMIES, &game_state)) {
+void update_hardware() {
+    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_GAME_STATE, &game_state)) {
         perror("ioctl(VGA_BALL_UPDATE_GAME_STATE) failed");
         exit(EXIT_FAILURE);
     }
 }
-
-
-void update_ship() {
-    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_SHIP, &game_state.ship)) {
-        perror("ioctl(VGA_BALL_UPDATE_SHIP) failed");
-        exit(EXIT_FAILURE);
-    }
-}
-
-void update_ship_bullet() {
-    if (ioctl(vga_ball_fd, VGA_BALL_UPDATE_SHIP_BULLETS, &game_state.ship)) {
-        perror("ioctl(VGA_BALL_UPDATE_SHIP_BULLETS) failed");
-        exit(EXIT_FAILURE);
-    }
-}
-
 
 
 
@@ -818,7 +802,7 @@ int enemies_to_move(){
 
         else if (num_sent == send_per_round){
 
-            // printf("AHHHHHHHHHHH %d \n", num_enemies_moving);
+            printf("AHHHHHHHHHHH %d \n", num_enemies_moving);
 
             if (!num_enemies_moving){
 
@@ -915,8 +899,7 @@ int main(){
 
     spaceship *ship = &game_state.ship;
     controller_packet packet;
-    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy;
-    int col_active = 0, round_wait = 0, active_buls = 0, round_wait_time = 0;
+    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy, col_active = 0;
     int bumpers = 0, buttons = 0;
 
     srand((unsigned)time(NULL));
@@ -947,13 +930,12 @@ int main(){
     printf("Game Begins! \n");
 
     init_round_state();
-    update_ship();
 
     for (int i =0; i<COLUMNS; i++){
         for(int j=0; j<ENEMY_COUNT; j++)
             if(game_state.enemies[j].col == i) game_state.enemies[j].active = 1;
 
-        update_enemies();
+        update_hardware();
         usleep(16000);
     }
 
@@ -1066,46 +1048,12 @@ int main(){
                     break;
             }
 
-
             ship_movement();
+            bullet_movement(new_bullet);
 
-            if(!round_wait){
-
-                bullet_movement(new_bullet);
-                rand_enemy = enemies_to_move();
-                enemies_remaining = enemy_movement(rand_enemy);
-                move_enemy_bul();
-
-
-                update_enemies();
-                update_ship_bullet();
-            }
-
-            else if(round_wait_time == 1){
-
-                for(int j=0; j<ENEMY_COUNT; j++)
-                    if(game_state.enemies[j].col == col_active++) game_state.enemies[j].active = 1;
-
-                if (col_active == COLUMNS) round_wait = 0;
-            }
-
-            else{
-
-                for(int i=0; i<SHIP_BULLETS; i++)
-                    if (game_state.ship.bullets[i].active) active_buls ++;
-
-
-                if(!active_buls) round_wait_time --;
-
-                else {
-                    bullet_movement(new_bullet);
-                    update_ship_bullet();
-                }
-            }
-
-
-            update_ship();
-
+            rand_enemy = enemies_to_move();
+            enemies_remaining = enemy_movement(rand_enemy);
+            move_enemy_bul();
 
 
             if(ship->lives <= 0){
@@ -1115,16 +1063,11 @@ int main(){
 
             if(!enemies_remaining){
 
-                printf("AHHHHHHHHHHHHHHHHHHH \n");
-
                 if(round_num == 3){
 
                     printf("You Won!");
                     break;
                 }
-
-                round_wait_time = 50;
-                round_wait = 1;
 
                 enemy_wiggle_time = 0;
                 enemy_wiggle = 1;
@@ -1150,6 +1093,7 @@ int main(){
                 round_num++;
             }
 
+            update_hardware();
 
             usleep(16000);
         }    

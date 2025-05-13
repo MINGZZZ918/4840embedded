@@ -1131,19 +1131,17 @@ int main(){
 
                     if(!active_buls && !active_enemies) round_wait_time --;
 
-                    else if (active_enemies){
+                    if (active_enemies){
 
                         enemy_movement(-1);
                         update_enemies();
                     }
 
-                    else if (active_buls){
+                    if (active_buls){
 
                         if (!ship->active) bullet_movement(0);
 
                         else bullet_movement(new_bullet);
-
-                        
                         update_ship_bullet();
                     }
                 }

@@ -31,6 +31,9 @@
 #define SHIP_INITIAL_Y 400
 #define LIFE_COUNT 5
 
+#define BULLET_WIDTH 8
+#define BULLET_HIEGHT 8
+
 
 #define ENEMY_WIDTH 16
 #define ENEMY_HEIGHT 16
@@ -671,8 +674,8 @@ void move_enemy_bul(){
 
 
         if (ship->active && 
-            abs(ship->pos_x - bul->pos_x) <= SHIP_WIDTH &&
-            abs(ship->pos_y - bul->pos_y) <= SHIP_HEIGHT){
+            abs(ship->pos_x - bul->pos_x - ENEMY_WIDTH) <= SHIP_WIDTH &&
+            abs(ship->pos_y - bul->pos_y - ENEMY_HEIGHT) <= SHIP_HEIGHT){
 
 
             game_state.enemies[bul->enemy].bul = -1;
@@ -709,8 +712,8 @@ void bullet_colision(bullet *bul){
         enemy = &game_state.enemies[i];
 
         if (enemy->active && 
-            abs(enemy->pos_x - bul->pos_x) <= ENEMY_WIDTH &&
-            abs(enemy->pos_y - bul->pos_y) <= ENEMY_HEIGHT){
+            abs(enemy->pos_x - bul->pos_x + BULLET_WIDTH) <= ENEMY_WIDTH &&
+            abs(enemy->pos_y - bul->pos_y + BULLET_HEIGHT) <= ENEMY_HEIGHT){
 
             if(i == row_backs[enemy->row]) change_row_ends(i, enemy->row, 0);
 
@@ -1082,8 +1085,6 @@ int main(){
 
             // only kill enemy if ship is active
 
-
-
             if(ship->active) ship_movement();
 
             if(!round_wait){
@@ -1164,6 +1165,7 @@ int main(){
                     if(!active_buls) round_wait_time --;
 
                     else {
+
                         bullet_movement(new_bullet);
                         move_enemy_bul();
                         update_ship_bullet();

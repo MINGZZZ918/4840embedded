@@ -944,7 +944,9 @@ int main(){
     printf("Game Begins! \n");
 
     init_round_state();
-    update_hardware();
+    update_enemies();
+    update_ship();
+    update_ship_bullet();
 
     for (;;){
 

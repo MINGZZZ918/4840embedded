@@ -1085,6 +1085,9 @@ int main(){
                 for(int j=0; j<ENEMY_COUNT; j++)
                     if(game_state.enemies[j].col == col_active++) game_state.enemies[j].active = 1;
 
+
+                printf("AHHHHH %d\n", col_active)
+
                 if (col_active == COLUMNS) round_wait = 1;
             }
 

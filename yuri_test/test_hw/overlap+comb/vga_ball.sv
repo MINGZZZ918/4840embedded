@@ -147,7 +147,7 @@ module vga_ball#(
                                 + rel_y * SPRITE_WIDTH 
                                 + rel_x;
                 pix_candidate = sprite_data;
-                if (pix_candidate != 24'h000000) begin
+                if (rel_x != 0 && pix_candidate != 24'h000000) begin
                     pix   = pix_candidate;
                     found = 1'b1;       // 找到第一层非透明，后面就不用再看了
                 end

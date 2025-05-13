@@ -16,10 +16,10 @@ module vga_ball#(
     input  logic        write,
     input  logic        chipselect,
     input  logic [6:0]  address,    // 由于一次传32位，地址空间可以减小
+    output logic [7:0]  VGA_R, VGA_G, VGA_B,
     output logic        VGA_CLK, VGA_HS, VGA_VS,
     output logic        VGA_BLANK_n,
-    output logic        VGA_SYNC_n,
-    output wire [7:0]   VGA_R, VGA_G, VGA_B
+    output logic        VGA_SYNC_n
 );
 
     // 常量定义
@@ -28,8 +28,7 @@ module vga_ball#(
 
     // Background color
     logic [7:0]     background_r, background_g, background_b;
-    logic [23:0]    vga_next;  //vga显示
-
+    
     // 游戏对象数组，每个对象包含位置和精灵信息（不懂）
     logic [11:0]    obj_x[MAX_OBJECTS]; // 12位x坐标
     logic [11:0]    obj_y[MAX_OBJECTS]; // 12位y坐标
@@ -46,18 +45,16 @@ module vga_ball#(
     logic [13:0] sprite_address;
     logic [7:0] color_address;
     logic [7:0] rom_data;
+    logic [7:0] rom_r, rom_g, rom_b;
     logic [23:0] sprite_data;
     logic [23:0] color_data;  // 来自 color_palette.mif 的 RGB
-    logic [13:0] sprite_addr_reg;
-    logic [23:0] sprite_data_reg;
-    logic [3:0] rel_x, rel_y;
-    logic [3:0] tile_rel_x, tile_rel_y;
-    //logic      transparent_part; // 精灵中的透明背景可以透出下面的精灵
+    logic        transparent_part; // 精灵中的透明背景可以透出下面的精灵
+
 
     // ROM IP module
     //rom_sprites
     soc_system_rom_sprites sprite_images (
-        .address      (sprite_addr_reg),   // ROM 索引地址
+        .address      (sprite_address),   // ROM 索引地址
         .chipselect   (1'b1),             // 始终使能
         .clk          (clk),              // 时钟
         .clken        (1'b1),             // 时钟使能
@@ -79,12 +76,13 @@ module vga_ball#(
     );
     assign color_address = rom_data;
     assign sprite_data = color_data;
+    assign {rom_r, rom_g, rom_b} = sprite_data;
 
     // Instantiate VGA counter module
     vga_counters counters(.clk50(clk), .*);
 
     // Register update logic
-    always_ff @(posedge clk or posedge reset) begin //initialize
+    always_ff @(posedge clk) begin //initialize
         if (reset) begin
             // 初始化背景色
             background_r <= 8'h00;
@@ -104,7 +102,7 @@ module vga_ball#(
         else if (chipselect && write) begin
             case (address)
                 // 设置背景色 - 使用一个32位写入
-                7'd0: {background_r, background_g, background_b} <= writedata[23:0];
+                5'd0: {background_r, background_g, background_b} <= writedata[23:0];
                 //如果想在sw设置敌人和子弹数量可以在bg这里传，剩下8bit
                 // 对象数据更新 - 地址1到MAX_OBJECTS对应各个对象
                 default: begin
@@ -130,79 +128,84 @@ module vga_ball#(
         tile_x[1] = 1280 - 2*SPRITE_WIDTH;  tile_y[1] = 0;  tile_index[1] = 6'd7;
         tile_x[2] = 1280 - 1*SPRITE_WIDTH;  tile_y[2] = 0;  tile_index[2] = 6'd8;
     end
-    logic sprite_hit;
-    logic sprite_hit_reg;
-    //Stage0: 组合逻辑，找到最高优先级不透明像素的 ROM address
+
+    // 渲染逻辑 - 确定当前像素属于哪个对象
+    logic [6:0] active_obj_idx;
+    logic obj_visible;
+    logic found; //用来判断有没有找到非透明的像素，没有就继续，直到最后
+    logic [3:0] rel_x, rel_y;
+    logic [3:0] tile_rel_x, tile_rel_y;
+    logic [23:0] pix; //保留当前层的rgb数据
+    logic [23:0] pix_candidate; //
     always_comb begin
-        sprite_address  = 14'd0;
-        sprite_hit     = 1'b0;      // 默认不命中
-        rel_y = 4'b0;
-        rel_x = 4'b0;
+        found = 1'b0;
+        obj_visible = 1'b0;
+        active_obj_idx = 7'd0;
+        rel_x = 4'd0;
+        rel_y = 4'd0;
         tile_rel_y = 4'b0;
         tile_rel_x = 4'b0;
+        pix             = {background_r,background_g,background_b};
+        pix_candidate   = {background_r,background_g,background_b};
+        sprite_address = 14'd0;
+
+        // 从高优先级到低优先级检查对象（最后绘制的对象优先级最高）
         for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
-            if (obj_active[i] && 
+            if (!found &&
+                obj_active[i] && 
                 hcount[10:1] >= obj_x[i][9:0] && 
                 hcount[10:1] < obj_x[i][9:0] + SPRITE_WIDTH &&
                 vcount[9:0] >= obj_y[i][9:0] && 
                 vcount[9:0] < obj_y[i][9:0] + SPRITE_HEIGHT) begin
-                sprite_hit = 1'b1;   // 命中一个对象
+                
+                active_obj_idx = i[6:0];
                 rel_x = hcount[10:1] - obj_x[i][9:0];
                 rel_y = vcount[9:0] - obj_y[i][9:0];
-                sprite_address = obj_sprite[i] * SPRITE_SIZE 
+                sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE 
                                 + rel_y * SPRITE_WIDTH 
                                 + rel_x;
+                // 原本 pix_candidate = sprite_data;
+                // 如果 rel_x==0，就把它当作透明色
+                if (rel_x == 0) begin
+                    pix_candidate = 24'h000000;
+                end else begin
+                    pix_candidate = sprite_data;
+                end
+                // 只用透明色判别
+                if (pix_candidate != 24'h000000) begin
+                    pix   = pix_candidate;
+                    found = 1'b1;
+                end
             end
         end
-        //找所有的静态贴图
         for (int i = TILE_COUNT - 1; i >= 0; i--) begin
-            if (hcount[10:1] >= tile_x[i][9:0] && 
+            if (!found &&
+                hcount[10:1] >= tile_x[i][9:0] && 
                 hcount[10:1] < tile_x[i][9:0] + TILE_WIDTH &&
                 vcount[9:0] >= tile_y[i][9:0] && 
                 vcount[9:0] < tile_y[i][9:0] + TILE_HEIGHT) begin
-                sprite_hit = 1'b1;   // 命中一个对象
                 tile_rel_x = hcount[10:1] - tile_x[i][9:0];
                 tile_rel_y = vcount[9:0] - tile_y[i][9:0];
                 // 可以换一个rom
                 sprite_address = tile_index[i] * SPRITE_SIZE 
                                 + tile_rel_y * SPRITE_WIDTH 
                                 + tile_rel_x;
+                if (tile_rel_x == 0) begin
+                    pix_candidate = 24'h000000;
+                end else begin
+                    pix_candidate = sprite_data;
+                end
+
+                // 只用透明色判别
+                if (pix_candidate != 24'h000000) begin
+                    pix   = pix_candidate;
+                    found = 1'b1;
+                end
             end
         end
+        {VGA_R, VGA_G, VGA_B} = pix;
     end
-
-
-    // Stage1: 寄存地址到 ROM
-
-    always_ff @(posedge clk or posedge reset) begin
-        if (reset) begin
-            sprite_addr_reg <= 14'd0;
-            sprite_hit_reg  <= 1'b0;
-        end else begin
-            sprite_addr_reg <= sprite_address;
-            sprite_hit_reg  <= sprite_hit;
-        end
-    end
-
-    // Stage2: 寄存 palette 输出
-    always_ff @(posedge clk or posedge reset) begin
-        if (reset) sprite_data_reg <= 24'd0;
-        else       sprite_data_reg <= color_data;
-    end
-
-
-    // Stage3: 生成最终 VGA 输出
-    //   可见区时：有精灵就画精灵，没有精灵就画背景
-    //   非可见区时：一律输出黑（也可以改成别的颜色）
-// 在 Stage3 里临时改成 “只输出背景”，不管任何别的信号
-    always_comb begin
-        if (VGA_BLANK_n)        // active video
-            vga_next = {background_r, background_g, background_b};
-        else                    // blanking
-            vga_next = 24'h000000;
-    end
-    assign {VGA_R, VGA_G, VGA_B} = vga_next;
-
+    
 endmodule
 
 // VGA timing generator module

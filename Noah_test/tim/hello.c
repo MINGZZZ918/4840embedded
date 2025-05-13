@@ -17,6 +17,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include "noah/vga_ball.h"
 #include "vga_ball.h"
 #include "controller.h"
 
@@ -1081,12 +1082,11 @@ int main(){
 
             else if(round_wait_time == 1){
 
-                printf("AHHHHHHHHHH %d \n", col_active);
 
                 for(int j=0; j<ENEMY_COUNT; j++)
                     if(game_state.enemies[j].col == col_active++) game_state.enemies[j].active = 1;
 
-                if (col_active == COLUMNS) round_wait = 0;
+                if (col_active == COLUMNS) round_wait = 1;
             }
 
             else{
@@ -1118,30 +1118,38 @@ int main(){
                     break;
                 }
 
-                enemy_wiggle_time = 0;
-                enemy_wiggle = 1;
+                for(int i = 0; i<MAX_BULLETS i++)
+                    if(game_state.bullets[i].active) active_buls ++;
 
-                round_wait_time = 50;
-                round_wait = 1;
 
-                round_time = 0;
-                num_sent = 0;
+                if(!active_buls){
 
-                send_per_round += send_per_round/4;
+                    enemy_wiggle_time = 0;
+                    enemy_wiggle = 1;
 
-                active2 = active3 = active4 = 0;
+                    round_wait_time = 50;
+                    round_wait = 1;
 
-                row_vals[0] ++;
+                    round_time = 0;
+                    num_sent = 0;
 
-                for(int i =1; i<5; i++){
+                    send_per_round += send_per_round/4;
 
-                    row_vals[i] += round_num*2;
+                    active2 = active3 = active4 = 0;
+
+                    row_vals[0] ++;
+
+                    for(int i =1; i<5; i++){
+
+                        row_vals[i] += round_num*2;
+                    }
+
+                    init_round_state();
+
+                    enemies_remaining = 1;
+                    round_num++;
                 }
 
-                init_round_state();
-
-                enemies_remaining = 1;
-                round_num++;
             }
 
 

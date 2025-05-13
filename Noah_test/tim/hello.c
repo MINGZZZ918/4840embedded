@@ -928,13 +928,13 @@ int main(){
 
     init_round_state();
 
-    for (int i =0; i<COLUMNS; i++){
-        for(int j=0; j<ENEMY_COUNT; j++)
-            if(game_state.enemies[j].col == i) game_state.enemies[j].active = 1;
+    // for (int i =0; i<COLUMNS; i++){
+    //     for(int j=0; j<ENEMY_COUNT; j++)
+    //         if(game_state.enemies[j].col == i) game_state.enemies[j].active = 1;
 
-        update_hardware();
-        usleep(16000);
-    }
+    //     update_hardware();
+    //     usleep(16000);
+    // }
 
     for (;;){
 

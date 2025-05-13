@@ -880,7 +880,7 @@ void init_round_state() {
         enemy->pos_y = enemy->start_y = 60 + 30 *(row+1);
         enemy->sprite = row_sprites[row];
         enemy->position = i;
-        enemy->active = 1;
+        // enemy->active = 1;
         enemy->bul = -1;
         enemy->row = row;
         enemy->col = ((space/2) + j )*(ENEMY_WIDTH + ENEMY_SPACE);
@@ -944,6 +944,16 @@ int main(){
     printf("Game Begins! \n");
 
     init_round_state();
+
+
+    for (int i =0; i<COLUMNS; i++){
+        for(int j=0; j<ENEMY_COUNT; j++)
+            if(game_state.enemies[j].col == i) game_state.enemies[j].active = 1;
+
+        update_enemies();
+        usleep(16000);
+    }
+
     update_enemies();
     update_ship();
     update_ship_bullet();

@@ -17,6 +17,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include "noah/vga_ball.h"
 #include "vga_ball.h"
 #include "controller.h"
 
@@ -61,6 +62,12 @@
 
 #define NO_INPUT 0x7f // ??????????????????
 
+
+
+
+
+
+
 /* File descriptor for the VGA ball device */
 static int vga_ball_fd;
 static int enemies_moving = 0;
@@ -75,9 +82,6 @@ static int row_backs[5];
 
 static int enemy_wiggle = 1;
 static int enemy_wiggle_time = 0;
-
-static int round_num = 1;
-static long round_time = 0;
 
 
 static short turn_x[TURN_TIME] = {2,2,2,2,2,2,2,2,
@@ -114,58 +118,40 @@ static const background_color colors[] = {
     { 0x20, 0x20, 0x40 }   // Blue-purple
 };
 
+
+
+
+
+
+
+
+static long round_time = 0;
+static int active2 = 0, active3 = 0, active4 = 0, round_pause, num_sent, send_per_round = 10;
+#define TOTAL_ACTIVE (active2 + active3 + active4)
+#define ROUND_WAIT 100
+static int round_num = 1;
+
+
+
 static gamestate game_state = {
 
-    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_bullets = 0, .active = 1},
+    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .active = 1},
     .background = {.red = 0xFF, .green = 0x00, .blue = 0xFF},
     .bullets = { 0 },
     .enemies = { 0 }
 };
 
-/**
- * Initialize game state
- */
-void init_round_state() {
-
-    int space, row = 0, enemy_count;
-
-    enemy *enemy;
-
-    enemy_count = row_vals[row];
-
-    space = COLUMNS - row_vals[row];
-
-    row_fronts[row] = 0;
-
-    for (int i = 0, j=0; i < ENEMY_COUNT; i++, j++) {
-
-        enemy = &game_state.enemies[i];
-
-        if (i >= enemy_count){
-
-            row_backs[row] = i-1;
-
-            if (++row >= 5) break;
-
-            j = 0;
-            space = COLUMNS - row_vals[row];
-            enemy_count += row_vals[row];
 
 
-            row_fronts[row] = i;
-        }
 
-        enemy->pos_x = enemy->start_x = 50 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
-                                    + j * (ENEMY_WIDTH + ENEMY_SPACE);
-                                    
-        enemy->pos_y = enemy->start_y = 60 + 30 *(row+1);
-        enemy->sprite = row_sprites[row];
-        enemy->pos_num = i;
-        enemy->active = 1;
-        enemy->bul1 = enemy->bul2 = -1;
-        enemy->row = row;
-    }
-}
+
+
+
+
+
+
+
+
 
 /**
  * Update game state and send to the device
@@ -266,10 +252,9 @@ void move_enemy_bul(){
         bul->pos_y += bul->velo_y;
 
 
-        if (abs(ship->pos_x - bul->pos_x) <= SHIP_WIDTH
-                && abs(ship->pos_y - bul->pos_y) <= SHIP_HEIGHT){
+        if (abs(ship->pos_x - bul->pos_x) <= SHIP_WIDTH &&
+            abs(ship->pos_y - bul->pos_y) <= SHIP_HEIGHT){
 
-            
 
             game_state.enemies[bul->enemy].bul1 = -1;
             
@@ -285,9 +270,6 @@ void move_enemy_bul(){
 
             bul->active = 0;
             bul->enemy = -1;
-
-            
-
         }
     } 
 }
@@ -319,16 +301,6 @@ void enemy_shoot(enemy *enemy){
 
                     }
                 }
-                // else if (enemy->bul2 == -1){
-
-                //     aquired = aquire_bullet(enemy, 2);
-
-                //     if(aquired){
-                //         enemy->bul_cooldown = ENEMY3_BULLET_COOLDOWN*2;
-                //         game_state.bullets[enemy->bul2].velo_y = 3;
-
-                //     }
-                // }
             }
         }
 
@@ -349,15 +321,6 @@ void enemy_shoot(enemy *enemy){
 
                     }
                 }
-                // else if (enemy->bul2 == -1){
-
-                //     aquired = aquire_bullet(enemy, 2);
-
-                //     if(aquired){
-                //         enemy->bul_cooldown = ENEMY4_BULLET_COOLDOWN;
-                //         calculate_velo(ship->pos_x, ship->pos_y, &game_state.bullets[enemy->bul2], 0, 4);
-                //     }   
-                // }
             }
         }
     }
@@ -374,85 +337,31 @@ void enemy_shoot(enemy *enemy){
 
 
 
-void change_row_ends(int i, int row_num, int front){
+void change_row_ends(int cur_end, int row_num, int front){
 
 
     if(!front){
 
-        for (int j=i-1; game_state.enemies[j].row == row_num; j--){
+        for (int i=cur_end-1; game_state.enemies[i].row == row_num; i--){
 
-            if(game_state.enemies[j].active && !game_state.enemies[j].moving){
+            if(game_state.enemies[i].active && !game_state.enemies[i].moving){
 
-                row_backs[row_num] = j;
+                row_backs[row_num] = i;
                 break;
             }
         }
     }
     else{
 
-        for (int j=i+1; game_state.enemies[j].row == row_num; j++){
+        for (int i=cur_end+1; game_state.enemies[i].row == row_num; i++){
 
-            if(game_state.enemies[j].active && !game_state.enemies[j].moving){
+            if(game_state.enemies[i].active && !game_state.enemies[i].moving){
 
-                row_fronts[row_num] = j;
+                row_fronts[row_num] = i;
                 break;
             }
         }
     }
-}
-
-
-int enemies_to_move(){
-
-    int active2 = 0, active3 = 0, active4 = 0;
-    enemy *enemy;
-
-
-    for (int i = 0; i< ENEMY_COUNT; i++){
-
-        enemy = &game_state.enemies[i];
-
-        switch (enemy->sprite){
-
-            case 2:
-                active2 ++;
-                break;
-
-            case 3:
-                active3 ++;
-                break;
-
-            case 4:
-                active4 ++;
-                break;
-        }
-    }
-
-    int rand_enemy = rand() % (active2 + active3 + active4);
-
-    if (rand_enemy < active2) {
-        rand_enemy = 2;
-    } else if (rand_enemy < active2 + active3) {
-        rand_enemy =  3;
-    } else {
-        rand_enemy = 4;
-    }
-
-    if (round_time < 100) return 0;
-
-    else if (round_time > 500){
-
-        if(round_time >= 750) round_time = 0;
-
-        return 0;
-    }
-    else{
-
-        if(round_time % 100 == 0) return rand_enemy;
-
-        else return 0;
-    }
-
 }
 
 
@@ -529,7 +438,7 @@ void enemy_attack(enemy *enemy){
 
                 enemy->velo_x = (enemy->pos_x > ship->pos_x) ? 1 : -1;
                 enemy->velo_y = 2;
-                
+
             }
 
             else if (enemy->start_x < SCREEN_WIDTH/2 && enemy->move_time == 0){
@@ -631,6 +540,11 @@ void enemy_attack(enemy *enemy){
 
 
 
+
+
+
+
+
 int enemy_movement(int rand_enemy){
 
     int cont, row_num, num_left = 0;
@@ -678,8 +592,17 @@ int enemy_movement(int rand_enemy){
 
                 if (!enemy->moving){
 
-                    if(i > row_backs[enemy->row]) row_backs[enemy->row] = i;
-                    if(i < row_fronts[enemy->row]) row_fronts[enemy->row] = i;
+                    if(i > row_backs[enemy->row] || 
+                        !game_state.enemies[row_backs[enemy->row]].active)
+                        
+                        row_backs[enemy->row] = i;
+
+
+
+                    if(i < row_fronts[enemy->row] || 
+                        !game_state.enemies[row_fronts[enemy->row]].active)
+                    
+                        row_fronts[enemy->row] = i;
                 }
 
                 else
@@ -708,10 +631,60 @@ int enemy_movement(int rand_enemy){
     return num_left;
 }
 
+
+
+
+
+
+void change_active_amount(char enemy_sprite){
+
+    switch(row_sprites[enemy_sprite]){
+
+        case 2:
+            active2 --;
+            break;
+
+        case 3:
+            active3 --;
+            break;
+
+        case 4:
+            active4 --;
+            break;
+    }
+}
+
+
+void bullet_colision(bullet *bul){
+
+    enemy *enemy;
+
+    for (int i = 0; i<ENEMY_COUNT; i++){
+
+        enemy = &game_state.enemies[i];
+
+        if (enemy->active && 
+            abs(enemy->pos_x - bul->pos_x) <= ENEMY_WIDTH &&
+            abs(enemy->pos_y - bul->pos_y) <= ENEMY_HEIGHT){
+
+            if(i == row_backs[enemy->row]) change_row_ends(i, enemy->row, 0);
+
+            else if (i == row_fronts[enemy->row]) change_row_ends(i, enemy->row, 1);
+
+
+            change_active_amount(enemy->sprite);
+
+            enemy->active = 0;
+            bul->active = 0;
+            memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
+            break;
+        }
+    }
+}
+
 void bullet_movement(int new_bullet){
 
     bullet *bul;
-    enemy *enemy;
 
     for (int i = 0; i < SHIP_BULLETS; i++) {
 
@@ -720,43 +693,28 @@ void bullet_movement(int new_bullet){
         if (bul->active){
 
             bul->pos_y += bul->velo_y;
-            if (bul->pos_y < 5){ // top of screen
+
+            if (bul->pos_y < 5){
 
                 bul->active = 0;
-                game_state.ship.num_bullets --;
                 continue;
             }
 
-            for (int j = 0; j<ENEMY_COUNT; j++){ // checking to see if we hit an enemy
-
-                enemy = &game_state.enemies[j];
-
-                if (enemy->active && abs(enemy->pos_x - bul->pos_x) <= ENEMY_WIDTH
-                    && abs(enemy->pos_y - bul->pos_y) <= ENEMY_HEIGHT){
-
-
-                    if(i == row_backs[enemy->row]) change_row_ends(i, enemy->row, 0);
-
-                    else if (i == row_fronts[enemy->row]) change_row_ends(i, enemy->row, 1);
-
-                    enemy->active = 0;
-                    bul->active = 0;
-                    game_state.ship.num_bullets --;
-                    break;
-                }
-            }
+            bullet_colision(bul);
         }
 
         else if (!bul->active && new_bullet) {
             bul->active = 1;
-            bul->pos_x = game_state.ship.pos_x+(SHIP_WIDTH/2); // make it start in the middle of the ship
-            bul->pos_y = game_state.ship.pos_y-(SHIP_HEIGHT/2); // make it start above the ship
-            bul->velo_y = -3; // towards the top of the screen
-            game_state.ship.num_bullets ++;
+            bul->pos_x = game_state.ship.pos_x+(SHIP_WIDTH/2);
+            bul->pos_y = game_state.ship.pos_y-(SHIP_HEIGHT);
+            bul->velo_y = -3;
             new_bullet = 0;
         }
     }
 }
+
+
+
 
 void ship_movement(){
 
@@ -776,6 +734,123 @@ void ship_movement(){
         ship->pos_y += ship->velo_y;
     
 }
+
+
+
+
+
+
+
+int enemies_to_move(){
+
+    enemy *enemy;
+    int num_moving = 0;
+
+    int rand_enemy = rand() % TOTAL_ACTIVE;
+
+    if (rand_enemy < active2)
+        rand_enemy = 2;
+    
+    else if (rand_enemy < active2 + active3)
+        rand_enemy =  3;
+    
+    else 
+        rand_enemy = 4;
+
+
+
+    if (round_time <= 1){
+
+        round_pause = ROUND_WAIT-1;
+        return 0;
+    }
+
+    else if (--round_pause >= 0)
+        return 0;
+
+    else if (num_sent == send_per_round){
+
+        for (int i = 0; i<ENEMY_COUNT; i++)
+            if(game_state.enemies[i].moving) num_moving++;
+
+        if (!num_moving){
+
+            num_sent = 0;
+            round_pause = ROUND_WAIT/2;
+        }
+    }
+
+    else{
+
+        if(round_time % 100 == 0) {
+
+            num_sent ++;
+            return rand_enemy;
+        }
+
+        else return 0;
+    }
+
+}
+
+
+void init_round_state() {
+
+    int space, row = 0, enemy_count;
+
+    enemy *enemy;
+
+    enemy_count = row_vals[row];
+
+    space = COLUMNS - row_vals[row];
+
+    row_fronts[row] = 0;
+
+    for (int i = 0, j=0; i < ENEMY_COUNT; i++, j++) {
+
+        enemy = &game_state.enemies[i];
+
+        if (i >= enemy_count){
+
+            row_backs[row] = i-1;
+
+            if (++row >= 5) break;
+
+            j = 0;
+            space = COLUMNS - row_vals[row];
+            enemy_count += row_vals[row];
+
+            row_fronts[row] = i;
+        }
+
+        enemy->pos_x = enemy->start_x = 50 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
+                                    + j * (ENEMY_WIDTH + ENEMY_SPACE);
+                                    
+        enemy->pos_y = enemy->start_y = 60 + 30 *(row+1);
+        enemy->sprite = row_sprites[row];
+        enemy->pos_num = i;
+        enemy->active = 1;
+        enemy->bul = -1;
+        enemy->row = row;
+
+
+        switch(row_sprites[row]){
+
+            case 2:
+                active2 ++;
+                break;
+
+            case 3:
+                active3 ++;
+                break;
+
+            case 4:
+                active4 ++;
+                break;
+        }
+    }
+}
+
 
 
 struct libusb_device_handle *controller;
@@ -819,6 +894,9 @@ int main(){
 
     init_round_state();
     update_hardware();
+
+
+
     for (;;){
 
         round_time++;
@@ -948,6 +1026,11 @@ int main(){
                     break;
                 }
 
+                round_time = 0;
+                num_sent = 0;
+                send_per_round += send_per_round/3;
+
+
                 row_vals[0] ++;
 
                 for(int i =1; i<5; i++){
@@ -957,7 +1040,7 @@ int main(){
 
                 init_round_state();
 
-                enemies_remaining = 1;
+                // enemies_remaining = 1;
                 round_num++;
             }
 

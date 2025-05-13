@@ -1080,9 +1080,10 @@ int main(){
 
             else if(round_wait_time == 1){
 
+                printf("HELOOOOOOOOOOOOOOOOOOOOOOOOOOOOO \n");
+
                 for(int j=0; j<ENEMY_COUNT; j++)
                     if(game_state.enemies[j].col == col_active) game_state.enemies[j].active = 1;
-
 
                 update_enemies();
 

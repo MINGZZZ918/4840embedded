@@ -1083,7 +1083,10 @@ int main(){
 
 
                 for(int j=0; j<ENEMY_COUNT; j++)
-                    if(game_state.enemies[j].col == col_active++) game_state.enemies[j].active = 1;
+                    if(game_state.enemies[j].col == col_active) game_state.enemies[j].active = 1;
+
+
+                col_active ++;
 
 
                 printf("AHHHHH %d\n", col_active);

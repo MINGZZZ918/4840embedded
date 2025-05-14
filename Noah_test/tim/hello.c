@@ -1346,6 +1346,7 @@ int main(){
                         move_enemy_bul();
                         update_ship_bullet();
                     }
+                    update_enemies();
                 }
             }
 

@@ -813,6 +813,7 @@ int enemy_movement(int rand_enemy){
 
                 ship->lives --;
                 ship->explosion_timer = EXPLOSION_TIME;
+
                 round_wait = 1;
                 round_wait_time = ROUND_WAIT;
                 num_left --;
@@ -1312,7 +1313,7 @@ int main(){
 
             else{
 
-                if(!ship->active) { // lost life
+                if(!ship->active || ship->explosion_timer) { // lost life
 
                     for(int i=0; i<ENEMY_COUNT; i++)
                         if (game_state.enemies[i].moving) active_enemies ++;
@@ -1361,7 +1362,7 @@ int main(){
             }
 
             update_ship();
-            update_enemies();
+            // update_enemies();
             update_powerup();
 
 

@@ -751,7 +751,7 @@ void enemy_explosion(){
         enemy = &game_state.enemies[i];
 
         if(enemy->explosion_timer == 1){
-                        printf("33333333333333333\n");
+            printf("33333333333333333\n");
 
             enemies_remaining --;
 
@@ -1451,10 +1451,9 @@ int main(){
                         
                 if (round_wait_time > 30) round_wait_time --;
 
+                bullet_movement(0);
                 enemy_movement(-1);
                 move_enemy_bul();
-                bullet_movement(0);
-
             }
 
             update_ship();

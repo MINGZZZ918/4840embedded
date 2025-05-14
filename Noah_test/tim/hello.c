@@ -76,8 +76,8 @@ static int kill_count = 0;
 static int ship_velo = 2;
 
 static int powerup_timer = 0;
-#define EXTRA_BULLET_TIME 250;
-#define EXTRA_SPEED_TIME 500;
+#define EXTRA_BULLET_TIME 300;
+#define EXTRA_SPEED_TIME 750;
 
 
 #define EXPLOSION_TIME 10

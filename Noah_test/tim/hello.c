@@ -83,6 +83,11 @@ static int powerup_timer = 0;
 #define EXPLOSION_TIME 10
 
 
+static int blink_counter;
+#define BLINK_COUNT 10
+#define QUICK_BLINK_COUNT 5
+
+
 static int round_frequency = 100;
 
 
@@ -216,11 +221,39 @@ void apply_powerup(powerup *power_up){
 
 void active_powerup(){
 
+    powerup *power_up = &game_state.power_up;
+
     if (--powerup_timer <= 0){
 
         game_state.ship.num_buls = 1;
         ship_velo = 2;
     }
+
+    if(powerup_timer > 50 && powerup_timer < 100){
+
+        if (blink_counter){
+            power_up->active = !power_up->active;
+            blink_counter --
+        }
+        else{
+            blink_counter = BLINK_COUNT;
+        }
+    }
+    else if (powerup_timer > 0 && powerup_timer < 50){
+        
+        if (blink_counter){
+            power_up->active = !power_up->active;
+            blink_counter --
+        }
+        else{
+            blink_counter = QUICK_BLINK_COUNT;
+        }
+    }
+
+
+
+
+
 }
 
 void move_powerup(){
@@ -238,7 +271,8 @@ void move_powerup(){
 
             apply_powerup(power_up);
 
-            power_up->active=0;
+            power_up->pos_x = 400;
+            power_up->pos_y = SCREEN_HEIGHT-SHIP_HEIGHT;
             kill_count = 0;
         }
 

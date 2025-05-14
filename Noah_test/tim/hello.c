@@ -136,7 +136,7 @@ static int num_enemies_moving = 0;
 
 static int round_wait = 0, round_wait_time = 0;
 static long round_time = 0;
-static int active1 = 0, active2 = 0, active3 = 0, round_pause, num_sent, send_per_round = 10;
+static int active1 = 0, active2 = 0, active3 = 0, round_pause, num_sent, send_per_round = 20;
 #define TOTAL_ACTIVE (active1 + active2 + active3)
 #define ROUND_WAIT 100
 static int round_num = 1;
@@ -974,16 +974,16 @@ int enemies_to_move(){
         
         rand_enemy = rand() % TOTAL_ACTIVE;
 
-        printf("AHHHHHHHH %d \n", TOTAL_ACTIVE);
-
-        if (rand_enemy < active2)
+        if (rand_enemy < active1)
             rand_enemy = ENEMY1;
         
-        else if (rand_enemy < active2 + active3)
+        else if (rand_enemy < active1 + active2)
             rand_enemy =  ENEMY2;
         
         else 
             rand_enemy = ENEMY3;
+
+
 
 
         if (num_sent == send_per_round){
@@ -994,7 +994,16 @@ int enemies_to_move(){
                 round_pause = ROUND_WAIT/2;
             }
         }
+        else if (num_sent > send_per_round/4 && num_sent <= send_per_round/4 +3){
 
+            num_sent ++;
+            return rand_enemy;
+        }
+        else if (num_sent > send_per_round*3/4 && num_sent <= send_per_round*3/4 +3){
+
+            num_sent ++;
+            return rand_enemy;
+        }
         else{
 
             if(round_time % round_frequency == 0) {

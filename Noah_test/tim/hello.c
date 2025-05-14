@@ -134,6 +134,79 @@ static short turn_y[TURN_TIME] = {-2,-2,-2,-2,-2,-2,-2,-2,
                     2,2,2,2,2,2};
 
 
+
+
+static int win_x[48] = {
+    // Y
+    50, 50, 66, 66, 82, 82,
+    // O
+    114, 114, 114, 130, 130, 146, 146, 146, 
+    // U
+    178, 178, 178, 194, 210, 210, 210, 
+    // W
+    274, 274, 274, 274, 290, 306, 306, 306, 306, 322, 338, 338, 338, 338,  
+    // I
+    370, 370, 370, 
+    // N
+    402, 402, 402, 418, 434, 434, 434,
+    // !
+    498, 498, 498
+};
+
+static int win_y[48] = {
+    // Y
+    50, 66, 82, 98, 50, 66,
+    // O
+    66, 82, 98, 66, 98, 66, 82, 98,
+    // U
+    66, 82, 98, 98, 66, 82, 98, 
+    // W
+    50, 66, 82, 98, 98, 50, 66, 82, 98, 98, 50, 66, 82, 98, 
+    // I
+    50, 82, 98, 
+    // N
+    66, 82, 98, 66, 66, 82, 98, 
+    // !
+    50, 66, 98
+};
+
+
+static int die_x[48] = {
+    // Y
+    50, 50, 66, 66, 82, 82,
+    // O
+    114, 114, 114, 130, 130, 146, 146, 146, 
+    // U
+    178, 178, 178, 194, 210, 210, 210, 
+    // D
+    274, 274, 274, 274, 290, 290, 306, 306, 322, 322, 
+    // I
+    354, 354, 354, 
+    // E
+    386, 386, 386, 386, 386, 402, 402, 402, 418, 418, 418, 
+    // !
+    482, 482, 482
+};
+
+static int die_y[48] = {
+    // Y
+    50, 66, 82, 98, 50, 66,
+    // O
+    66, 82, 98, 66, 98, 66, 82, 98,
+    // U
+    66, 82, 98, 98, 66, 82, 98, 
+    // D
+    50, 66, 82, 98, 50, 98, 50, 98, 66, 82, 
+    // I
+    50, 82, 98, 
+    // E
+    50, 66, 74, 82, 98, 50, 74, 98, 50, 74, 98, 
+    // !
+    50, 66, 98
+};
+
+
+
 static int num_enemies_moving = 0, active_ship_buls = 0, active_enemy_buls = 0;
 
 
@@ -1184,41 +1257,29 @@ void init_round_state() {
 }
 
 
+void print_win(){
 
+    for (int i = 0; i<48; i++){
 
-// static int x_coords[40] = {
-//     // Y
-//     50, 66, 82, 66, 66,
-//     // O
-//     134, 150, 166, 134, 166, 134, 150, 166,
-//     // U
-//     182, 198, 214, 182, 214, 182, 198, 214,
-//     // W
-//     246, 262, 278, 294, 262,
-//     // I
-//     310, 326, 342, 326, 326,
-//     // N
-//     358, 358, 374, 390, 390,
-//     // !
-//     406, 406, 406, 406
-// };
+        game_state.enemies[i]->sprite = SHIP_BULLET;
+        game_state.enemies[i]->pos_x = win_x[i];
+        game_state.enemies[i]->pos_x = win_y[i];
+        game_state.enemies[i].active = 1;
+    }
 
-// static int y_coords[40] = {
-//     // Y
-//     50, 50, 50, 66, 82,
-//     // O
-//     50, 50, 50, 66, 66, 82, 82, 82,
-//     // U
-//     50, 50, 50, 66, 66, 82, 82, 82,
-//     // W
-//     50, 50, 50, 50, 66,
-//     // I
-//     50, 50, 50, 66, 82,
-//     // N
-//     50, 66, 66, 82, 50,
-//     // !
-//     50, 66, 82, 114
-// };
+}
+
+void print_die(){
+
+    for (int i = 0; i<48; i++){
+
+        game_state.enemies[i]->sprite = SHIP_BULLET;
+        game_state.enemies[i]->pos_x = die_x[i];
+        game_state.enemies[i]->pos_x = die_y[i];
+        game_state.enemies[i].active = 1;
+    }
+}
+
 
 
 
@@ -1269,19 +1330,6 @@ int main(){
     update_ship();
 
     usleep(16000);
-
-
-
-    // for (int i = 0; i<40; i++){
-
-    //     game_state.enemies[i]->sprite = SHIP_BULLET;
-    //     game_state.enemies[i]->pos_x = x_coords[i];
-    //     game_state.enemies[i]->pos_x = x_coords[i];
-    //     game_state.enemies[i].active = 1;
-    // }
-
-    // update_enemies();
-
 
     for (int i =0; i<COLUMNS; i++){
         for(int j=0; j<ENEMY_COUNT; j++)
@@ -1490,6 +1538,8 @@ int main(){
                         game_state.enemies[i].active = 0;
                     }
 
+                    print_die();
+
                 update_ship();
                 update_enemies();
                 update_powerup();
@@ -1505,7 +1555,6 @@ int main(){
                 if(round_num == 3){
 
                     printf("You Won!");
-
 
                     game_state.ship.active = 0;
 
@@ -1525,6 +1574,8 @@ int main(){
 
                         game_state.enemies[i].active = 0;
                     }
+
+                    print_win();
 
                     update_ship();
                     update_enemies();

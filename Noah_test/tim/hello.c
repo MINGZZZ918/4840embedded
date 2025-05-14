@@ -763,8 +763,6 @@ int enemy_movement(int rand_enemy){
 
         enemy = &game_state.enemies[i];
 
-        if(enemy->active) printf("ACTIVEEEEEE %d \n", i);
-
         if (enemy->active && !enemy->explosion_timer){
 
             num_left++;
@@ -819,7 +817,6 @@ int enemy_movement(int rand_enemy){
                 else if (i == row_fronts[enemy->row]) change_row_ends(i, enemy->row, 1);
                 
                 memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
-
 
                 ship->lives --;
                 ship->explosion_timer = EXPLOSION_TIME;
@@ -1036,59 +1033,64 @@ void init_round_state() {
 
     row_fronts[row] = 0;
 
+
     for (int i = 0, j=0; i < ENEMY_COUNT; i++, j++) {
 
 
         enemy = &game_state.enemies[i];
 
         memset(enemy, 0, sizeof(*enemy));
-        
 
-        if (i >= enemy_count){
+
+        while (i >= enemy_count && row < 5){
 
             row_backs[row] = i-1;
 
-            if (++row >= 5){
-
-                for(int k = i; k<ENEMY_COUNT; k++) 
-                    game_state.enemies[k].col = -1;
-
-                break;
-            }
+            row++;
             
             j = 0;
+
             space = COLUMNS - row_vals[row];
             enemy_count += row_vals[row];
 
             row_fronts[row] = i;
         }
 
-        enemy->pos_x = enemy->start_x = 50 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
-                                    + j * (ENEMY_WIDTH + ENEMY_SPACE);
+        if (row < 5){
+        
+            enemy->pos_x = enemy->start_x = 50 + ((ENEMY_WIDTH + ENEMY_SPACE) * (space / 2)) \
+                + j * (ENEMY_WIDTH + ENEMY_SPACE);
                                     
-        enemy->pos_y = enemy->start_y = 60 + 30 *(row+1);
-        enemy->sprite = row_sprites[row];
-        enemy->position = i;
-        // enemy->active = 1;
-        enemy->bul = -1;
-        enemy->row = row;
-        enemy->col = (space/2) + j;
+            enemy->pos_y = enemy->start_y = 60 + 30 *(row+1);
+            enemy->sprite = row_sprites[row];
+            enemy->position = i;
+            // enemy->active = 1;
+            enemy->bul = -1;
+            enemy->row = row;
+            enemy->col = (space/2) + j;
 
 
-        switch(row_sprites[row]){
+            switch(row_sprites[row]){
 
-            case 2:
-                active2 ++;
-                break;
+                case 2:
+                    active2 ++;
+                    break;
 
-            case 3:
-                active3 ++;
-                break;
+                case 3:
+                    active3 ++;
+                    break;
 
-            case 4:
-                active4 ++;
-                break;
+                case 4:
+                    active4 ++;
+                    break;
+            }
         }
+
+
+        
+
+
+
     }
 }
 

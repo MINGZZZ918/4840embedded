@@ -750,6 +750,8 @@ void enemy_explosion(){
 
         enemy = &game_state.enemies[i];
 
+        if(enemy->active) enemies_remaining ++;
+
         if(enemy->explosion_timer == 1){
             printf("33333333333333333\n");
 
@@ -841,10 +843,6 @@ void enemy_movement(int rand_enemy){
         enemy = &game_state.enemies[i];
 
         if (enemy->active && !enemy->explosion_timer){
-
-            enemies_remaining++;
-
-            printf("%d \n", enemies_remaining);
 
             if(!enemy->moving && rand_enemy == i){
 

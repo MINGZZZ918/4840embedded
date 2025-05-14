@@ -63,9 +63,9 @@ static int vga_ball_fd;
 
 
 #define NUM_ROWS 5
-// static char row_vals[NUM_ROWS] = {0,0,0,0,1};
+static char row_vals[NUM_ROWS] = {0,0,0,0,1};
 // static char row_vals[NUM_ROWS] = {0,4,3,2,1};
-static char row_vals[NUM_ROWS] = { 2, 6, 8, 10, 10 };
+// static char row_vals[NUM_ROWS] = { 2, 6, 8, 10, 10 };
 static char row_sprites[NUM_ROWS] = { ENEMY1, ENEMY2,ENEMY2, ENEMY3, ENEMY3};
 static int row_fronts[NUM_ROWS];
 static int row_backs[NUM_ROWS];
@@ -274,12 +274,12 @@ void move_powerup(){
 
             apply_powerup(power_up);
             
-            if(power_up ->sprite != EXTRA_LIFE){
+            if(power_up->sprite == EXTRA_LIFE)
+                power_up->active = 0;
 
-                power_up->pos_x = 400;
-                power_up->pos_y = SCREEN_HEIGHT-SHIP_HEIGHT;
-                power_up->indicator = 1;
-            }
+            power_up->pos_x = 400;
+            power_up->pos_y = SCREEN_HEIGHT-SHIP_HEIGHT;
+            power_up->indicator = 1;
 
 
             kill_count = 0;
@@ -1464,7 +1464,7 @@ int main(){
                 memset(&game_state, 0, sizeof(gamestate));
 
                 game_state.score = save_score;
-                
+
                 update_ship();
                 update_enemies();
                 update_powerup();

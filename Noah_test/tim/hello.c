@@ -1404,7 +1404,7 @@ int main(){
             if(ship->active && !ship->explosion_timer) ship_movement();
 
             move_powerup();
-            enemies_enemy_explosion();
+            enemies_exploding = enemy_explosion();
             ship_explosion();
 
             if (!round_wait_time){ // ship is alive and round is playing

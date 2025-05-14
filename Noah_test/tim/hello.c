@@ -1268,7 +1268,7 @@ int main(){
                     round_wait_time = 0;
                     round_time = 0;
 
-                    num_sent = 0
+                    num_sent = 0;
 
 
                     powerup_timer = 0;

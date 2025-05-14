@@ -1445,7 +1445,7 @@ int main(){
 
                     send_per_round += send_per_round/4;
 
-                    active2 = active3 = active4 = 0;
+                    active1 = active2 = active3 = 0;
 
                     row_vals[0] ++;
 

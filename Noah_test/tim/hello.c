@@ -1346,12 +1346,11 @@ int main(){
                         move_enemy_bul();
                         update_ship_bullet();
                     }
-                    update_enemies();
                 }
             }
 
             update_ship();
-            // update_enemies();
+            update_enemies();
             update_powerup();
 
 

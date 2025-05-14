@@ -31,8 +31,8 @@
 #define EXTRA_BULLETS 4
 
 #define SHIP_FLAME 13
-#define SHIP_EXPLOSION1 2
-#define SHIP_EXPLOSION2 4
+#define SHIP_EXPLOSION1 0
+#define SHIP_EXPLOSION2 1
 
 /* Color structure */
 typedef struct {

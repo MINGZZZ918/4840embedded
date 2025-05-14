@@ -63,9 +63,9 @@ static int vga_ball_fd;
 
 
 #define NUM_ROWS 5
-// static char row_vals[NUM_ROWS] = {0,0,0,0,1};
+static char row_vals[NUM_ROWS] = {0,0,0,0,1};
 // static char row_vals[NUM_ROWS] = {0,4,3,2,1};
-static char row_vals[NUM_ROWS] = { 2, 6, 8, 10, 10 };
+// static char row_vals[NUM_ROWS] = { 2, 6, 8, 10, 10 };
 static char row_sprites[NUM_ROWS] = { ENEMY1, ENEMY2,ENEMY2, ENEMY3, ENEMY3};
 static int row_fronts[NUM_ROWS];
 static int row_backs[NUM_ROWS];
@@ -1299,15 +1299,6 @@ int main(){
 
             else{
 
-                // for(int i=0; i<ENEMY_COUNT; i++)
-                //         if (game_state.enemies[i].active) active_enemies ++;
-
-                // for(int i=0; i<SHIP_BULLETS; i++)
-                //     if (ship->bullets[i].active) active_buls ++;
-
-                // for(int i=0; i<MAX_BULLETS; i++)
-                //     if (game_state.bullets[i].active) active_buls ++;
-
                 printf("%d, %d, %d \n", active_ship_buls, active_enemy_buls, num_enemies_moving);
 
                 if(!active_ship_buls && !active_enemy_buls && !num_enemies_moving)
@@ -1326,6 +1317,15 @@ int main(){
 
             if(ship->lives <= 0){
                 printf("You lost =( \n");
+
+                memset(&game_state, 0, sizeof(gamestate));
+
+                update_ship();
+                update_enemies();
+                update_powerup();
+                update_ship_bullet();
+
+
                 break;
             }
 
@@ -1334,12 +1334,16 @@ int main(){
                 if(round_num == 3){
 
                     printf("You Won!");
+
+                    memset(&game_state, 0, sizeof(gamestate));
+
+                    update_ship();
+                    update_enemies();
+                    update_powerup();
+                    update_ship_bullet();
+
                     break;
                 }
-
-                // for(int i = 0; i<MAX_BULLETS; i++)
-                //     if(game_state.bullets[i].active) active_buls ++;
-
 
                 if(!active_enemy_buls){
 

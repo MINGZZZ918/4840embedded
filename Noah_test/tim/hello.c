@@ -142,7 +142,7 @@ static long round_time = 0;
 static int active1 = 0, active2 = 0, active3 = 0, round_pause, num_sent, send_per_round = 20;
 #define TOTAL_ACTIVE (active1 + active2 + active3)
 #define ROUND_WAIT 100
-static int round_num = 1;
+static int round_num = 0;
 
 
 

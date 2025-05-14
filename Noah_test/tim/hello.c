@@ -1409,7 +1409,7 @@ int main(){
 
             if (!round_wait_time){ // ship is alive and round is playing
 
-                round_wait = 0;
+                // round_wait = 0;
 
                 active_powerup();
 
@@ -1501,9 +1501,9 @@ int main(){
                     break;
                 }
 
-                if(!active_enemy_buls && !round_wait){
+                if(!active_enemy_buls ){
 
-                    round_wait = 1;
+                    // round_wait = 1;
 
                     enemy_wiggle_time = 0;
                     enemy_wiggle = 1;

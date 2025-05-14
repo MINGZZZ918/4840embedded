@@ -1433,6 +1433,8 @@ int main(){
 
                     powerup_timer = 0;
                     kill_count /= 2;
+
+                    round_wait = 0;
                 } 
 
                 else{
@@ -1482,8 +1484,6 @@ int main(){
 
                 break;
             }
-
-            printf("%d \n", enemies_remaining);
 
             if(!enemies_remaining){
 

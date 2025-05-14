@@ -1485,6 +1485,13 @@ int main(){
 
             if(!enemies_remaining){
 
+                printf("hello \n");
+                for(int i =0; i< ENEMY_COUNT; i++){
+                    if(game_state.enemies[i].active) printf("AHHHHHHHH\n");
+
+
+                }
+
                 if(round_num == 3){
 
                     printf("You Won!");

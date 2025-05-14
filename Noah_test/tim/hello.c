@@ -1035,6 +1035,8 @@ void init_round_state() {
 
         enemy = &game_state.enemies[i];
 
+        memset(enemy, 0, sizeof(*enemy));
+
         if (i >= enemy_count){
 
             row_backs[row] = i-1;

@@ -686,22 +686,18 @@ void enemy_explosion(){
 
         if(enemy->explosion_timer == 1){
 
-            printf("3333333333 \n");
             memset(enemy, 0, sizeof(*enemy));
         }
 
         else if(enemy->explosion_timer < EXPLOSION_TIME/2 && enemy->explosion_timer){
             enemy->sprite = SHIP_EXPLOSION2;
             enemy->explosion_timer --;
-            printf("2222222222222 \n");
         }
 
         else if (enemy->explosion_timer){
             enemy->velo_x = 0;
             enemy->velo_y = 0;
             enemy->sprite = SHIP_EXPLOSION1;
-
-            printf("1111111111 \n");
 
             enemy->explosion_timer --;
 
@@ -766,6 +762,8 @@ int enemy_movement(int rand_enemy){
     for (int i = 0; i < ENEMY_COUNT; i++){
 
         enemy = &game_state.enemies[i];
+
+        if(enemy->active) printf("ACTIVEEEEEE %d \n", i);
 
         if (enemy->active && !enemy->explosion_timer){
 
@@ -1040,9 +1038,11 @@ void init_round_state() {
 
     for (int i = 0, j=0; i < ENEMY_COUNT; i++, j++) {
 
+
         enemy = &game_state.enemies[i];
 
         memset(enemy, 0, sizeof(*enemy));
+        
 
         if (i >= enemy_count){
 
@@ -1301,8 +1301,6 @@ int main(){
 
                 for(int i=0; i<ENEMY_COUNT; i++)
                         if (game_state.enemies[i].active) active_enemies ++;
-
-                        printf("AHHHHHHHHHHHHHHHHHHHHH %d \n", active_enemies);
 
                 for(int i=0; i<SHIP_BULLETS; i++)
                     if (ship->bullets[i].active) active_buls ++;

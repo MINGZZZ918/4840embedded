@@ -17,6 +17,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include "noah/vga_ball.h"
 #include "vga_ball.h"
 #include "controller.h"
 
@@ -673,23 +674,32 @@ void enemy_attack(enemy *enemy){
 }
 
 
-void enemy_explosion(enemy *enemy){
+void enemy_explosion(){
 
-    if(enemy->explosion_timer <= 1)
+    enemy *enemy;
+
+    for(int i =0; i<ENEMY_COUNT; i++){
+
+        enemy = &game_state.enemies[i];
+
+        if(enemy->explosion_timer <= 1)
         memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
 
-    else if(enemy->explosion_timer < EXPLOSION_TIME/2){
-        enemy->sprite = SHIP_EXPLOSION2;
-        enemy->explosion_timer --;
-    }
-    else{
-        enemy->velo_x = 0;
-        enemy->velo_y = 0;
-        enemy->sprite = SHIP_EXPLOSION1;
+        else if(enemy->explosion_timer < EXPLOSION_TIME/2){
+            enemy->sprite = SHIP_EXPLOSION2;
+            enemy->explosion_timer --;
+        }
+        else{
+            enemy->velo_x = 0;
+            enemy->velo_y = 0;
+            enemy->sprite = SHIP_EXPLOSION1;
 
-        enemy->explosion_timer --;
+            enemy->explosion_timer --;
 
+        }
     }
+
+    
 }
 
 
@@ -725,9 +735,7 @@ int enemy_movement(int rand_enemy){
 
         enemy = &game_state.enemies[i];
 
-        if(enemy->explosion_timer) enemy_explosion(enemy);
-
-        else if (enemy->active){
+        if (enemy->active && !enemy->explosion_timer){
 
             num_left++;
 
@@ -1251,6 +1259,7 @@ int main(){
             if(ship->active) ship_movement();
 
             move_powerup();
+            enemy_explosion();
 
             if(!round_wait){
 
@@ -1329,15 +1338,11 @@ int main(){
                         if (game_state.bullets[i].active) active_buls ++;
 
 
-                    if(!active_buls) {
-                        enemy_movement(-1);
-                        round_wait_time --;
-                    }
+                    if(!active_buls) round_wait_time --;
 
                     else {
 
                         bullet_movement(new_bullet);
-                        enemy_movement(-1);
                         move_enemy_bul();
                         update_ship_bullet();
                     }

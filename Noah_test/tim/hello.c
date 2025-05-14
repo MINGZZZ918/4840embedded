@@ -1223,7 +1223,7 @@ int main(){
 
     spaceship *ship = &game_state.ship;
     controller_packet packet;
-    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy;
+    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy, save_score;
     int col_active = 0, active_buls = 0, active_enemies = 0;
     int bumpers = 0, buttons = 0;
 
@@ -1459,8 +1459,12 @@ int main(){
             if(ship->lives <= 0){
                 printf("You lost =( \n");
 
+                save_score = game_state.score;
+
                 memset(&game_state, 0, sizeof(gamestate));
 
+                game_state.score = save_score;
+                
                 update_ship();
                 update_enemies();
                 update_powerup();

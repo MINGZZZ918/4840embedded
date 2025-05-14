@@ -1345,6 +1345,7 @@ int main(){
             }
 
             update_ship();
+            update_enemies();
             update_powerup();
 
 

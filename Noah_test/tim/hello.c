@@ -1501,9 +1501,9 @@ int main(){
                     break;
                 }
 
-                if(!active_enemy_buls ){
+                if(!active_enemy_buls && !round_wait){
 
-                    // round_wait = 1;
+                    round_wait = 1;
 
                     enemy_wiggle_time = 0;
                     enemy_wiggle = 1;

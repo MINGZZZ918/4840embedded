@@ -6,7 +6,7 @@
 
 /* 定义最大子弹数量 */
 #define SHIP_BULLETS 5
-#define MAX_BULLETS 10
+#define MAX_BULLETS 15
 #define ENEMY_COUNT 60
 
 #define SHIP_WIDTH 16

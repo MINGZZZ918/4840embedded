@@ -84,6 +84,9 @@ static int powerup_timer = 0;
 #define EXPLOSION_TIME 10
 
 
+static int round_frequency = 100;
+
+
 
 static int round_wait = 0, round_wait_time = 0;
 
@@ -707,16 +710,14 @@ void ship_explosion(){
     if(ship->explosion_timer == 1){
         ship->active = 0;
         ship->explosion_timer = 0;
-        printf("333333333 \n");
+        ship->sprite = SHIP;
     }
     else if(ship->explosion_timer < EXPLOSION_TIME/2 && ship->explosion_timer){
         ship->sprite = SHIP_EXPLOSION2;
         ship->explosion_timer --;
-        printf("2222222 \n");
     }
     else if (ship->explosion_timer){
 
-        printf("111111 \n");
 
         ship->sprite = SHIP_EXPLOSION1;
         ship->explosion_timer --;
@@ -875,13 +876,6 @@ void move_enemy_bul(){
 }
 
 
-
-
-
-
-
-
-
 void bullet_colision(bullet *bul){
 
     enemy *enemy;
@@ -993,16 +987,6 @@ int enemies_to_move(){
         else 
             rand_enemy = 4;
 
-
-        // if (round_time <= 1){
-
-        //     round_pause = ROUND_WAIT-1;
-        //     return -1;
-        // }
-
-        // else if (--round_pause >= 0)
-        //     return -1;
-
         if (num_sent == send_per_round){
 
             printf("AHHHHHHHHHHH %d \n", num_enemies_moving);
@@ -1016,7 +1000,7 @@ int enemies_to_move(){
 
         else{
 
-            if(round_time % 100 == 0) {
+            if(round_time % round_frequency == 0) {
                 
                 printf("%ld \n", round_time);
 
@@ -1398,6 +1382,8 @@ int main(){
 
                     round_time = 0;
                     num_sent = 0;
+
+                    round_frequency -=25;
 
                     send_per_round += send_per_round/4;
 

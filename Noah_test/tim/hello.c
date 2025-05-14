@@ -806,6 +806,8 @@ int enemy_movement(int rand_enemy){
 
                 change_active_amount(enemy->sprite);
 
+                if(enemy->moving) num_enemies_moving --;
+
                 memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
 
                 ship->lives --;
@@ -814,7 +816,6 @@ int enemy_movement(int rand_enemy){
                 round_wait_time = ROUND_WAIT;
                 num_left --;
 
-                if(enemy->moving) num_enemies_moving --;
 
             }
         }

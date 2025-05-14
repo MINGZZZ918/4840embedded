@@ -17,6 +17,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include "noah/vga_ball.h"
 #include "vga_ball.h"
 #include "controller.h"
 
@@ -145,7 +146,7 @@ static int round_num = 1;
 static gamestate game_state = {
 
     .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_buls = 3, .bullets = { 0 }, .active = 1},
-    .background = {.red = 0xFF, .green = 0x00, .blue = 0xFF},
+    .background = {.red = 0x00, .green = 0x00, .blue = 0x20},
     .bullets = { 0 },
     .enemies = { 0 },
     .power_up = { 0 }
@@ -796,7 +797,7 @@ int enemy_movement(int rand_enemy){
                 enemy->pos_x += enemy_wiggle;
 
 
-            if (ship->active &&
+            if (ship->active && !ship->explosion_timer &&
                 abs(ship->pos_x - enemy->pos_x) <= SHIP_WIDTH
                 && abs(ship->pos_y - enemy->pos_y) <= SHIP_HEIGHT){
 
@@ -840,7 +841,7 @@ void move_enemy_bul(){
         bul->pos_y += bul->velo_y;
 
 
-        if (ship->active && 
+        if (ship->active && !ship->explosion_timer &&
             abs(ship->pos_x - bul->pos_x - BULLET_WIDTH) <= SHIP_WIDTH &&
             abs(ship->pos_y - bul->pos_y - BULLET_HEIGHT*3) <= SHIP_HEIGHT){
 
@@ -966,8 +967,6 @@ void ship_movement(){
         ship->pos_y += ship->velo_y;
     
 }
-
-
 
 // taking too long to move
 // after so long I can have liek 5 go at the same time just remove %
@@ -1132,8 +1131,9 @@ int main(){
     printf("Game Begins! \n");
 
     init_round_state();
-
     update_ship();
+
+    usleep(16000);
 
     for (int i =0; i<COLUMNS; i++){
         for(int j=0; j<ENEMY_COUNT; j++)

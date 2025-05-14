@@ -224,7 +224,7 @@ void active_powerup(){
 
     if (--powerup_timer < 0){
 
-        game_state.ship.num_buls = 1;
+        game_state.ship.num_buls = 5;
         ship_velo = 2;
         
     }

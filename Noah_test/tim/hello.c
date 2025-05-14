@@ -739,9 +739,10 @@ void enemy_attack(enemy *enemy){
 }
 
 
-void enemy_explosion(){
+int enemy_explosion(){
 
     enemy *enemy;
+    int num_left = 0;
 
     for(int i = 0; i<ENEMY_COUNT; i++){
 
@@ -758,13 +759,14 @@ void enemy_explosion(){
 
             enemy->sprite = SHIP_EXPLOSION2;
             enemy->explosion_timer --;
+            num_left ++;
         }
 
         else if (enemy->explosion_timer){
 
             printf("1111111111\n");
 
-
+            num_left ++;
 
             enemy->velo_x = 0;
             enemy->velo_y = 0;
@@ -774,6 +776,8 @@ void enemy_explosion(){
 
         }
     }
+
+    return num_left;
 }
 
 
@@ -1401,7 +1405,7 @@ int main(){
             if(ship->active && !ship->explosion_timer) ship_movement();
 
             move_powerup();
-            enemy_explosion();
+            enemies_exploding = enemy_explosion();
             ship_explosion();
 
             if (!round_wait_time){ // ship is alive and round is playing
@@ -1482,7 +1486,8 @@ int main(){
                 break;
             }
 
-            if(!enemies_remaining && !ship->explosion_timer && !round_wait_time){
+            if(!enemies_remaining && !ship->explosion_timer && 
+                !round_wait_time && !enemies_exploding){
 
                 if(round_num == 3){
 

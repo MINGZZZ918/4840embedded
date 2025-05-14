@@ -719,7 +719,6 @@ void ship_explosion(){
 
 
 
-
 int enemy_movement(int rand_enemy){
 
     int cont, row_num, num_left = 0;
@@ -814,6 +813,9 @@ int enemy_movement(int rand_enemy){
 
                 round_wait_time = ROUND_WAIT;
                 num_left --;
+
+                if(enemy->moving) num_enemies_moving --;
+
             }
         }
     }

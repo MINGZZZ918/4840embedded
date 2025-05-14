@@ -171,7 +171,7 @@ static int win_y[48] = {
 };
 
 
-static int die_x[48] = {
+static int die_x[47] = {
     // Y
     50, 50, 66, 66, 82, 82,
     // O
@@ -183,12 +183,12 @@ static int die_x[48] = {
     // I
     354, 354, 354, 
     // E
-    386, 386, 386, 386, 386, 402, 402, 402, 418, 418, 418, 
+    386, 386, 386, 386, 402, 402, 402, 418, 418, 418, 
     // !
     482, 482, 482
 };
 
-static int die_y[48] = {
+static int die_y[47] = {
     // Y
     50, 66, 82, 98, 50, 66,
     // O
@@ -200,7 +200,7 @@ static int die_y[48] = {
     // I
     50, 82, 98, 
     // E
-    50, 66, 74, 82, 98, 50, 74, 98, 50, 74, 98, 
+    50, 66, 82, 98, 50, 74, 98, 50, 74, 98, 
     // !
     50, 66, 98
 };
@@ -1270,7 +1270,7 @@ void print_win(){
 
 void print_die(){
 
-    for (int i = 0; i<48; i++){
+    for (int i = 0; i<47; i++){
 
         game_state.enemies[i].sprite = ENEMY_BULLET;
         game_state.enemies[i].pos_x = die_x[i];

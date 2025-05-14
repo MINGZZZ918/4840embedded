@@ -87,7 +87,6 @@ static int round_frequency = 100;
 
 
 
-
 static int enemy_wiggle = 1;
 static int enemy_wiggle_time = 0;
 
@@ -607,20 +606,22 @@ void enemy_attack(enemy *enemy){
                 if(enemy->move_time < 75){
 
                     if (enemy->start_x < SCREEN_WIDTH/2)
-                        calculate_velo(ship->pos_x -200, ship->pos_y, enemy, 1, 2);
+                        // calculate_velo(ship->pos_x -200, ship->pos_y, enemy, 1, 2);
+                        enemy->velo_x = -1;
 
                     else
-                        calculate_velo(ship->pos_x +200, ship->pos_y, enemy, 1, 2);
+                        // calculate_velo(ship->pos_x +200, ship->pos_y, enemy, 1, 2);
+                        enemy->velo_x = 1;
                 }
 
                 else{
                     
                     if (enemy->start_x < SCREEN_WIDTH/2)
-                        calculate_velo(ship->pos_x +200, ship->pos_y, enemy, 1, 2);
-
+                        // calculate_velo(ship->pos_x +200, ship->pos_y, enemy, 1, 2);
+                        enemy->velo_x = 1;
                     else
-                        calculate_velo(ship->pos_x -200, ship->pos_y, enemy, 1, 2);
-
+                        // calculate_velo(ship->pos_x -200, ship->pos_y, enemy, 1, 2);
+                    enemy->velo_x = -1;
                 }
 
                 if(++ enemy->move_time > 150)

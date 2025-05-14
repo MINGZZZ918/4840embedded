@@ -223,13 +223,15 @@ void active_powerup(){
 
     powerup *power_up = &game_state.power_up;
 
-    if (--powerup_timer <= 0){
+    if (--powerup_timer < 0){
 
         game_state.ship.num_buls = 1;
         ship_velo = 2;
     }
+    else if (powerup_timer == 0)
+        power_up->active = 0;
 
-    if(powerup_timer > 50 && powerup_timer < 100){
+    else if(powerup_timer > 50 && powerup_timer < 100){
 
         if (blink_counter){
             power_up->active = !power_up->active;
@@ -1322,7 +1324,6 @@ int main(){
 
                     num_sent = 0;
 
-
                     powerup_timer = 0;
                     kill_count /= 2;
                 } 
@@ -1341,7 +1342,9 @@ int main(){
                 printf("%d, %d, %d \n", active_ship_buls, active_enemy_buls, num_enemies_moving);
 
                 if(!active_ship_buls && !active_enemy_buls && !num_enemies_moving)
-                        round_wait_time --;
+                    round_wait_time --;
+                        
+                if (round_wait_time > 2) round_wait_time --;
 
                 enemy_movement(-1);
                 move_enemy_bul();

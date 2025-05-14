@@ -80,9 +80,6 @@ static int powerup_timer = 0;
 #define EXTRA_BULLET_TIME 250;
 #define EXTRA_SPEED_TIME 500;
 
-static enemy *exploding_enemy = NULL;
-static int explosion_timer = 0;
-
 
 
 static int round_wait = 0, round_wait_time = 0;
@@ -675,7 +672,7 @@ void enemy_attack(enemy *enemy){
 
 void enemy_explosion(enemy *enemy){
 
-    if(enemy->explosion_timer <= 0)
+    if(enemy->explosion_timer <= 1)
         memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
 
     else if(enemy->explosion_timer < 3){
@@ -870,8 +867,6 @@ void bullet_colision(bullet *bul){
     for (int i = 0; i<ENEMY_COUNT; i++){
 
         enemy = &game_state.enemies[i];
-
-
 
         if (enemy->active && 
             abs(enemy->pos_x - bul->pos_x + BULLET_WIDTH) <= ENEMY_WIDTH &&

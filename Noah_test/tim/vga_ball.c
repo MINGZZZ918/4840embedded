@@ -82,10 +82,6 @@ static void write_ship(spaceship *ship){
 
     write_object (1, ship->pos_x,  ship->pos_y, 0, ship->active);
 
-    // write_object (1, ship->pos_x,  ship->pos_y, SHIP_EXPLOSION, !ship->active);
-
-    // write_object (1, ship->pos_x,  ship->pos_y+SHIP_HEIGHT, SHIP_EXPLOSION, !ship->active);
-
     dev.ship = *ship;
 
 }

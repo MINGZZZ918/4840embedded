@@ -80,6 +80,9 @@ static int powerup_timer = 0;
 #define EXTRA_BULLET_TIME 250;
 #define EXTRA_SPEED_TIME 500;
 
+static enemy *exploding_enemy = 0;
+static int explosion_timer = 0;
+
 
 
 static int round_wait = 0, round_wait_time = 0;
@@ -817,6 +820,47 @@ void move_enemy_bul(){
 
 
 
+void enemy_explosion(){
+
+    if (explosion_timer == 0){
+
+        exploding_enemy->moving = 0;
+        exploding_enemy->velo_x = 0;
+        exploding_enemy->velo_y = 0;
+        exploding_enemy->sprite = EXPLOSION1;
+
+        explosion_timer ++;
+    }
+
+    else if (explosion_timer == 1){
+        
+        enemy->sprite = EXPLOSION2;
+        explosion_timer ++;
+    }
+
+    else
+        memset(exploding_enemy, 0, sizeof(*enemy)); //??????????????????????????????
+
+}
+
+
+// void ship_explosion(){
+
+//     enemy->active = 0;
+//             bul->active = 0;
+
+//             if (++ kill_count >= 15 && !game_state.power_up.active) drop_powerup(enemy);
+
+
+//             memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
+
+
+// }
+
+
+
+
+
 void bullet_colision(bullet *bul){
 
     enemy *enemy;
@@ -825,7 +869,10 @@ void bullet_colision(bullet *bul){
 
         enemy = &game_state.enemies[i];
 
-        if (enemy->active && 
+        if(enemy == exploding_enemy) enemy_explosion();
+
+
+        else if (enemy->active && 
             abs(enemy->pos_x - bul->pos_x + BULLET_WIDTH) <= ENEMY_WIDTH &&
             abs(enemy->pos_y - bul->pos_y + BULLET_HEIGHT*4) <= ENEMY_HEIGHT){
 
@@ -836,17 +883,15 @@ void bullet_colision(bullet *bul){
 
             change_active_amount(enemy->sprite);
 
-            enemy->active = 0;
             bul->active = 0;
 
             if (++ kill_count >= 15 && !game_state.power_up.active) drop_powerup(enemy);
 
-
-            memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
-
             if(enemy->moving) num_enemies_moving --;
 
-
+            exploding_enemy = enemy;
+            explosion_timer = 0;
+            enemy_explosion();
             break;
         }
     }

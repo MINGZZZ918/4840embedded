@@ -31,7 +31,8 @@
 #define EXTRA_BULLETS 4
 
 #define SHIP_FLAME 13
-#define SHIP_EXPLOSION 14
+#define SHIP_EXPLOSION1 2
+#define SHIP_EXPLOSION2 3
 
 /* Color structure */
 typedef struct {
@@ -84,7 +85,7 @@ typedef struct {
 #define UPDATE_ENEMIES   _IOW(VGA_BALL_MAGIC, 1, gamestate)
 #define UPDATE_SHIP   _IOW(VGA_BALL_MAGIC, 2, spaceship)
 #define UPDATE_SHIP_BULLETS   _IOW(VGA_BALL_MAGIC, 3, spaceship)
-#define UPDATE_POWERUP   _IOW(VGA_BALL_MAGIC, 3, powerup)
+#define UPDATE_POWERUP   _IOW(VGA_BALL_MAGIC, 4, powerup)
 
 #endif /* _VGA_BALL_H */
 

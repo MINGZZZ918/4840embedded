@@ -164,6 +164,7 @@ static void write_powerup(powerup *power_up){
 */
 static void update_enemies(gamestate *game_state)
 {
+    write_background(&game_state->background);
     write_enemies(game_state->bullets, game_state->enemies);
 }
 

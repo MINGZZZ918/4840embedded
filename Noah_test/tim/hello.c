@@ -1306,7 +1306,7 @@ int main(){
                 if(!active_buls && !active_enemies)
                         round_wait_time --;
 
-                if(active_enemies) enemy_movement(-1);
+                enemy_movement(-1);
                 move_enemy_bul();
                 bullet_movement(0);
             }
@@ -1453,7 +1453,7 @@ int main(){
                     enemy_wiggle = 1;
 
                     round_wait_time = ROUND_WAIT;
-                    round_wait = 1;
+                    // round_wait = 1;
                     col_active = 0;
 
                     round_time = 0;
@@ -1479,7 +1479,6 @@ int main(){
                 }
 
             }
-
 
             usleep(16000);
         }    

@@ -1185,7 +1185,7 @@ void init_round_state() {
 
 
 
-static int x_coords[40] = {
+static int x_coords[48] = {
     // Y
     50, 50, 66, 66, 82, 82,
     // O
@@ -1202,7 +1202,7 @@ static int x_coords[40] = {
     498, 498, 498
 };
 
-static int y_coords[40] = {
+static int y_coords[48] = {
     // Y
     50, 66, 82, 98, 50, 66,
     // O
@@ -1271,7 +1271,7 @@ int main(){
 
 
 
-    for (int i = 0; i<40; i++){
+    for (int i = 0; i<48; i++){
 
         game_state.enemies[i].sprite = SHIP_BULLET;
         game_state.enemies[i].pos_x = x_coords[i];

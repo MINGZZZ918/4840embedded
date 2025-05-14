@@ -755,8 +755,6 @@ void enemy_explosion(){
         if(enemy->explosion_timer == 1){
             printf("33333333333333333\n");
 
-            enemies_remaining --;
-
             printf("%d \n", enemies_remaining);
 
             memset(enemy, 0, sizeof(*enemy));

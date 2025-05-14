@@ -683,17 +683,24 @@ void enemy_explosion(){
 
         enemy = &game_state.enemies[i];
 
-        if(enemy->explosion_timer == 1)
-        memset(enemy, 0, sizeof(*enemy));
+        if(enemy->explosion_timer == 1){
+
+            printf("3333333333 \n");
+            memset(enemy, 0, sizeof(*enemy));
+        }
 
         else if(enemy->explosion_timer < EXPLOSION_TIME/2 && enemy->explosion_timer){
             enemy->sprite = SHIP_EXPLOSION2;
             enemy->explosion_timer --;
+            printf("2222222222222 \n");
         }
+
         else if (enemy->explosion_timer){
             enemy->velo_x = 0;
             enemy->velo_y = 0;
             enemy->sprite = SHIP_EXPLOSION1;
+
+            printf("1111111111 \n");
 
             enemy->explosion_timer --;
 
@@ -1292,8 +1299,8 @@ int main(){
 
             else{
 
-                for(int i=0; i<ENEMY_COUNT; i++)
-                        if (game_state.enemies[i].moving) active_enemies ++;
+                // for(int i=0; i<ENEMY_COUNT; i++)
+                //         if (game_state.enemies[i].moving) active_enemies ++;
 
                 for(int i=0; i<SHIP_BULLETS; i++)
                     if (ship->bullets[i].active) active_buls ++;
@@ -1303,7 +1310,7 @@ int main(){
 
                 if (round_wait > 2) round_wait--;
 
-                if(!active_buls && !active_enemies)
+                if(!active_buls && !num_enemies_moving)
                         round_wait_time --;
 
                 enemy_movement(-1);
@@ -1315,26 +1322,6 @@ int main(){
             update_enemies();
             update_powerup();
             update_ship_bullet();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             // if(ship->active && !ship->explosion_timer) ship_movement();

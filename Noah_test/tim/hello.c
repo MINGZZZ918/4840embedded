@@ -1448,7 +1448,7 @@ int main(){
 
                 game_state.power_up.active = 0;
 
-                // printf("%d, %d, %d \n", active_ship_buls, active_enemy_buls, num_enemies_moving);
+                printf("%d, %d, %d \n", active_ship_buls, active_enemy_buls, num_enemies_moving);
 
                 if(!active_ship_buls && !active_enemy_buls && !num_enemies_moving)
                     round_wait_time --;

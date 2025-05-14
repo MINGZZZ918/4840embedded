@@ -23,16 +23,18 @@
 #define SHIP_BULLET 9 //
 
 #define ENEMY1 3 //
+
 #define ENEMY2 5 //
+
 #define ENEMY3 4 //
 
 #define ENEMY_BULLET 10 //
 #define ENEMY_BULLET_LEFT 11 //
 #define ENEMY_BULLET_RIGHT 12 //
 
-#define EXTRA_LIFE 8 // 
+#define EXTRA_LIFE 6 // 
 #define SHIP_SPEED 7 // 
-#define EXTRA_BULLETS 6
+#define EXTRA_BULLETS 8
 
 
 #define SHIP_EXPLOSION1 13 

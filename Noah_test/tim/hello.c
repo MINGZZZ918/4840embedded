@@ -261,6 +261,9 @@ void drop_powerup(enemy *enemy){
     powerup *power_up = &game_state.power_up;
     int i = rand() % 3;
 
+    if (game_state.ship.lives == LIFE_COUNT && i == 2)
+        while (i != 2) i = rand() % 3;
+
     power_up->pos_x = enemy->pos_x;
 
     power_up->pos_y = 200;

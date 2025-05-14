@@ -577,7 +577,7 @@ void enemy_attack(enemy *enemy){
         else if (enemy->sprite == ENEMY2){
 
 
-            if (enemy->pos_y >= ship->pos_y+20 || !ship ->active) {
+            if (enemy->pos_y >= ship->pos_y+60 || !ship ->active) {
 
                 enemy->velo_x = (enemy->pos_x > ship->pos_x) ? 1 : -1;
                 enemy->velo_y = 4;

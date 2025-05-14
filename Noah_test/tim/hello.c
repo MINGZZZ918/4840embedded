@@ -785,6 +785,8 @@ void ship_explosion(){
         ship->active = 0;
         ship->explosion_timer = 0;
         ship->sprite = SHIP;
+        ship->lives --;
+
     }
     else if(ship->explosion_timer < EXPLOSION_TIME/2 && ship->explosion_timer){
         ship->sprite = SHIP_EXPLOSION2;
@@ -894,8 +896,8 @@ int enemy_movement(int rand_enemy){
 
                 change_score(SHIP);
 
-                ship->lives --;
                 ship->explosion_timer = EXPLOSION_TIME;
+                enemy->explosion_timer = EXPLOSION_TIME;
 
                 round_wait_time = ROUND_WAIT;
                 num_left --;

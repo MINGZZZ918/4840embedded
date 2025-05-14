@@ -1432,6 +1432,8 @@ int main(){
 
                     powerup_timer = 0;
                     kill_count /= 2;
+
+                    if(!enemies_remaining) enemies_remaining = 1;
                 } 
 
                 else{
@@ -1440,6 +1442,8 @@ int main(){
                         if(game_state.enemies[j].col == col_active) game_state.enemies[j].active = 1;
 
                     if (++col_active == COLUMNS) round_wait_time = 0;
+
+                    if(!enemies_remaining) enemies_remaining = 1;
                 }
             }
 
@@ -1453,6 +1457,8 @@ int main(){
                     round_wait_time --;
                         
                 if (round_wait_time > 30) round_wait_time --;
+
+                if(!enemies_remaining) enemies_remaining = 1;
 
                 bullet_movement(0);
                 enemy_movement(-1);

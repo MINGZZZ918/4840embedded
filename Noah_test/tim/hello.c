@@ -682,7 +682,7 @@ void enemy_explosion(){
         enemy = &game_state.enemies[i];
 
         if(enemy->explosion_timer == 1)
-        memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
+        memset(enemy, 0, sizeof(*enemy));
 
         else if(enemy->explosion_timer < EXPLOSION_TIME/2 && enemy->explosion_timer){
             enemy->sprite = SHIP_EXPLOSION2;
@@ -697,9 +697,30 @@ void enemy_explosion(){
 
         }
     }
-
-    
 }
+
+
+void ship_explosion(){
+
+    spaceship *ship = &game_state.ship;
+
+
+    if(ship->explosion_timer == 1)
+        ship->active = 0;
+
+    else if(ship->explosion_timer < EXPLOSION_TIME/2 && ship->explosion_timer){
+        ship->sprite = SHIP_EXPLOSION2;
+        ship->explosion_timer --;
+    }
+    else if (ship->explosion_timer){
+
+        ship->sprite = SHIP_EXPLOSION1;
+        ship->explosion_timer --;
+
+    }
+}
+
+
 
 
 int enemy_movement(int rand_enemy){
@@ -791,8 +812,7 @@ int enemy_movement(int rand_enemy){
 
 
                 ship->lives --;
-                ship->active = 0;
-                /////////////// explosion here ///////////////////////////
+                ship->explosion_timer = EXPLOSION_TIME;
                 round_wait = 1;
                 round_wait_time = ROUND_WAIT;
                 num_left --;
@@ -832,8 +852,8 @@ void move_enemy_bul(){
             bul->enemy = -1;
 
             ship->lives --;
-            ship->active = 0;
-            /////////// explosion here ///////////////////////////
+            ship->explosion_timer = EXPLOSION_TIME;
+
             round_wait = 1;
             round_wait_time = ROUND_WAIT;
 
@@ -851,18 +871,7 @@ void move_enemy_bul(){
 
 
 
-// void ship_explosion(){
 
-//     enemy->active = 0;
-//             bul->active = 0;
-
-//             if (++ kill_count >= 15 && !game_state.power_up.active) drop_powerup(enemy);
-
-
-//             memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
-
-
-// }
 
 
 
@@ -1257,10 +1266,11 @@ int main(){
 
             // only kill enemy if ship is active
 
-            if(ship->active) ship_movement();
+            if(ship->active && !ship->explosion_timer) ship_movement();
 
             move_powerup();
             enemy_explosion();
+            ship_explosion();
 
             if(!round_wait){
 

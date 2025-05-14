@@ -6,7 +6,6 @@ module vga_ball#(
     parameter MAX_OBJECTS = 100,    // sprites数量（adress传递的值最后给obj_sprite，这个才是精灵种类，最多64种）
     parameter SPRITE_WIDTH = 16,   // 所有精灵标准宽度
     parameter SPRITE_HEIGHT = 16,  // 所有精灵标准高度
-    parameter TILE_COUNT   = 3,    //tile的数量（静态贴图）
     parameter TILE_WIDTH   = 16,   //贴图的标准宽度
     parameter TILE_HEIGHT  = 16    //贴图的标准高度
 ) (
@@ -28,27 +27,35 @@ module vga_ball#(
 
     // Background color
     logic [7:0]     background_r, background_g, background_b;
-    
-    // 游戏对象数组，每个对象包含位置和精灵信息（不懂）
+    logic [7:0]     score;
+
+   // 游戏对象数组，每个对象包含位置和精灵信息（不懂）
     logic [11:0]    obj_x[MAX_OBJECTS]; // 12位x坐标
     logic [11:0]    obj_y[MAX_OBJECTS]; // 12位y坐标
     logic [5:0]     obj_sprite[MAX_OBJECTS]; // 6位精灵索引，所以最多是64个精灵
     logic           obj_active[MAX_OBJECTS]; // 活动状态位
     
     // 静态贴图相关
-    logic [10:0] tile_x[TILE_COUNT];
-    logic [9:0]  tile_y[TILE_COUNT];
-    logic [5:0]  tile_index[TILE_COUNT];
+    // 改成常量
+    localparam int TILE_COUNT = 8;
+    logic [10:0] tile_x[0:7];  // 显式地声明范围
+    logic [9:0]  tile_y[0:7];
+    logic [5:0]  tile_index[0:7];
+
 
     // 精灵渲染相关
     localparam int SPRITE_SIZE  = SPRITE_WIDTH * SPRITE_HEIGHT; // 16*16=256
     logic [13:0] sprite_address;
-    logic [7:0] color_address;
     logic [7:0] rom_data;
-    logic [7:0] rom_r, rom_g, rom_b;
     logic [23:0] sprite_data;
-    logic [23:0] color_data;  // 来自 color_palette.mif 的 RGB
-    logic        transparent_part; // 精灵中的透明背景可以透出下面的精灵
+
+    // star
+    logic [6:0] frame_count_64;
+    logic       star_bright_64;
+    logic [6:0] frame_count_48;
+    logic       star_bright_48;
+    logic [6:0] frame_count_21;
+    logic       star_bright_21;
 
 
     // ROM IP module
@@ -66,17 +73,44 @@ module vga_ball#(
         .writedata    (32'b0),
         .readdata     (rom_data)          // 输出：ROM中读出的颜色索引
     );
+    soc_system_rom_s1 sprite_images1 (
+        .address      (sprite_1_address),   // ROM 索引地址
+        .chipselect   (1'b1),             // 始终使能
+        .clk          (clk),              // 时钟
+        .clken        (1'b1),             // 时钟使能
+        .debugaccess  (1'b0),
+        .freeze       (1'b0),
+        .reset        (1'b0),
+        .reset_req    (1'b0),
+        .write        (1'b0),
+        .writedata    (32'b0),
+        .readdata     (rom_1_data)          // 输出：ROM中读出的颜色索引
+    );
 
     //color palette
+    logic [7:0] color_address_tile, color_address;
+    logic [23:0] color_data_tile, color_data;
+
+    assign color_address_tile = rom_1_data;
+    assign color_address  = rom_data;
     color_palette palette_inst (
         .clk        (clk),
         .clken      (1'b1),
         .address    (color_address),
         .color_data (color_data)
     );
-    assign color_address = rom_data;
+    color_palette palette_rom1 (
+        .clk        (clk),
+        .clken      (1'b1),
+        .address    (color_address_1),
+        .color_data (color_data_1)
+    );
+    logic [13:0] sprite_1_address;
+    logic [7:0]  rom_1_data;
+    logic [7:0]  color_address_1;
+    logic [23:0] color_data_1;
+    assign color_data_tile = color_data_1;
     assign sprite_data = color_data;
-    assign {rom_r, rom_g, rom_b} = sprite_data;
 
     // Instantiate VGA counter module
     vga_counters counters(.clk50(clk), .*);
@@ -88,7 +122,7 @@ module vga_ball#(
             background_r <= 8'h00;
             background_g <= 8'h80;
             background_b <= 8'h00;  // 深蓝色背景
-            
+            score <= 8'h00;
             // 初始化所有对象
             for (int i = 0; i < MAX_OBJECTS; i++) begin
                 obj_x[i] <= 12'd0;
@@ -105,6 +139,7 @@ module vga_ball#(
                 5'd0: {background_r, background_g, background_b} <= writedata[23:0];
                 //如果想在sw设置敌人和子弹数量可以在bg这里传，剩下8bit
                 // 对象数据更新 - 地址1到MAX_OBJECTS对应各个对象
+                5'd1: score <= writedata[7:0];
                 default: begin
                     if (address >= 7'd1 && address <= 7'd1 + MAX_OBJECTS - 1) begin //最先打印的是 bg，然后先传 ship，再传敌人，再传子弹
                         int obj_idx;
@@ -121,24 +156,74 @@ module vga_ball#(
         end
     end
 
+    // star
+    always_ff @(posedge clk or posedge reset) begin
+        if (reset) begin
+        frame_count_64 <= 7'd0;
+        end else if (hcount[10:1] == 11'd0 && vcount[9:0] == 10'd0) begin
+        frame_count_64 <= frame_count_64 + 1'b1;
+        end
+    end
+
+    assign star_bright_64 = ~frame_count_64[6];
+
+
+    always_ff @(posedge clk or posedge reset) begin
+    if (reset)              frame_count_48 <= 7'd0;
+    else if (hcount[10:1]==0 && vcount[9:0]==0) begin
+        if (frame_count_48 == 7'd95) frame_count_48 <= 7'd0;
+        else                         frame_count_48 <= frame_count_48 + 1;
+    end
+    end
+
+    assign star_bright_48 = (frame_count_48 < 7'd48);
+
+
+    always_ff @(posedge clk or posedge reset) begin
+    if (reset)              frame_count_21 <= 7'd0;
+    else if (hcount[10:1]==0 && vcount[9:0]==0) begin
+        if (frame_count_21 == 7'd41) frame_count_21 <= 7'd0;
+        else                         frame_count_21 <= frame_count_21 + 1;
+    end
+    end
+
+    assign star_bright_21 = (frame_count_48 < 7'd21);
+
+    // score
+    logic [3:0] hundreds, tens, ones; // 每一位的 BCD 数
+    logic [7:0] value;
+    assign value = score;
+    // 用除法提取
+    assign hundreds = value / 100;
+    assign tens     = (value % 100) / 10;
+    assign ones     = value % 10;
+
     // 渲染逻辑 - 确定当前像素属于哪个对象
     // Stage00: 先确定tile的位置
     always_comb begin
-        tile_x[0] = 1280 - 3*SPRITE_WIDTH;  tile_y[0] = 0;  tile_index[0] = 6'd6;
-        tile_x[1] = 1280 - 2*SPRITE_WIDTH;  tile_y[1] = 0;  tile_index[1] = 6'd7;
-        tile_x[2] = 1280 - 1*SPRITE_WIDTH;  tile_y[2] = 0;  tile_index[2] = 6'd8;
+        tile_x[0] = 1280 - 9*SPRITE_WIDTH;  tile_y[0] = 0;  tile_index[0] = 10;
+        tile_x[1] = 1280 - 8*SPRITE_WIDTH;  tile_y[1] = 0;  tile_index[1] = 11;
+        tile_x[2] = 1280 - 7*SPRITE_WIDTH;  tile_y[2] = 0;  tile_index[2] = 12;
+        tile_x[3] = 1280 - 6*SPRITE_WIDTH;  tile_y[3] = 0;  tile_index[3] = 13;
+        tile_x[4] = 1280 - 5*SPRITE_WIDTH;  tile_y[4] = 0;  tile_index[4] = 14;
+        tile_x[5] = 1280 - 3*SPRITE_WIDTH;  tile_y[5] = 0;  tile_index[5] = hundreds;
+        tile_x[6] = 1280 - 2*SPRITE_WIDTH;  tile_y[6] = 0;  tile_index[6] = tens;
+        tile_x[7] = 1280 - 1*SPRITE_WIDTH;  tile_y[7] = 0;  tile_index[7] = ones;
     end
 
     // 渲染逻辑 - 确定当前像素属于哪个对象
     logic [6:0] active_obj_idx;
     logic obj_visible;
     logic found; //用来判断有没有找到非透明的像素，没有就继续，直到最后
+    logic found_tile; //用来判断有没有找到非透明的像素，没有就继续，直到最后
+    logic tile_sprite;
     logic [3:0] rel_x, rel_y;
     logic [3:0] tile_rel_x, tile_rel_y;
     logic [23:0] pix; //保留当前层的rgb数据
     logic [23:0] pix_candidate; //
     always_comb begin
         found = 1'b0;
+        found_tile = 1'b0;
         obj_visible = 1'b0;
         active_obj_idx = 7'd0;
         rel_x = 4'd0;
@@ -148,38 +233,91 @@ module vga_ball#(
         pix             = {background_r,background_g,background_b};
         pix_candidate   = {background_r,background_g,background_b};
         sprite_address = 14'd0;
-
-        // 从高优先级到低优先级检查对象（最后绘制的对象优先级最高）
-        for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
-            if (!found &&
-                obj_active[i] && 
-                hcount[10:1] >= obj_x[i][9:0] && 
-                hcount[10:1] < obj_x[i][9:0] + SPRITE_WIDTH &&
-                vcount[9:0] >= obj_y[i][9:0] && 
-                vcount[9:0] < obj_y[i][9:0] + SPRITE_HEIGHT) begin
-                
-                active_obj_idx = i[6:0];
-                rel_x = hcount[10:1] - obj_x[i][9:0];
-                rel_y = vcount[9:0] - obj_y[i][9:0];
-                sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE 
-                                + rel_y * SPRITE_WIDTH 
-                                + rel_x;
-                // 原本 pix_candidate = sprite_data;
-                // 如果 rel_x==0，就把它当作透明色
-                if (rel_x == 0) begin
-                    pix_candidate = 24'h000000;
-                end else begin
-                    pix_candidate = sprite_data;
-                end
-                // 只用透明色判别
-                if (pix_candidate != 24'h000000) begin
-                    pix   = pix_candidate;
-                    found = 1'b1;
-                end
-            end
+        sprite_1_address = 14'd0;
+        tile_sprite =1'b1;
+            // --- static star background ---
+        if (star_bright_64 && (
+            (hcount[10:1] == 654 && vcount[9:0] == 114) ||
+            (hcount[10:1] == 25  && vcount[9:0] == 759) ||
+            (hcount[10:1] == 281 && vcount[9:0] == 250) ||
+            (hcount[10:1] == 228 && vcount[9:0] == 142) ||
+            (hcount[10:1] == 754 && vcount[9:0] == 104) ||
+            (hcount[10:1] == 692 && vcount[9:0] == 758) ||
+            (hcount[10:1] == 558 && vcount[9:0] == 89)  ||
+            (hcount[10:1] == 604 && vcount[9:0] == 432) ||
+            (hcount[10:1] == 32  && vcount[9:0] == 30)  ||
+            (hcount[10:1] == 95  && vcount[9:0] == 223) ||
+            (hcount[10:1] == 238 && vcount[9:0] == 517) ||
+            (hcount[10:1] == 616 && vcount[9:0] == 27)  ||
+            (hcount[10:1] == 574 && vcount[9:0] == 203) ||
+            (hcount[10:1] == 733 && vcount[9:0] == 665)
+        )) begin
+            pix = 24'hFFFFFF;  // white star when bright
         end
+
+        if (star_bright_48 && (
+            (hcount[10:1] == 718 && vcount[9:0] == 558) ||
+            (hcount[10:1] ==  43 && vcount[9:0] == 517) ||
+            (hcount[10:1] == 154 && vcount[9:0] ==  17) ||
+            (hcount[10:1] == 320 && vcount[9:0] == 567) ||
+            (hcount[10:1] == 602 && vcount[9:0] == 561) ||
+            (hcount[10:1] == 369 && vcount[9:0] == 768) ||
+            (hcount[10:1] == 707 && vcount[9:0] == 267) ||
+            (hcount[10:1] ==  81 && vcount[9:0] == 326) ||
+            (hcount[10:1] == 249 && vcount[9:0] == 618) ||
+            (hcount[10:1] == 129 && vcount[9:0] == 608) ||
+            (hcount[10:1] == 323 && vcount[9:0] == 142) ||
+            (hcount[10:1] == 367 && vcount[9:0] == 164) ||
+            (hcount[10:1] == 721 && vcount[9:0] == 440) ||
+            (hcount[10:1] == 231 && vcount[9:0] == 322) ||
+            (hcount[10:1] == 249 && vcount[9:0] == 598) ||
+            (hcount[10:1] == 622 && vcount[9:0] == 599) ||
+            (hcount[10:1] == 366 && vcount[9:0] == 282) ||
+            (hcount[10:1] == 382 && vcount[9:0] == 646) ||
+            (hcount[10:1] == 675 && vcount[9:0] == 472) ||
+            (hcount[10:1] == 487 && vcount[9:0] == 307) ||
+            (hcount[10:1] == 202 && vcount[9:0] == 596) ||
+            (hcount[10:1] == 450 && vcount[9:0] == 770) ||
+            (hcount[10:1] == 115 && vcount[9:0] == 152) ||
+            (hcount[10:1] == 684 && vcount[9:0] ==  22)
+        )) begin
+            pix = 24'hFFFFFF;  // white star when bright
+        end
+
+        if (star_bright_21 && (
+            (hcount[10:1] == 684 && vcount[9:0] ==  22) ||
+            (hcount[10:1] == 615 && vcount[9:0] == 512) ||
+            (hcount[10:1] == 243 && vcount[9:0] == 159) ||
+            (hcount[10:1] == 337 && vcount[9:0] == 527) ||
+            (hcount[10:1] == 363 && vcount[9:0] == 216) ||
+            (hcount[10:1] ==  60 && vcount[9:0] == 612) ||
+            (hcount[10:1] == 354 && vcount[9:0] == 527) ||
+            (hcount[10:1] ==  36 && vcount[9:0] == 488) ||
+            (hcount[10:1] ==  13 && vcount[9:0] == 223) ||
+            (hcount[10:1] == 491 && vcount[9:0] ==  18) ||
+            (hcount[10:1] == 203 && vcount[9:0] == 171) ||
+            (hcount[10:1] ==  28 && vcount[9:0] == 478) ||
+            (hcount[10:1] == 585 && vcount[9:0] == 441) ||
+            (hcount[10:1] == 438 && vcount[9:0] == 318) ||
+            (hcount[10:1] == 214 && vcount[9:0] == 666) ||
+            (hcount[10:1] == 300 && vcount[9:0] == 445) ||
+            (hcount[10:1] == 161 && vcount[9:0] == 464) ||
+            (hcount[10:1] ==   3 && vcount[9:0] == 739) ||
+            (hcount[10:1] == 736 && vcount[9:0] == 269) ||
+            (hcount[10:1] == 512 && vcount[9:0] == 780) ||
+            (hcount[10:1] == 182 && vcount[9:0] == 519) ||
+            (hcount[10:1] == 108 && vcount[9:0] == 640) ||
+            (hcount[10:1] == 305 && vcount[9:0] == 654) ||
+            (hcount[10:1] == 519 && vcount[9:0] == 623) ||
+            (hcount[10:1] == 203 && vcount[9:0] == 156) ||
+            (hcount[10:1] == 382 && vcount[9:0] == 780) ||
+            (hcount[10:1] == 165 && vcount[9:0] == 552)
+        )) begin
+            pix = 24'hFFFFFF;  // white star when bright
+        end
+
         for (int i = TILE_COUNT - 1; i >= 0; i--) begin
-            if (!found &&
+            if (!found_tile &&
                 hcount[10:1] >= tile_x[i][9:0] && 
                 hcount[10:1] < tile_x[i][9:0] + TILE_WIDTH &&
                 vcount[9:0] >= tile_y[i][9:0] && 
@@ -187,19 +325,51 @@ module vga_ball#(
                 tile_rel_x = hcount[10:1] - tile_x[i][9:0];
                 tile_rel_y = vcount[9:0] - tile_y[i][9:0];
                 // 可以换一个rom
-                sprite_address = tile_index[i] * SPRITE_SIZE 
+                sprite_1_address = tile_index[i] * SPRITE_SIZE 
                                 + tile_rel_y * SPRITE_WIDTH 
                                 + tile_rel_x;
                 if (tile_rel_x == 0) begin
                     pix_candidate = 24'h000000;
                 end else begin
-                    pix_candidate = sprite_data;
+                    pix_candidate = color_data_tile;
                 end
 
                 // 只用透明色判别
                 if (pix_candidate != 24'h000000) begin
                     pix   = pix_candidate;
-                    found = 1'b1;
+                    found_tile = 1'b1;
+                end
+            end
+        end
+        tile_sprite = 1'b0;
+        if (!found_tile) begin
+            // 从高优先级到低优先级检查对象（最后绘制的对象优先级最高）
+            for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
+                if (!found &&
+                    obj_active[i] && 
+                    hcount[10:1] >= obj_x[i][9:0] && 
+                    hcount[10:1] < obj_x[i][9:0] + SPRITE_WIDTH &&
+                    vcount[9:0] >= obj_y[i][9:0] && 
+                    vcount[9:0] < obj_y[i][9:0] + SPRITE_HEIGHT) begin
+                    
+                    active_obj_idx = i[6:0];
+                    rel_x = hcount[10:1] - obj_x[i][9:0];
+                    rel_y = vcount[9:0] - obj_y[i][9:0];
+                    sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE 
+                                    + rel_y * SPRITE_WIDTH 
+                                    + rel_x;
+                    // 原本 pix_candidate = sprite_data;
+                    // 如果 rel_x==0，就把它当作透明色
+                    if (rel_x == 0) begin
+                        pix_candidate = 24'h000000;
+                    end else begin
+                        pix_candidate = sprite_data;
+                    end
+                    // 只用透明色判别
+                    if (pix_candidate != 24'h000000) begin
+                        pix   = pix_candidate;
+                        found = 1'b1;
+                    end
                 end
             end
         end

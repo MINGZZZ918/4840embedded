@@ -93,7 +93,7 @@ static void write_ship(spaceship *ship){
 
     write_object (2, ship->pos_x,  ship->pos_y, sprite, ship->active);
 
-    if (ship->velo_y < 0 && ship->active) active = 1;
+    if (ship->velo_y < 0 && ship->active & !ship->explosion_timer) active = 1;
     else active = 0;
 
     write_object (3, ship->pos_x,  ship->pos_y+SHIP_HEIGHT, SHIP_FLAME, active);

@@ -842,8 +842,8 @@ void move_enemy_bul(){
 
 
         if (ship->active && !ship->explosion_timer &&
-            abs(ship->pos_x - bul->pos_x - BULLET_WIDTH) <= SHIP_WIDTH &&
-            abs(ship->pos_y - bul->pos_y - BULLET_HEIGHT*3) <= SHIP_HEIGHT){
+            abs(ship->pos_x - bul->pos_x ) <= SHIP_WIDTH &&
+            abs(ship->pos_y - bul->pos_y ) <= SHIP_HEIGHT){
 
 
             game_state.enemies[bul->enemy].bul = -1;
@@ -939,7 +939,7 @@ void bullet_movement(int new_bullet){
 
         else if (!bul->active && new_bullet && num_active < game_state.ship.num_buls) {
             bul->active = 1;
-            bul->pos_x = game_state.ship.pos_x+(SHIP_WIDTH/2);
+            bul->pos_x = game_state.ship.pos_x;
             bul->pos_y = game_state.ship.pos_y-(SHIP_HEIGHT);
             bul->velo_y = -3;
             new_bullet = 0;

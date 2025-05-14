@@ -489,7 +489,7 @@ void enemy_return (enemy *enemy){
     if (enemy->returning){
 
 
-        if (abs(enemy->pos_x - enemy->start_x + enemy_wiggle_time) < 15 && abs(enemy->pos_y -enemy->start_y) < 15){
+        if (abs(enemy->pos_x - enemy->start_x + enemy_wiggle_time) < 20 && abs(enemy->pos_y -enemy->start_y) <20){
 
             enemy->pos_x = enemy->start_x+enemy_wiggle_time;
             enemy->pos_y = enemy->start_y;

@@ -879,8 +879,6 @@ void move_enemy_bul(){
 
 
 
-
-
 void bullet_colision(bullet *bul){
 
     enemy *enemy;
@@ -984,6 +982,8 @@ int enemies_to_move(){
         
         rand_enemy = rand() % TOTAL_ACTIVE;
 
+        printf("AHHHHHHHH %d \n", rand_enemy);
+
         if (rand_enemy < active2)
             rand_enemy = 2;
         
@@ -993,8 +993,8 @@ int enemies_to_move(){
         else 
             rand_enemy = 4;
 
-        if (num_sent == send_per_round){
 
+        if (num_sent == send_per_round){
 
             if (!num_enemies_moving){
 

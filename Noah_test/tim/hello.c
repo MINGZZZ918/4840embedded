@@ -729,7 +729,7 @@ int enemy_movement(int rand_enemy){
 
         enemy = &game_state.enemies[i];
 
-        if(enemy = exploding_enemy) enemy_explosion();
+        if(enemy == exploding_enemy) enemy_explosion();
 
         else if (enemy->active){
 

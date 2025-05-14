@@ -1482,7 +1482,7 @@ int main(){
                 break;
             }
 
-            if(!enemies_remaining && !ship->explosion_timer){
+            if(!enemies_remaining && !ship->explosion_timer && !round_wait_time){
 
                 if(round_num == 3){
 
@@ -1499,9 +1499,6 @@ int main(){
                 }
 
                 if(!active_enemy_buls){
-
-
-                    printf("HELLLLLO %d \n", round_num);
 
                     enemy_wiggle_time = 0;
                     enemy_wiggle = 1;

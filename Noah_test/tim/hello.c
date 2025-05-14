@@ -677,7 +677,7 @@ void enemy_explosion(enemy *enemy){
 
     else if(enemy->explosion_timer < 3){
         enemy->sprite = SHIP_EXPLOSION2;
-        enemy->explosion_timer ++;
+        enemy->explosion_timer --;
         printf("@@@@@@@@@@@@@@@@ \n");
 
     }
@@ -689,7 +689,7 @@ void enemy_explosion(enemy *enemy){
         enemy->velo_y = 0;
         enemy->sprite = SHIP_EXPLOSION1;
 
-        enemy->explosion_timer ++;
+        enemy->explosion_timer --;
 
     }
 }

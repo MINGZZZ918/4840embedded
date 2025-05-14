@@ -1262,7 +1262,7 @@ void print_win(){
 
         game_state.enemies[i].sprite = SHIP_BULLET;
         game_state.enemies[i].pos_x = win_x[i];
-        game_state.enemies[i].pos_x = win_y[i];
+        game_state.enemies[i].pos_y = win_y[i];
         game_state.enemies[i].active = 1;
     }
 
@@ -1274,7 +1274,7 @@ void print_die(){
 
         game_state.enemies[i].sprite = ENEMY_BULLET;
         game_state.enemies[i].pos_x = die_x[i];
-        game_state.enemies[i].pos_x = die_y[i];
+        game_state.enemies[i].pos_y = die_y[i];
         game_state.enemies[i].active = 1;
     }
 }
@@ -1330,296 +1330,293 @@ int main(){
 
     usleep(16000);
 
-    print_die();
-    update_enemies();
+    for (int i =0; i<COLUMNS; i++){
+        for(int j=0; j<ENEMY_COUNT; j++)
+            if(game_state.enemies[j].col == i) game_state.enemies[j].active = 1;
 
-    // for (int i =0; i<COLUMNS; i++){
-    //     for(int j=0; j<ENEMY_COUNT; j++)
-    //         if(game_state.enemies[j].col == i) game_state.enemies[j].active = 1;
+        update_enemies();
+        usleep(16000);
+    }
 
-    //     update_enemies();
-    //     usleep(16000);
-    // }
+    for (;;){
 
-    // for (;;){
+        round_time++;
+        active_buls = 0;
+        active_enemies = 0;
 
-    //     round_time++;
-    //     active_buls = 0;
-    //     active_enemies = 0;
+        enemy_wiggle_time += enemy_wiggle;
+        if (abs(enemy_wiggle_time) == 80) enemy_wiggle = -enemy_wiggle;
 
-    //     enemy_wiggle_time += enemy_wiggle;
-    //     if (abs(enemy_wiggle_time) == 80) enemy_wiggle = -enemy_wiggle;
+        new_bullet = 0;
 
-    //     new_bullet = 0;
+        if (ship->lives == 0) break;
 
-    //     if (ship->lives == 0) break;
-
-    //     libusb_interrupt_transfer(controller, endpoint_address,
-    //         (unsigned char *) &packet, sizeof(packet), &transferred, 0);
+        libusb_interrupt_transfer(controller, endpoint_address,
+            (unsigned char *) &packet, sizeof(packet), &transferred, 0);
             
-    //     if (transferred == sizeof(packet)) {
+        if (transferred == sizeof(packet)) {
 
-    //         switch (packet.lr_arrows) {
-    //             case LEFT_ARROW:
-    //                 if(ship->pos_x > 0)
-    //                     ship->velo_x = -ship_velo;
+            switch (packet.lr_arrows) {
+                case LEFT_ARROW:
+                    if(ship->pos_x > 0)
+                        ship->velo_x = -ship_velo;
 
-    //                 // printf("%d, %d \n", ship->pos_x, ship->pos_y);
-    //                 break;
+                    // printf("%d, %d \n", ship->pos_x, ship->pos_y);
+                    break;
                     
-    //             case RIGHT_ARROW:
-    //                 if(ship->pos_x < SCREEN_WIDTH-SHIP_WIDTH)
-    //                     ship->velo_x = ship_velo;
+                case RIGHT_ARROW:
+                    if(ship->pos_x < SCREEN_WIDTH-SHIP_WIDTH)
+                        ship->velo_x = ship_velo;
 
-    //                 // printf("%d, %d \n", ship->pos_x, ship->pos_y);
-    //                 break;
+                    // printf("%d, %d \n", ship->pos_x, ship->pos_y);
+                    break;
 
-    //             default:
-    //                 ship->velo_x = 0;
-    //                 break;
-    //         }
+                default:
+                    ship->velo_x = 0;
+                    break;
+            }
 
-    //         switch (packet.ud_arrows) {
-    //             case UP_ARROW:
-    //                 if (ship->pos_y < SCREEN_HEIGHT - 5)
-    //                     ship->velo_y = -ship_velo;
+            switch (packet.ud_arrows) {
+                case UP_ARROW:
+                    if (ship->pos_y < SCREEN_HEIGHT - 5)
+                        ship->velo_y = -ship_velo;
 
-    //                 // printf("%d, %d\n", ship->pos_x, ship->pos_y);
-    //                 break;
+                    // printf("%d, %d\n", ship->pos_x, ship->pos_y);
+                    break;
                     
-    //             case DOWN_ARROW:
-    //                 if (ship->pos_y > 0+SHIP_HEIGHT)
-    //                     ship->velo_y = ship_velo;
+                case DOWN_ARROW:
+                    if (ship->pos_y > 0+SHIP_HEIGHT)
+                        ship->velo_y = ship_velo;
 
-    //                 // printf("%d, %d \n", ship->pos_x, ship->pos_y);
-    //                 break;
+                    // printf("%d, %d \n", ship->pos_x, ship->pos_y);
+                    break;
 
-    //             default:
-    //                 ship->velo_y = 0;
-    //                 break;
-    //         }
+                default:
+                    ship->velo_y = 0;
+                    break;
+            }
 
-    //         switch (packet.buttons) {                
-    //             case Y_BUTTON:
-    //                 if (!prev_bullet ){
-    //                     new_bullet = 1; // do not allow them to hold the button to shoot
-    //                     prev_bullet = 1;
-    //                 }
+            switch (packet.buttons) {                
+                case Y_BUTTON:
+                    if (!prev_bullet ){
+                        new_bullet = 1; // do not allow them to hold the button to shoot
+                        prev_bullet = 1;
+                    }
 
-    //                 buttons = 1;
-    //                 // printf("Bullet \n");
-    //                 break;
+                    buttons = 1;
+                    // printf("Bullet \n");
+                    break;
 
-    //             default:
-    //                 if (!bumpers) prev_bullet = 0;
-    //                 buttons = 0;
-    //                 break;
-    //         }
+                default:
+                    if (!bumpers) prev_bullet = 0;
+                    buttons = 0;
+                    break;
+            }
 
-    //         switch (packet.bumpers) {
-    //             case LEFT_BUMPER:
-    //                 if (!prev_bullet){
-    //                     new_bullet = 1; // do not allow them to hold the button to shoot
-    //                     prev_bullet = 1;
-    //                 }
+            switch (packet.bumpers) {
+                case LEFT_BUMPER:
+                    if (!prev_bullet){
+                        new_bullet = 1; // do not allow them to hold the button to shoot
+                        prev_bullet = 1;
+                    }
 
-    //                 bumpers = 1;
+                    bumpers = 1;
 
-    //                 break;
+                    break;
                     
-    //             case RIGHT_BUMPER:
-    //                 if (!prev_bullet){
-    //                     new_bullet = 1; // do not allow them to hold the button to shoot
-    //                     prev_bullet = 1;
-    //                 }
+                case RIGHT_BUMPER:
+                    if (!prev_bullet){
+                        new_bullet = 1; // do not allow them to hold the button to shoot
+                        prev_bullet = 1;
+                    }
 
-    //                 bumpers = 1;
+                    bumpers = 1;
 
-    //                 break;
+                    break;
 
-    //             case LR_BUMPER:
-    //                 if (!prev_bullet ){
-    //                     new_bullet = 1; // do not allow them to hold the button to shoot
-    //                     prev_bullet = 1;
-    //                 }
-    //                 bumpers = 1;
-    //                 break;
+                case LR_BUMPER:
+                    if (!prev_bullet ){
+                        new_bullet = 1; // do not allow them to hold the button to shoot
+                        prev_bullet = 1;
+                    }
+                    bumpers = 1;
+                    break;
 
-    //             default:
-    //                 if (!buttons) prev_bullet = 0; // only reset bullets if the y button has not been pressed
-    //                 bumpers = 0;
-    //                 // printf("bumpers\n");
-    //                 break;
-    //         }
+                default:
+                    if (!buttons) prev_bullet = 0; // only reset bullets if the y button has not been pressed
+                    bumpers = 0;
+                    // printf("bumpers\n");
+                    break;
+            }
 
-    //         if(ship->active && !ship->explosion_timer) ship_movement();
+            if(ship->active && !ship->explosion_timer) ship_movement();
 
-    //         move_powerup();
-    //         enemies_exploding = enemy_explosion();
-    //         ship_explosion();
+            move_powerup();
+            enemies_exploding = enemy_explosion();
+            ship_explosion();
 
-    //         if (!round_wait_time){ // ship is alive and round is playing
+            if (!round_wait_time){ // ship is alive and round is playing
 
-    //             active_powerup();
+                active_powerup();
 
-    //             if(ship->active) bullet_movement(new_bullet); 
+                if(ship->active) bullet_movement(new_bullet); 
 
-    //             rand_enemy = enemies_to_move();
-    //             enemies_remaining = enemy_movement(rand_enemy);
-    //             move_enemy_bul();
+                rand_enemy = enemies_to_move();
+                enemies_remaining = enemy_movement(rand_enemy);
+                move_enemy_bul();
 
-    //         }
+            }
 
-    //         else if(round_wait_time == 1){
+            else if(round_wait_time == 1){
 
-    //             if(!ship->active){
+                if(!ship->active){
 
-    //                 ship->active = 1;
-    //                 ship->pos_x = SHIP_INITIAL_X;
-    //                 ship->pos_y = SHIP_INITIAL_Y;
-    //                 round_wait_time = 0;
-    //                 round_time = 0;
+                    ship->active = 1;
+                    ship->pos_x = SHIP_INITIAL_X;
+                    ship->pos_y = SHIP_INITIAL_Y;
+                    round_wait_time = 0;
+                    round_time = 0;
 
-    //                 num_sent = 0;
+                    num_sent = 0;
 
-    //                 powerup_timer = 0;
-    //                 kill_count /= 2;
+                    powerup_timer = 0;
+                    kill_count /= 2;
 
-    //             } 
+                } 
 
-    //             else{
+                else{
 
-    //                 for(int j=0; j<ENEMY_COUNT; j++)
-    //                     if(game_state.enemies[j].col == col_active) game_state.enemies[j].active = 1;
+                    for(int j=0; j<ENEMY_COUNT; j++)
+                        if(game_state.enemies[j].col == col_active) game_state.enemies[j].active = 1;
 
-    //                 if (++col_active == COLUMNS) round_wait_time = 0;
-    //             }
-    //         }
+                    if (++col_active == COLUMNS) round_wait_time = 0;
+                }
+            }
 
-    //         else{
+            else{
 
-    //             game_state.power_up.active = 0;
+                game_state.power_up.active = 0;
 
-    //             // printf("%d, %d, %d \n", active_ship_buls, active_enemy_buls, num_enemies_moving);
+                // printf("%d, %d, %d \n", active_ship_buls, active_enemy_buls, num_enemies_moving);
 
-    //             if(!active_ship_buls && !active_enemy_buls && !num_enemies_moving)
-    //                 round_wait_time --;
+                if(!active_ship_buls && !active_enemy_buls && !num_enemies_moving)
+                    round_wait_time --;
                         
-    //             if (round_wait_time > 30) round_wait_time --;
+                if (round_wait_time > 30) round_wait_time --;
 
-    //             enemy_movement(-1);
-    //             move_enemy_bul();
-    //             bullet_movement(0);
+                enemy_movement(-1);
+                move_enemy_bul();
+                bullet_movement(0);
 
-    //         }
+            }
 
-    //         update_ship();
-    //         update_enemies();
-    //         update_powerup();
-    //         update_ship_bullet();
+            update_ship();
+            update_enemies();
+            update_powerup();
+            update_ship_bullet();
 
-    //         if(ship->lives <= 0){
-    //             printf("You lost =( \n");
+            if(ship->lives <= 0){
+                printf("You lost =( \n");
 
-    //             game_state.ship.active = 0;
+                game_state.ship.active = 0;
 
-    //             game_state.power_up.active=0;
+                game_state.power_up.active=0;
 
-    //             for(int i; i<MAX_BULLETS; i++){
+                for(int i; i<MAX_BULLETS; i++){
 
-    //                 game_state.bullets[i].active = 0;
-    //             }
+                    game_state.bullets[i].active = 0;
+                }
 
-    //             for(int i; i<SHIP_BULLETS; i++){
+                for(int i; i<SHIP_BULLETS; i++){
 
-    //                 game_state.ship.bullets[i].active = 0;
-    //             }
+                    game_state.ship.bullets[i].active = 0;
+                }
 
-    //             for(int i; i<ENEMY_COUNT; i++){
-    //                 game_state.enemies[i].active = 0;
-    //             }
+                for(int i; i<ENEMY_COUNT; i++){
+                    game_state.enemies[i].active = 0;
+                }
 
-    //             print_die();
+                print_die();
 
-    //             update_ship();
-    //             update_enemies();
-    //             update_powerup();
-    //             update_ship_bullet();
+                update_ship();
+                update_enemies();
+                update_powerup();
+                update_ship_bullet();
 
-    //             break;
-    //         }
+                break;
+            }
 
-    //         if(!enemies_remaining && !ship->explosion_timer && 
-    //             !round_wait_time && !enemies_exploding){
+            if(!enemies_remaining && !ship->explosion_timer && 
+                !round_wait_time && !enemies_exploding){
 
-    //             if(round_num == 3){
+                if(round_num == 3){
 
-    //                 printf("You Won!");
+                    printf("You Won!");
 
-    //                 game_state.ship.active = 0;
+                    game_state.ship.active = 0;
 
-    //                 game_state.power_up.active=0;
+                    game_state.power_up.active=0;
 
-    //                 for(int i; i<MAX_BULLETS; i++){
+                    for(int i; i<MAX_BULLETS; i++){
 
-    //                     game_state.bullets[i].active = 0;
-    //                 }
+                        game_state.bullets[i].active = 0;
+                    }
 
-    //                 for(int i; i<SHIP_BULLETS; i++){
+                    for(int i; i<SHIP_BULLETS; i++){
 
-    //                     game_state.ship.bullets[i].active = 0;
-    //                 }
+                        game_state.ship.bullets[i].active = 0;
+                    }
 
-    //                 for(int i; i<ENEMY_COUNT; i++){
+                    for(int i; i<ENEMY_COUNT; i++){
 
-    //                     game_state.enemies[i].active = 0;
-    //                 }
+                        game_state.enemies[i].active = 0;
+                    }
 
-    //                 print_win();
+                    print_win();
 
-    //                 update_ship();
-    //                 update_enemies();
-    //                 update_powerup();
-    //                 update_ship_bullet();
+                    update_ship();
+                    update_enemies();
+                    update_powerup();
+                    update_ship_bullet();
 
-    //                 break;
-    //             }
+                    break;
+                }
 
-    //             if(!active_enemy_buls){
+                if(!active_enemy_buls){
 
-    //                 enemy_wiggle_time = 0;
-    //                 enemy_wiggle = 1;
+                    enemy_wiggle_time = 0;
+                    enemy_wiggle = 1;
 
-    //                 round_wait_time = ROUND_WAIT;
-    //                 col_active = 0;
+                    round_wait_time = ROUND_WAIT;
+                    col_active = 0;
 
-    //                 round_time = 0;
-    //                 num_sent = 0;
+                    round_time = 0;
+                    num_sent = 0;
 
-    //                 round_frequency -=25;
+                    round_frequency -=25;
 
-    //                 send_per_round += send_per_round/4;
+                    send_per_round += send_per_round/4;
 
-    //                 active1 = active2 = active3 = 0;
+                    active1 = active2 = active3 = 0;
 
-    //                 row_vals[0] ++;
+                    row_vals[0] ++;
 
-    //                 for(int i =1; i<5; i++){
+                    for(int i =1; i<5; i++){
 
-    //                     row_vals[i] += round_num*2;
-    //                 }
+                        row_vals[i] += round_num*2;
+                    }
 
-    //                 init_round_state();
+                    init_round_state();
 
-    //                 enemies_remaining = 1;
-    //                 round_num++;
+                    enemies_remaining = 1;
+                    round_num++;
 
-    //             }
+                }
 
-    //         }
+            }
 
-    //         usleep(16000);
-    //     }    
-    // }
+            usleep(16000);
+        }    
+    }
 
 }

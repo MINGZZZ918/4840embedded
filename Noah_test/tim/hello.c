@@ -478,7 +478,7 @@ void enemy_return (enemy *enemy){
     
     if (enemy->returning){
 
-        if (abs(enemy->pos_x - enemy->start_x + enemy_wiggle_time) < 20 && abs(enemy->pos_y -enemy->start_y) <20){
+        if (abs(enemy->pos_x - enemy->start_x + enemy_wiggle_time) < 25 && abs(enemy->pos_y -enemy->start_y) < 25){
 
             enemy->pos_x = enemy->start_x+enemy_wiggle_time;
             enemy->pos_y = enemy->start_y;
@@ -607,21 +607,21 @@ void enemy_attack(enemy *enemy){
 
                     if (enemy->start_x < SCREEN_WIDTH/2)
                         // calculate_velo(ship->pos_x -200, ship->pos_y, enemy, 1, 2);
-                        enemy->velo_x = -1;
+                        enemy->velo_x = -2;
 
                     else
                         // calculate_velo(ship->pos_x +200, ship->pos_y, enemy, 1, 2);
-                        enemy->velo_x = 1;
+                        enemy->velo_x = 2;
                 }
 
                 else{
                     
                     if (enemy->start_x < SCREEN_WIDTH/2)
                         // calculate_velo(ship->pos_x +200, ship->pos_y, enemy, 1, 2);
-                        enemy->velo_x = 1;
+                        enemy->velo_x = 2;
                     else
                         // calculate_velo(ship->pos_x -200, ship->pos_y, enemy, 1, 2);
-                    enemy->velo_x = -1;
+                    enemy->velo_x = -2;
                 }
 
                 if(++ enemy->move_time > 150)

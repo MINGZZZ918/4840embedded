@@ -1430,7 +1430,6 @@ int main(){
 
                     powerup_timer = 0;
                     kill_count /= 2;
-                    round_num++;
 
                 } 
 
@@ -1501,6 +1500,9 @@ int main(){
 
                 if(!active_enemy_buls){
 
+
+                    printf("HELLLLLO %d \n", round_num);
+
                     enemy_wiggle_time = 0;
                     enemy_wiggle = 1;
 
@@ -1526,6 +1528,8 @@ int main(){
                     init_round_state();
 
                     enemies_remaining = 1;
+                    round_num++;
+
                 }
 
             }

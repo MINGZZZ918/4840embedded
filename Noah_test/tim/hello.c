@@ -274,10 +274,15 @@ void move_powerup(){
             abs(ship->pos_y - power_up->pos_y) <= SHIP_HEIGHT){
 
             apply_powerup(power_up);
+            
+            if(power_up ->sprite != EXTRA_LIFE){
 
-            power_up->pos_x = 400;
-            power_up->pos_y = SCREEN_HEIGHT-SHIP_HEIGHT;
-            power_up ->indicator = 1;
+                power_up->pos_x = 400;
+                power_up->pos_y = SCREEN_HEIGHT-SHIP_HEIGHT;
+                power_up->indicator = 1;
+            }
+
+
             kill_count = 0;
         }
 

@@ -833,8 +833,8 @@ void enemy_explosion(){
     }
 
     else if (explosion_timer == 1){
-        
-        enemy->sprite = EXPLOSION2;
+
+        exploding_enemy->sprite = EXPLOSION2;
         explosion_timer ++;
     }
 

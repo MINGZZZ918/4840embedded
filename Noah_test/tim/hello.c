@@ -112,7 +112,6 @@ static const background_color colors[] = {
 
 
 
-
 #define TURN_TIME 70
 static short turn_x[TURN_TIME] = {2,2,2,2,2,2,2,2,
                     2,2,2,2,2,2,2,2,
@@ -348,6 +347,32 @@ void change_active_amount(char enemy_sprite){
             active3 --;
             break;
     }
+}
+
+
+void change_score(char sprite){
+
+    switch(sprite){
+
+        case ENEMY1:
+            game_state.score += 20;
+            break;
+
+        case ENEMY2:
+            game_state.score += 10;
+            break;
+
+        case ENEMY3:
+            game_state.score += 5;
+            break;
+
+        case SHIP:
+            game_state.score -= 50;
+    }
+
+
+    if(game_state.score < 0) game_state.score = 0;
+
 }
 
 
@@ -859,6 +884,8 @@ int enemy_movement(int rand_enemy){
 
                 memset(enemy, 0, sizeof(*enemy)); 
 
+                change_score(SHIP);
+
                 ship->lives --;
                 ship->explosion_timer = EXPLOSION_TIME;
 
@@ -898,6 +925,8 @@ void move_enemy_bul(){
             bul->enemy = -1;
 
             active_enemy_buls --;
+
+            change_score(SHIP);
 
             ship->lives --;
             ship->explosion_timer = EXPLOSION_TIME;
@@ -948,11 +977,11 @@ void bullet_colision(bullet *bul){
                 game_state.ship.active && !game_state.ship.explosion_timer) 
                     drop_powerup(enemy);
 
+            change_score(enemy->sprite);
+
             if(enemy->moving) num_enemies_moving --;
 
             enemy->explosion_timer = EXPLOSION_TIME;
-
-            game_state.score++;
 
             break;
         }

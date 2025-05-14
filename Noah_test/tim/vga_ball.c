@@ -98,7 +98,7 @@ static void write_ship_bullets(spaceship *ship){
     for (i = 0; i < SHIP_BULLETS; i++) {
 
         bul = &ship->bullets[i];
-        write_object (i+2, bul->pos_x,  bul->pos_y, 1, bul->active);
+        write_object (i+2, bul->pos_x,  bul->pos_y, SHIP_BULLET, bul->active);
 
         dev.ship.bullets[i] = *bul;
     }
@@ -134,7 +134,7 @@ static void write_enemies(bullet bullets[], enemy enemies[])
 
         else sprite = 3;
 
-        write_object(i+SHIP_BULLETS+ENEMY_COUNT+2,  bul->pos_x,  bul->pos_y, 1, bul->active);
+        write_object(i+SHIP_BULLETS+ENEMY_COUNT+2,  bul->pos_x,  bul->pos_y, ENE, bul->active);
         dev.bullets[i] = *bul;
     }
 }
@@ -143,9 +143,7 @@ static void write_enemies(bullet bullets[], enemy enemies[])
 
 static void write_powerup(powerup *power_up){
 
-    // write_object (SHIP_BULLETS+ENEMY_COUNT+2+1, power_up->pos_x,  power_up->pos_y, power_up->sprite, power_up->active);
-
-    write_object (SHIP_BULLETS+ENEMY_COUNT+MAX_BULLETS+2, power_up->pos_x,  power_up->pos_y, 3, power_up->active);
+    write_object (SHIP_BULLETS+ENEMY_COUNT+MAX_BULLETS+2, power_up->pos_x,  power_up->pos_y, power_up->sprite, power_up->active);
 
 
     dev.power_up = *power_up;

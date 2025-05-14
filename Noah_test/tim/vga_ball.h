@@ -13,8 +13,8 @@
 #define SHIP_HEIGHT 16
 
 #define SHIP 0 //
-#define SHIP_LEFT 1
-#define SHIP_RIGHT 2
+#define SHIP_LEFT 1 // 
+#define SHIP_RIGHT 2 // 
 
 #define SHIP_BULLET 1
 

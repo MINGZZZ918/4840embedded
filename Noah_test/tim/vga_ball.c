@@ -128,13 +128,13 @@ static void write_enemies(bullet bullets[], enemy enemies[])
 
         bul = &bullets[i];
 
-        if (bul->velo_x < 0) sprite = 1;
+        if (bul->velo_x < 0) sprite = ENEMY_BULLET_LEFT;
 
-        else if (bul->velo_x > 0) sprite = 2;
+        else if (bul->velo_x > 0) sprite = ENEMY_BULLET_RIGHT;
 
-        else sprite = 3;
+        else sprite = ENEMY_BULLET;
 
-        write_object(i+SHIP_BULLETS+ENEMY_COUNT+2,  bul->pos_x,  bul->pos_y, ENE, bul->active);
+        write_object(i+SHIP_BULLETS+ENEMY_COUNT+2,  bul->pos_x,  bul->pos_y, sprite, bul->active);
         dev.bullets[i] = *bul;
     }
 }

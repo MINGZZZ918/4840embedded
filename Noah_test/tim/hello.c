@@ -1519,24 +1519,34 @@ int main(){
                 printf("You lost =( \n");
 
                 game_state.ship.active = 0;
-
                 game_state.power_up.active=0;
+
+                printf("1111111 \n");
 
                 for(int i; i<MAX_BULLETS; i++){
 
                     game_state.bullets[i].active = 0;
                 }
 
+            printf("222222222222 \n");
+
+
                 for(int i; i<SHIP_BULLETS; i++){
 
                     game_state.ship.bullets[i].active = 0;
                 }
 
+                printf("33333333333 \n");
+
                 for(int i; i<ENEMY_COUNT; i++){
                     game_state.enemies[i].active = 0;
                 }
 
+                printf("44444444444444 \n");
+
                 print_die();
+
+                printf("555555555555555 \n");
 
                 update_ship();
                 update_enemies();

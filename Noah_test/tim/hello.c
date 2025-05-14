@@ -1481,7 +1481,7 @@ int main(){
                 break;
             }
 
-            if(!enemies_remaining){
+            if(!enemies_remaining && !ship->explosion_timer){
 
                 if(round_num == 3){
 

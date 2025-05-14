@@ -148,7 +148,7 @@ static int round_num = 1;
 
 static gamestate game_state = {
 
-    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_buls = 3, .bullets = { 0 }, .active = 1},
+    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_buls = 5, .bullets = { 0 }, .active = 1},
     .background = {.red = 0x00, .green = 0x00, .blue = 0x20},
     .bullets = { 0 },
     .enemies = { 0 },
@@ -224,7 +224,7 @@ void active_powerup(){
 
     if (--powerup_timer < 0){
 
-        game_state.ship.num_buls = 1;
+        game_state.ship.num_buls = 5;
         ship_velo = 2;
         
     }

@@ -1471,11 +1471,24 @@ int main(){
             if(ship->lives <= 0){
                 printf("You lost =( \n");
 
-                save_score = game_state.score;
+                game_state.ship.active = 0;
 
-                memset(&game_state, 0, sizeof(gamestate));
+                    game_state.power_up.active=0;
 
-                game_state.score = save_score;
+                    for(int i; i<MAX_BULLETS; i++){
+
+                        game_state.bullets[i].active = 0;
+                    }
+
+                    for(int i; i<SHIP_BULLETS; i++){
+
+                        game_state.ship.bullets[i].active = 0;
+                    }
+
+                    for(int i; i<ENEMY_COUNT; i++){
+
+                        game_state.enemies[i].active = 0;
+                    }
 
                 update_ship();
                 update_enemies();
@@ -1493,11 +1506,25 @@ int main(){
 
                     printf("You Won!");
 
-                    save_score = game_state.score;
 
-                    memset(&game_state, 0, sizeof(gamestate));
+                    game_state.ship.active = 0;
 
-                    game_state.score = save_score;
+                    game_state.power_up.active=0;
+
+                    for(int i; i<MAX_BULLETS; i++){
+
+                        game_state.bullets[i].active = 0;
+                    }
+
+                    for(int i; i<SHIP_BULLETS; i++){
+
+                        game_state.ship.bullets[i].active = 0;
+                    }
+
+                    for(int i; i<ENEMY_COUNT; i++){
+
+                        game_state.enemies[i].active = 0;
+                    }
 
                     update_ship();
                     update_enemies();

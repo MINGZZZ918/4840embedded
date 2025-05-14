@@ -982,7 +982,7 @@ int enemies_to_move(){
         
         rand_enemy = rand() % TOTAL_ACTIVE;
 
-        printf("AHHHHHHHH %d \n", rand_enemy);
+        printf("AHHHHHHHH %d \n", TOTAL_ACTIVE);
 
         if (rand_enemy < active2)
             rand_enemy = 2;

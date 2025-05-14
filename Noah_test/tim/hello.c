@@ -807,7 +807,9 @@ int enemy_movement(int rand_enemy){
                 if(i == row_backs[enemy->row]) change_row_ends(i, enemy->row, 0);
 
                 else if (i == row_fronts[enemy->row]) change_row_ends(i, enemy->row, 1);
-                
+
+                change_active_amount(enemy->sprite);
+
                 memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
 
                 ship->lives --;
@@ -817,12 +819,8 @@ int enemy_movement(int rand_enemy){
                 round_wait_time = ROUND_WAIT;
                 num_left --;
             }
-
         }
-
-
     }
-
     return num_left;
 }
 
@@ -938,8 +936,6 @@ void bullet_movement(int new_bullet){
         }
     }
 }
-
-
 
 void ship_movement(){
 

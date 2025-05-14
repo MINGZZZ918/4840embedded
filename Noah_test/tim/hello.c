@@ -1293,6 +1293,7 @@ int main(){
         round_time++;
         active_buls = 0;
         active_enemies = 0;
+        enemies_remaining = 0;
 
         enemy_wiggle_time += enemy_wiggle;
         if (abs(enemy_wiggle_time) == 80) enemy_wiggle = -enemy_wiggle;

@@ -1068,7 +1068,6 @@ void init_round_state() {
 
             printf("AHHHHHHHHHHHHH \n");
 
-
             switch(row_sprites[row]){
 
                 case 2:
@@ -1084,6 +1083,8 @@ void init_round_state() {
                     break;
             }
         }
+        else
+            enemy->col = -1;
     }
 }
 

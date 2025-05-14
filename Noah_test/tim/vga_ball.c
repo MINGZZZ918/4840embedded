@@ -36,6 +36,7 @@ struct vga_ball_dev {
     bullet bullets[MAX_BULLETS];
     enemy enemies[ENEMY_COUNT];
     powerup power_up;
+    int score;
 } dev;
 
 /*
@@ -57,7 +58,6 @@ static void write_background(background_color *background)
  */
 static void write_object(int idx, unsigned short x, unsigned short y, char sprite_idx, char active)
 {
-        
     // 构建32位对象数据
     u32 obj_data = ((u32)(x & 0xFFF) << 20) |   // x位置 (12位)
                 ((u32)(y & 0xFFF) << 8) |    // y位置 (12位)
@@ -67,27 +67,46 @@ static void write_object(int idx, unsigned short x, unsigned short y, char sprit
     iowrite32(obj_data, OBJECT_DATA(dev.virtbase, idx));
 }
 
+static void write_score(int idx, int score)
+{
+    u32 obj_data = (uint32_t)(score & 0xFFFFFFFF);
 
+    iowrite32(obj_data, OBJECT_DATA(dev.virtbase, idx));
+
+    dev.score = score;
+}
 
 
 static void write_ship(spaceship *ship){
 
-    int sprite;
+    int sprite, i, active;
 
-    if (ship->velo_x < 0) sprite = SHIP_LEFT;
+    if (ship->sprite == SHIP_EXPLOSION1) sprite = SHIP_EXPLOSION1;
+
+    else if (ship->sprite == SHIP_EXPLOSION2) sprite = SHIP_EXPLOSION2;
+
+    else if (ship->velo_x < 0) sprite = SHIP_LEFT;
 
     else if (ship->velo_x > 0) sprite = SHIP_RIGHT;
 
     else sprite = SHIP;
 
-    write_object (1, ship->pos_x,  ship->pos_y, 0, ship->active);
+    write_object (2, ship->pos_x,  ship->pos_y, sprite, ship->active);
 
-    // write_object (1, ship->pos_x,  ship->pos_y, SHIP_EXPLOSION, !ship->active);
+    if (ship->velo_y < 0) active = 1;
+    else active = 0;
 
-    // write_object (1, ship->pos_x,  ship->pos_y+SHIP_HEIGHT, SHIP_EXPLOSION, !ship->active);
+    write_object (3, ship->pos_x,  ship->pos_y+SHIP_HEIGHT, SHIP_FLAME, active);
 
     dev.ship = *ship;
 
+    for(i = 0; i<LIFE_COUNT; i++){
+
+        if(i<ship->lives) active = 1;
+        else active = 0;
+
+        write_object (i+4, i*20+10,  SCREEN_HEIGHT-16, SHIP, active);
+    }
 }
 
 static void write_ship_bullets(spaceship *ship){
@@ -98,7 +117,7 @@ static void write_ship_bullets(spaceship *ship){
     for (i = 0; i < SHIP_BULLETS; i++) {
 
         bul = &ship->bullets[i];
-        write_object (i+2, bul->pos_x,  bul->pos_y, 1, bul->active);
+        write_object (i+LIFE_COUNT+4, bul->pos_x,  bul->pos_y, SHIP_BULLET, bul->active);
 
         dev.ship.bullets[i] = *bul;
     }
@@ -120,7 +139,7 @@ static void write_enemies(bullet bullets[], enemy enemies[])
 
         enemy = &enemies[i];
 
-        write_object(i+SHIP_BULLETS+2,  enemy->pos_x,  enemy->pos_y, enemy->sprite, enemy->active);
+        write_object(i+SHIP_BULLETS+LIFE_COUNT+4,  enemy->pos_x,  enemy->pos_y, enemy->sprite, enemy->active);
         dev.enemies[i] = enemies[i];
     }
 
@@ -128,13 +147,13 @@ static void write_enemies(bullet bullets[], enemy enemies[])
 
         bul = &bullets[i];
 
-        if (bul->velo_x < 0) sprite = 1;
+        if (bul->velo_x < 0) sprite = ENEMY_BULLET_LEFT;
 
-        else if (bul->velo_x > 0) sprite = 2;
+        else if (bul->velo_x > 0) sprite = ENEMY_BULLET_RIGHT;
 
-        else sprite = 3;
+        else sprite = ENEMY_BULLET;
 
-        write_object(i+SHIP_BULLETS+ENEMY_COUNT+2,  bul->pos_x,  bul->pos_y, 1, bul->active);
+        write_object(i+SHIP_BULLETS+LIFE_COUNT+ENEMY_COUNT+4,  bul->pos_x,  bul->pos_y, sprite, bul->active);
         dev.bullets[i] = *bul;
     }
 }
@@ -143,17 +162,11 @@ static void write_enemies(bullet bullets[], enemy enemies[])
 
 static void write_powerup(powerup *power_up){
 
-    // write_object (SHIP_BULLETS+ENEMY_COUNT+2+1, power_up->pos_x,  power_up->pos_y, power_up->sprite, power_up->active);
-
-    write_object (SHIP_BULLETS+ENEMY_COUNT+MAX_BULLETS+2, power_up->pos_x,  power_up->pos_y, 3, power_up->active);
-
+    write_object (SHIP_BULLETS+LIFE_COUNT+ENEMY_COUNT+MAX_BULLETS+4, power_up->pos_x,  power_up->pos_y, power_up->sprite, power_up->active);
 
     dev.power_up = *power_up;
 
 }
-
-
-
 
 
 /*
@@ -161,6 +174,10 @@ static void write_powerup(powerup *power_up){
 */
 static void update_enemies(gamestate *game_state)
 {
+    // write_background(&game_state->background);
+
+    write_score(1, game_state->score);
+
     write_enemies(game_state->bullets, game_state->enemies);
 }
 
@@ -227,7 +244,7 @@ static struct miscdevice vga_ball_misc_device = {
 static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
-    background_color background = { 0xFF, 0x00, 0xFF };
+    background_color background = { 0x00, 0x00, 0x20 };
 
     int ret;
 

@@ -907,6 +907,8 @@ void bullet_colision(bullet *bul){
 
             enemy->explosion_timer = EXPLOSION_TIME;
 
+            printf("AHHHHHHHHH \n");
+
             break;
         }
     }

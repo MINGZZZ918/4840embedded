@@ -952,7 +952,7 @@ void ship_movement(){
         ship->pos_x += ship->velo_x;
 
 
-    if (ship->velo_y > 0 && ship->pos_y < SCREEN_HEIGHT-SHIP_HEIGHT-5)
+    if (ship->velo_y > 0 && ship->pos_y < SCREEN_HEIGHT-5)
         ship->pos_y += ship->velo_y;
 
     else if (ship->velo_y < 0 && ship->pos_y > 5)

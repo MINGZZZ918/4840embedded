@@ -827,20 +827,19 @@ void enemy_explosion(){
         exploding_enemy->moving = 0;
         exploding_enemy->velo_x = 0;
         exploding_enemy->velo_y = 0;
-        exploding_enemy->sprite = EXPLOSION1;
+        exploding_enemy->sprite = SHIP_EXPLOSION1;
 
         explosion_timer ++;
     }
 
     else if (explosion_timer == 1){
 
-        exploding_enemy->sprite = EXPLOSION2;
+        exploding_enemy->sprite = SHIP_EXPLOSION2;
         explosion_timer ++;
     }
 
     else
         memset(exploding_enemy, 0, sizeof(*enemy)); //??????????????????????????????
-
 }
 
 

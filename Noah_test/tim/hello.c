@@ -844,6 +844,8 @@ void enemy_movement(int rand_enemy){
 
             enemies_remaining++;
 
+            printf("%d \n", enemies_remaining);
+
             if(!enemy->moving && rand_enemy == i){
 
                 if (enemy_wiggle > 0) change_row_ends(i, row_num, 1);

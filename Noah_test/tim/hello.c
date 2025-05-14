@@ -138,8 +138,8 @@ static int num_enemies_moving = 0;
 
 static int round_wait = 0, round_wait_time = 0;
 static long round_time = 0;
-static int active2 = 0, active3 = 0, active4 = 0, round_pause, num_sent, send_per_round = 10;
-#define TOTAL_ACTIVE (active2 + active3 + active4)
+static int active1 = 0, active2 = 0, active3 = 0, round_pause, num_sent, send_per_round = 10;
+#define TOTAL_ACTIVE (active1 + active2 + active3)
 #define ROUND_WAIT 100
 static int round_num = 1;
 
@@ -300,16 +300,16 @@ void change_active_amount(char enemy_sprite){
 
     switch(row_sprites[enemy_sprite]){
 
-        case 2:
+        case ENEMY1:
+            active1 --;
+            break;
+
+        case ENEMY2:
             active2 --;
             break;
 
-        case 3:
+        case ENEMY3:
             active3 --;
-            break;
-
-        case 4:
-            active4 --;
             break;
     }
 }
@@ -1069,16 +1069,16 @@ void init_round_state() {
 
             switch(row_sprites[row]){
 
-                case 2:
+                case ENEMY1:
+                    active1 ++;
+                    break;
+
+                case ENEMY2:
                     active2 ++;
                     break;
 
-                case 3:
+                case ENEMY3:
                     active3 ++;
-                    break;
-
-                case 4:
-                    active4 ++;
                     break;
             }
         }

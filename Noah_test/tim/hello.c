@@ -1486,6 +1486,8 @@ int main(){
 
             if(!enemies_remaining && !enemies_exploding){
 
+                printf("hellooooooooooooo \n");
+
                 if(round_num == 3){
 
                     printf("You Won!");

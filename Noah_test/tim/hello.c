@@ -1306,6 +1306,8 @@ int main(){
                 // for(int i=0; i<MAX_BULLETS; i++)
                 //     if (game_state.bullets[i].active) active_buls ++;
 
+                printf("%d, %d, %d \n", active_ship_buls, active_enemy_buls, num_enemies_moving);
+
                 if(!active_ship_buls && !active_enemy_buls && !num_enemies_moving)
                         round_wait_time --;
 

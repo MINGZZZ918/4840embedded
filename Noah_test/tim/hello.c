@@ -977,13 +977,13 @@ int enemies_to_move(){
         printf("AHHHHHHHH %d \n", TOTAL_ACTIVE);
 
         if (rand_enemy < active2)
-            rand_enemy = 2;
+            rand_enemy = ENEMY1;
         
         else if (rand_enemy < active2 + active3)
-            rand_enemy =  3;
+            rand_enemy =  ENEMY2;
         
         else 
-            rand_enemy = 4;
+            rand_enemy = ENEMY3;
 
 
         if (num_sent == send_per_round){

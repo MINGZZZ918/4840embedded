@@ -110,6 +110,9 @@ static const background_color colors[] = {
 };
 
 
+static int enemies_remaining;
+
+
 
 
 #define TURN_TIME 70
@@ -750,6 +753,8 @@ void enemy_explosion(){
         if(enemy->explosion_timer == 1){
                         printf("33333333333333333\n");
 
+            enemies_remaining --;
+
             memset(enemy, 0, sizeof(*enemy));
         }
 
@@ -801,7 +806,7 @@ void ship_explosion(){
 
 
 
-int enemy_movement(int rand_enemy){
+void enemy_movement(int rand_enemy){
 
     int cont, row_num, num_left = 0;
     enemy *enemy;
@@ -835,7 +840,7 @@ int enemy_movement(int rand_enemy){
 
         if (enemy->active && !enemy->explosion_timer){
 
-            num_left++;
+            enemies_remaining++;
 
             if(!enemy->moving && rand_enemy == i){
 
@@ -898,13 +903,9 @@ int enemy_movement(int rand_enemy){
                 ship->explosion_timer = EXPLOSION_TIME;
 
                 round_wait_time = ROUND_WAIT;
-                num_left --;
-
-
             }
         }
     }
-    return num_left;
 }
 
 void move_enemy_bul(){
@@ -1228,7 +1229,7 @@ int main(){
 
     spaceship *ship = &game_state.ship;
     controller_packet packet;
-    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, rand_enemy, save_score;
+    int transferred, start = 0, new_bullet, prev_bullet = 0, rand_enemy, save_score;
     int col_active = 0, active_buls = 0, active_enemies = 0;
     int bumpers = 0, buttons = 0;
 
@@ -1409,7 +1410,7 @@ int main(){
                 if(ship->active) bullet_movement(new_bullet); 
 
                 rand_enemy = enemies_to_move();
-                enemies_remaining = enemy_movement(rand_enemy);
+                enemy_movement(rand_enemy);
                 move_enemy_bul();
 
             }

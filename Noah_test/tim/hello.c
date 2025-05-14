@@ -1269,7 +1269,6 @@ int main(){
                 enemies_remaining = enemy_movement(rand_enemy);
                 move_enemy_bul();
 
-                update_enemies();
                 update_ship_bullet();
             }
 
@@ -1293,8 +1292,6 @@ int main(){
                     for(int j=0; j<ENEMY_COUNT; j++)
                         if(game_state.enemies[j].col == col_active) game_state.enemies[j].active = 1;
 
-                    update_enemies();
-
                     if (++col_active == COLUMNS) round_wait = 0;
                 }
             }
@@ -1315,7 +1312,6 @@ int main(){
 
                     enemy_movement(-1);
                     move_enemy_bul();
-                    update_enemies();
 
 
                     if (active_buls){

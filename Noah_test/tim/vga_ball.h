@@ -16,23 +16,23 @@
 #define SHIP_LEFT 1
 #define SHIP_RIGHT 2
 
-#define SHIP_BULLET 3
+#define SHIP_BULLET 11
 
-#define ENEMY1 2
-#define ENEMY2 3
-#define ENEMY3 4
+#define ENEMY1 3
+#define ENEMY2 4
+#define ENEMY3 5
 
-#define ENEMY_BULLET 7
-#define ENEMY_BULLET_LEFT 8
-#define ENEMY_BULLET_RIGHT 9
+#define ENEMY_BULLET 12
+#define ENEMY_BULLET_LEFT 13
+#define ENEMY_BULLET_RIGHT 14
 
-#define EXTRA_LIFE 2
-#define SHIP_SPEED 3
-#define EXTRA_BULLETS 4
+#define EXTRA_LIFE 8
+#define SHIP_SPEED 9
+#define EXTRA_BULLETS 10
 
-#define SHIP_FLAME 13
-#define SHIP_EXPLOSION1 0
-#define SHIP_EXPLOSION2 1
+#define SHIP_FLAME 15
+#define SHIP_EXPLOSION1 6
+#define SHIP_EXPLOSION2 7
 
 /* Color structure */
 typedef struct {

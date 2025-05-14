@@ -385,7 +385,7 @@ bool aquire_bullet(enemy *enemy){
 
         bul = &game_state.bullets[i];
 
-        if(!bul->active){
+        if(!bul->active && game_state.ship.active){
 
             bul->active = 1;
 
@@ -421,7 +421,7 @@ void enemy_shoot(enemy *enemy){
 
             if (abs(ship->pos_x - enemy->pos_x) <= 60
                     && abs(ship->pos_y - enemy->pos_y) <= 150
-                    && ship->pos_y - 60 > enemy->pos_y){
+                    && ship->pos_y - 30 > enemy->pos_y){
 
                 if (enemy->bul == -1){
 
@@ -579,7 +579,7 @@ void enemy_attack(enemy *enemy){
         else if (enemy->sprite == ENEMY2){
 
 
-            if (enemy->pos_y >= ship->pos_y+60 || !ship ->active) {
+            if (enemy->pos_y+30 >= ship->pos_y || !ship ->active) {
 
                 enemy->velo_x = (enemy->pos_x > ship->pos_x) ? 1 : -1;
                 enemy->velo_y = 4;

@@ -1268,6 +1268,9 @@ int main(){
                     round_wait_time = 0;
                     round_time = 0;
 
+                    num_sent = 0
+
+
                     powerup_timer = 0;
                     kill_count /= 2;
                 } 
@@ -1300,6 +1303,7 @@ int main(){
                 enemy_movement(-1);
                 move_enemy_bul();
                 bullet_movement(0);
+
             }
 
             update_ship();

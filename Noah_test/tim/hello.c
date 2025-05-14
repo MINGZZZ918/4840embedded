@@ -685,13 +685,13 @@ void enemy_explosion(){
         explosion_timer ++;
     }
 
-    else if (explosion_timer == 1){
+    else if (explosion_timer == 3){
 
         exploding_enemy->sprite = SHIP_EXPLOSION2;
         explosion_timer ++;
     }
 
-    else
+    else if (explosion_timer == 6)
         memset(exploding_enemy, 0, sizeof(*exploding_enemy)); //??????????????????????????????
 }
 

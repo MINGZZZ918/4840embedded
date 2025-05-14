@@ -704,7 +704,6 @@ void ship_explosion(){
 
     spaceship *ship = &game_state.ship;
 
-
     if(ship->explosion_timer == 1){
         ship->active = 0;
         ship->explosion_timer = 0;

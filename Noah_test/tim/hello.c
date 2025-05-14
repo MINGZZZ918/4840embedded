@@ -1234,6 +1234,7 @@ int main(){
     int transferred, start = 0, new_bullet, prev_bullet = 0, rand_enemy, save_score;
     int col_active = 0, active_buls = 0, active_enemies = 0;
     int bumpers = 0, buttons = 0;
+    bool round_wait;
 
     srand(time(NULL));
 
@@ -1408,6 +1409,8 @@ int main(){
 
             if (!round_wait_time){ // ship is alive and round is playing
 
+                round_wait = 0;
+
                 active_powerup();
 
                 if(ship->active) bullet_movement(new_bullet); 
@@ -1432,8 +1435,6 @@ int main(){
 
                     powerup_timer = 0;
                     kill_count /= 2;
-
-                    if(!enemies_remaining) enemies_remaining = 1;
                 } 
 
                 else{
@@ -1442,8 +1443,6 @@ int main(){
                         if(game_state.enemies[j].col == col_active) game_state.enemies[j].active = 1;
 
                     if (++col_active == COLUMNS) round_wait_time = 0;
-
-                    if(!enemies_remaining) enemies_remaining = 1;
                 }
             }
 
@@ -1457,8 +1456,6 @@ int main(){
                     round_wait_time --;
                         
                 if (round_wait_time > 30) round_wait_time --;
-
-                if(!enemies_remaining) enemies_remaining = 1;
 
                 bullet_movement(0);
                 enemy_movement(-1);
@@ -1506,7 +1503,9 @@ int main(){
                     break;
                 }
 
-                if(!active_enemy_buls){
+                if(!active_enemy_buls && !round_wait){
+
+                    round_wait = 1;
 
                     enemy_wiggle_time = 0;
                     enemy_wiggle = 1;

@@ -1338,7 +1338,7 @@ int main(){
                     else {
 
                         bullet_movement(new_bullet);
-                        enemy_movement(-1)
+                        enemy_movement(-1);
                         move_enemy_bul();
                         update_ship_bullet();
                     }

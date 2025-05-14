@@ -1435,6 +1435,10 @@ int main(){
                     kill_count /= 2;
 
                     round_wait = 0;
+
+                    printf("HELLLLOOOOOOO \n");
+
+
                 } 
 
                 else{
@@ -1524,7 +1528,9 @@ int main(){
 
                     for(int i =1; i<5; i++){
 
-                        row_vals[i] += round_num*2;
+                        row_vals[i] += 1;
+                        // round_num*2;
+
                     }
 
                     init_round_state();

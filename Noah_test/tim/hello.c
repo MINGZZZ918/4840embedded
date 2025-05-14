@@ -898,7 +898,9 @@ void bullet_colision(bullet *bul){
 
             active_ship_buls --;
 
-            if (++ kill_count >= 15 && !game_state.power_up.active) drop_powerup(enemy);
+            if (++ kill_count >= 15 && !game_state.power_up.active &&
+                game_state.ship.active && !game_state.ship.explosion_timer) 
+                    drop_powerup(enemy);
 
             if(enemy->moving) num_enemies_moving --;
 

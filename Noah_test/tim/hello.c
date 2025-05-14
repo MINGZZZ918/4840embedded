@@ -684,11 +684,11 @@ void enemy_explosion(){
         if(enemy->explosion_timer == 1)
         memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
 
-        else if(enemy->explosion_timer < EXPLOSION_TIME/2){
+        else if(enemy->explosion_timer < EXPLOSION_TIME/2 && enemy->explosion_timer){
             enemy->sprite = SHIP_EXPLOSION2;
             enemy->explosion_timer --;
         }
-        else{
+        else if (enemy->explosion_timer){
             enemy->velo_x = 0;
             enemy->velo_y = 0;
             enemy->sprite = SHIP_EXPLOSION1;

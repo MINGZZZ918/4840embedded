@@ -1340,7 +1340,7 @@ int main(){
                 if(!active_ship_buls && !active_enemy_buls && !num_enemies_moving)
                     round_wait_time --;
                         
-                if (round_wait_time > 10) round_wait_time --;
+                if (round_wait_time > 30) round_wait_time --;
 
                 enemy_movement(-1);
                 move_enemy_bul();

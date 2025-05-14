@@ -27,9 +27,8 @@
 
 #define COLOR_COUNT 5
 
-#define SHIP_INITIAL_X 200
+#define SHIP_INITIAL_X 300
 #define SHIP_INITIAL_Y 400
-#define LIFE_COUNT 5
 
 #define BULLET_WIDTH 8
 #define BULLET_HEIGHT 4

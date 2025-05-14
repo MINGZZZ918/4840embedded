@@ -11,6 +11,8 @@
 
 #define SHIP_WIDTH 16
 #define SHIP_HEIGHT 16
+#define LIFE_COUNT 5
+
 
 #define SHIP 0 //
 #define SHIP_LEFT 1 // 

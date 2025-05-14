@@ -228,6 +228,7 @@ void active_powerup(){
         game_state.ship.num_buls = 1;
         ship_velo = 2;
     }
+
     else if (powerup_timer == 0)
         power_up->active = 0;
 
@@ -235,7 +236,7 @@ void active_powerup(){
 
         if (blink_counter){
             power_up->active = !power_up->active;
-            blink_counter --
+            blink_counter --;
         }
         else{
             blink_counter = BLINK_COUNT;
@@ -245,17 +246,12 @@ void active_powerup(){
         
         if (blink_counter){
             power_up->active = !power_up->active;
-            blink_counter --
+            blink_counter --;
         }
         else{
             blink_counter = QUICK_BLINK_COUNT;
         }
     }
-
-
-
-
-
 }
 
 void move_powerup(){

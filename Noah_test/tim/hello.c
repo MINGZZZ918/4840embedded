@@ -142,7 +142,7 @@ static long round_time = 0;
 static int active1 = 0, active2 = 0, active3 = 0, round_pause, num_sent, send_per_round = 20;
 #define TOTAL_ACTIVE (active1 + active2 + active3)
 #define ROUND_WAIT 100
-static int round_num = 0;
+static int round_num = 1;
 
 
 
@@ -1430,6 +1430,8 @@ int main(){
 
                     powerup_timer = 0;
                     kill_count /= 2;
+                    round_num++;
+
                 } 
 
                 else{
@@ -1524,7 +1526,6 @@ int main(){
                     init_round_state();
 
                     enemies_remaining = 1;
-                    round_num++;
                 }
 
             }

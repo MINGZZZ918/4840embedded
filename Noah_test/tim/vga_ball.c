@@ -95,7 +95,7 @@ static void write_ship(spaceship *ship){
         if(i<ship->lives) active = 1;
         else active = 0;
 
-        write_object (i+3, i*20+10,  16, SHIP, active);
+        write_object (i+3, i*20+10,  SCREEN_HEIGHT-16, SHIP, active);
     }
 }
 

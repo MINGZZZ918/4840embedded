@@ -13,6 +13,8 @@
 #define SHIP_HEIGHT 16
 #define LIFE_COUNT 5
 
+#define SCREEN_WIDTH 640
+#define SCREEN_HEIGHT 480
 
 #define SHIP 0 //
 #define SHIP_LEFT 1 // 

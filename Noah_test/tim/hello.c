@@ -745,7 +745,7 @@ int enemy_movement(int rand_enemy){
                     enemy_shoot(enemy);
             }
 
-            else
+            else if(enemy != exploding_enemy)
                 enemy->pos_x += enemy_wiggle;
 
         }

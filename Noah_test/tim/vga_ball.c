@@ -72,7 +72,7 @@ static void write_object(int idx, unsigned short x, unsigned short y, char sprit
 
 static void write_ship(spaceship *ship){
 
-    int sprite;
+    int sprite, i, active;
 
     if (ship->sprite == SHIP_EXPLOSION1) sprite = SHIP_EXPLOSION1;
 
@@ -85,8 +85,22 @@ static void write_ship(spaceship *ship){
     else sprite = SHIP;
 
     write_object (1, ship->pos_x,  ship->pos_y, sprite, ship->active);
+    
+    write_object (1, ship->pos_x,  ship->pos_y+SHIP_HEIGHT, SHIP_FLAME, ship->active);
 
     dev.ship = *ship;
+
+    for(i = 0; i<5; i++){
+
+        if(i<ship->lives) active = 1;
+        else active = 0;
+
+        write_object (1, i*20+10,  16, SHIP, active);
+    }
+
+
+
+
 
 }
 
@@ -144,7 +158,6 @@ static void write_enemies(bullet bullets[], enemy enemies[])
 static void write_powerup(powerup *power_up){
 
     write_object (SHIP_BULLETS+ENEMY_COUNT+MAX_BULLETS+2, power_up->pos_x,  power_up->pos_y, power_up->sprite, power_up->active);
-
 
     dev.power_up = *power_up;
 

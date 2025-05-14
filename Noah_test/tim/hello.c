@@ -288,12 +288,6 @@ void drop_powerup(enemy *enemy){
 
 
 
-// it might be the case that when we shut off the extra bullets they stop 
-// i think they will keep going though
-// only need to check num_bullets if we are getting more
-
-
-
 
 
 void change_active_amount(char enemy_sprite){
@@ -1087,7 +1081,6 @@ void init_round_state() {
     }
 }
 
-
 struct libusb_device_handle *controller;
 
 uint8_t endpoint_address;
@@ -1317,100 +1310,6 @@ int main(){
             update_enemies();
             update_powerup();
             update_ship_bullet();
-
-
-            // if(ship->active && !ship->explosion_timer) ship_movement();
-
-            // move_powerup();
-            // enemy_explosion();
-            // ship_explosion();
-
-            // if(!round_wait){
-
-            //     active_powerup();
-            //     if(ship->active) bullet_movement(new_bullet);
-            //     rand_enemy = enemies_to_move();
-            //     enemies_remaining = enemy_movement(rand_enemy);
-            //     move_enemy_bul();
-
-            //     update_ship_bullet();
-            // }
-
-            // else if(round_wait_time == 1){
-
-            //     if(!ship->active){
-
-            //         ship->active = 1;
-            //         ship->pos_x = SHIP_INITIAL_X;
-            //         ship->pos_y = SHIP_INITIAL_Y;
-            //         round_wait = 0;
-            //         round_time = 0;
-
-            //         powerup_timer = 0;
-            //         kill_count /= 2;
-
-
-            //     } 
-            //     else{
-
-            //         for(int j=0; j<ENEMY_COUNT; j++)
-            //             if(game_state.enemies[j].col == col_active) game_state.enemies[j].active = 1;
-
-            //         if (++col_active == COLUMNS) round_wait = 0;
-            //     }
-            // }
-
-            // else{
-
-            //     if(!ship->active || ship->explosion_timer) { // lost life
-
-            //         for(int i=0; i<ENEMY_COUNT; i++)
-            //             if (game_state.enemies[i].moving) active_enemies ++;
-
-            //         for(int i=0; i<SHIP_BULLETS; i++)
-            //             if (ship->bullets[i].active) active_buls ++;
-
-
-            //         if(!active_buls && !active_enemies)
-            //             round_wait_time --;
-
-            //         enemy_movement(-1);
-            //         move_enemy_bul();
-
-
-            //         if (active_buls){
-
-            //             if (!ship->active) bullet_movement(0);
-
-            //             else bullet_movement(new_bullet);
-            //             update_ship_bullet();
-            //         }
-            //     }
-
-            //     else{ // round end
-
-            //         kill_count = 0;
-
-            //         for(int i=0; i<SHIP_BULLETS; i++)
-            //             if (ship->bullets[i].active) active_buls ++;
-
-            //         for(int i=0; i<MAX_BULLETS; i++)
-            //             if (game_state.bullets[i].active) active_buls ++;
-
-
-            //         if(!active_buls) round_wait_time --;
-
-            //         else {
-
-            //             bullet_movement(new_bullet);
-            //             move_enemy_bul();
-            //             update_ship_bullet();
-            //         }
-            //     }
-            // }
-
-            
-
 
             if(ship->lives <= 0){
                 printf("You lost =( \n");

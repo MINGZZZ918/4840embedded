@@ -680,7 +680,7 @@ void enemy_explosion(){
 
     enemy *enemy;
 
-    for(int i =0; i<ENEMY_COUNT; i++){
+    for(int i = 0; i<ENEMY_COUNT; i++){
 
         enemy = &game_state.enemies[i];
 
@@ -901,7 +901,6 @@ void bullet_colision(bullet *bul){
             if(i == row_backs[enemy->row]) change_row_ends(i, enemy->row, 0);
 
             else if (i == row_fronts[enemy->row]) change_row_ends(i, enemy->row, 1);
-
 
             change_active_amount(enemy->sprite);
 
@@ -1300,8 +1299,10 @@ int main(){
 
             else{
 
-                // for(int i=0; i<ENEMY_COUNT; i++)
-                //         if (game_state.enemies[i].moving) active_enemies ++;
+                for(int i=0; i<ENEMY_COUNT; i++)
+                        if (game_state.enemies[i].active) active_enemies ++;
+
+                        printf("AHHHHHHHHHHHHHHHHHHHHH %d \n", active_enemies);
 
                 for(int i=0; i<SHIP_BULLETS; i++)
                     if (ship->bullets[i].active) active_buls ++;

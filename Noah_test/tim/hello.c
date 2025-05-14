@@ -707,12 +707,16 @@ void ship_explosion(){
     if(ship->explosion_timer == 1){
         ship->active = 0;
         ship->explosion_timer = 0;
+        printf("333333333 \n");
     }
     else if(ship->explosion_timer < EXPLOSION_TIME/2 && ship->explosion_timer){
         ship->sprite = SHIP_EXPLOSION2;
         ship->explosion_timer --;
+        printf("2222222 \n");
     }
     else if (ship->explosion_timer){
+
+        printf("111111 \n");
 
         ship->sprite = SHIP_EXPLOSION1;
         ship->explosion_timer --;

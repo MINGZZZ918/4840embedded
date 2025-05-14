@@ -74,13 +74,17 @@ static void write_ship(spaceship *ship){
 
     int sprite;
 
-    if (ship->velo_x < 0) sprite = SHIP_LEFT;
+    if (ship->sprite == SHIP_EXPLOSION1) sprite = SHIP_EXPLOSION1;
+
+    else if (ship->sprite == SHIP_EXPLOSION2) sprite = SHIP_EXPLOSION2;
+
+    else if (ship->velo_x < 0) sprite = SHIP_LEFT;
 
     else if (ship->velo_x > 0) sprite = SHIP_RIGHT;
 
     else sprite = SHIP;
 
-    write_object (1, ship->pos_x,  ship->pos_y, 0, ship->active);
+    write_object (1, ship->pos_x,  ship->pos_y, sprite, ship->active);
 
     dev.ship = *ship;
 

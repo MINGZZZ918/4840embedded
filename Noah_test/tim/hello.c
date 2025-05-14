@@ -1274,7 +1274,9 @@ int main(){
                     round_wait = 0;
                     round_time = 0;
 
+                    powerup_timer = 0;
                     kill_count /= 2;
+
 
                 } 
                 else{
@@ -1302,12 +1304,6 @@ int main(){
                     if(!active_buls && !active_enemies)
                         round_wait_time --;
 
-                    // if (active_enemies){
-
-                    //     enemy_movement(-1);
-                    //     update_enemies();
-                    // }
-
                     enemy_movement(-1);
                     move_enemy_bul();
                     update_enemies();
@@ -1333,7 +1329,10 @@ int main(){
                         if (game_state.bullets[i].active) active_buls ++;
 
 
-                    if(!active_buls) round_wait_time --;
+                    if(!active_buls) {
+                        enemy_movement(-1);
+                        round_wait_time --;
+                    }
 
                     else {
 

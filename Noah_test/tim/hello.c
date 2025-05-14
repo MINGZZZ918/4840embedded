@@ -419,7 +419,7 @@ void enemy_shoot(enemy *enemy){
 
         if (enemy->sprite == ENEMY2){
 
-            if (abs(ship->pos_x - enemy->pos_x) <= 60
+            if (abs(ship->pos_x - enemy->pos_x) <= 80
                     && abs(ship->pos_y - enemy->pos_y) <= 150
                     && ship->pos_y - 30 > enemy->pos_y){
 

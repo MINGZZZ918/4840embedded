@@ -83,7 +83,7 @@ static int powerup_timer = 0;
 #define EXPLOSION_TIME 10
 
 
-static int blink_counter;
+static int blink_counter = 0;
 #define BLINK_COUNT 10
 #define QUICK_BLINK_COUNT 5
 
@@ -227,29 +227,35 @@ void active_powerup(){
 
         game_state.ship.num_buls = 1;
         ship_velo = 2;
+        
     }
 
-    else if (powerup_timer == 0)
+    else if (powerup_timer == 0){
         power_up->active = 0;
-
+        blink_counter = 0;
+    }
     else if(powerup_timer > 50 && powerup_timer < 100){
 
-        if (blink_counter){
+        if (blink_counter == 0){
+
+            blink_counter = BLINK_COUNT;
             power_up->active = !power_up->active;
-            blink_counter --;
+
         }
         else{
-            blink_counter = BLINK_COUNT;
+            blink_counter --;
         }
     }
     else if (powerup_timer > 0 && powerup_timer < 50){
         
-        if (blink_counter){
+        if (blink_counter == 0){
+
+            blink_counter = QUICK_BLINK_COUNT;
             power_up->active = !power_up->active;
-            blink_counter --;
+
         }
         else{
-            blink_counter = QUICK_BLINK_COUNT;
+            blink_counter --;
         }
     }
 }
@@ -270,7 +276,7 @@ void move_powerup(){
             apply_powerup(power_up);
 
             power_up->pos_x = 400;
-            power_up->pos_y = SCREEN_HEIGHT-SHIP_HEIGHT;\
+            power_up->pos_y = SCREEN_HEIGHT-SHIP_HEIGHT;
             power_up ->indicator = 1;
             kill_count = 0;
         }
@@ -1337,6 +1343,8 @@ int main(){
             }
 
             else{
+
+                game_state.power_up.active = 0;
 
                 printf("%d, %d, %d \n", active_ship_buls, active_enemy_buls, num_enemies_moving);
 

@@ -186,6 +186,11 @@ void update_powerup() {
 }
 
 
+
+
+
+
+
 void apply_powerup(powerup *power_up){
 
     spaceship *ship = &game_state.ship;
@@ -213,8 +218,6 @@ void apply_powerup(powerup *power_up){
     }
 }
 
-
-
 void active_powerup(){
 
     if (--powerup_timer <= 0){
@@ -223,7 +226,6 @@ void active_powerup(){
         ship_velo = 2;
     }
 }
-
 
 void move_powerup(){
 
@@ -253,7 +255,6 @@ void move_powerup(){
     }
 
 }
-
 
 void drop_powerup(enemy *enemy){
 
@@ -290,7 +291,7 @@ void drop_powerup(enemy *enemy){
 
 void change_active_amount(char enemy_sprite){
 
-    switch(row_sprites[enemy_sprite]){
+    switch(enemy_sprite){
 
         case ENEMY1:
             active1 --;
@@ -937,6 +938,8 @@ void bullet_movement(int new_bullet){
     }
 }
 
+
+
 void ship_movement(){
 
     spaceship *ship = &game_state.ship;
@@ -1008,7 +1011,6 @@ int enemies_to_move(){
     return -1;
 
 }
-
 
 void init_round_state() {
 

@@ -88,7 +88,6 @@ static int round_frequency = 100;
 
 
 
-static int round_wait = 0, round_wait_time = 0;
 
 static int enemy_wiggle = 1;
 static int enemy_wiggle_time = 0;
@@ -136,7 +135,7 @@ static short turn_y[TURN_TIME] = {-1,-1,-1,-1,-1,-1,-1,-1,
 static int num_enemies_moving = 0;
 
 
-
+static int round_wait = 0, round_wait_time = 0;
 static long round_time = 0;
 static int active2 = 0, active3 = 0, active4 = 0, round_pause, num_sent, send_per_round = 10;
 #define TOTAL_ACTIVE (active2 + active3 + active4)
@@ -876,6 +875,9 @@ void move_enemy_bul(){
 }
 
 
+
+
+
 void bullet_colision(bullet *bul){
 
     enemy *enemy;
@@ -1097,7 +1099,7 @@ int main(){
     int col_active = 0, active_buls = 0, active_enemies = 0;
     int bumpers = 0, buttons = 0;
 
-    srand((unsigned)time(NULL));
+    srand(time(NULL));
 
 
     /* Open the device file */
@@ -1247,29 +1249,22 @@ int main(){
                     break;
             }
 
-
-            // set round wait 
-            // if the ship is not active wait until all enemies stop moving 
-            // make the enemies go back faster if ship is not moving 
-            // then set round wait time and make ship active
-
-            // only kill enemy if ship is active
-
             if(ship->active && !ship->explosion_timer) ship_movement();
 
             move_powerup();
             enemy_explosion();
             ship_explosion();
 
-            if(!round_wait){
+            if (!round_wait_time){ // ship is alive and round is playing
 
                 active_powerup();
-                if(ship->active) bullet_movement(new_bullet);
+
+                if(ship->active) bullet_movement(new_bullet); 
+
                 rand_enemy = enemies_to_move();
                 enemies_remaining = enemy_movement(rand_enemy);
                 move_enemy_bul();
 
-                update_ship_bullet();
             }
 
             else if(round_wait_time == 1){
@@ -1279,75 +1274,160 @@ int main(){
                     ship->active = 1;
                     ship->pos_x = SHIP_INITIAL_X;
                     ship->pos_y = SHIP_INITIAL_Y;
-                    round_wait = 0;
+                    round_wait_time = 0;
                     round_time = 0;
 
                     powerup_timer = 0;
                     kill_count /= 2;
-
-
                 } 
+
                 else{
 
                     for(int j=0; j<ENEMY_COUNT; j++)
                         if(game_state.enemies[j].col == col_active) game_state.enemies[j].active = 1;
 
-                    if (++col_active == COLUMNS) round_wait = 0;
+                    if (++col_active == COLUMNS) round_wait_time = 0;
                 }
             }
 
             else{
 
-                if(!ship->active || ship->explosion_timer) { // lost life
-
-                    for(int i=0; i<ENEMY_COUNT; i++)
+                for(int i=0; i<ENEMY_COUNT; i++)
                         if (game_state.enemies[i].moving) active_enemies ++;
 
-                    for(int i=0; i<SHIP_BULLETS; i++)
-                        if (ship->bullets[i].active) active_buls ++;
+                for(int i=0; i<SHIP_BULLETS; i++)
+                    if (ship->bullets[i].active) active_buls ++;
 
+                for(int i=0; i<MAX_BULLETS; i++)
+                    if (game_state.bullets[i].active) active_buls ++;
 
-                    if(!active_buls && !active_enemies)
+                if (round_wait > 2) round_wait--;
+
+                if(!active_buls && !active_enemies)
                         round_wait_time --;
 
-                    enemy_movement(-1);
-                    move_enemy_bul();
-
-
-                    if (active_buls){
-
-                        if (!ship->active) bullet_movement(0);
-
-                        else bullet_movement(new_bullet);
-                        update_ship_bullet();
-                    }
-                }
-
-                else{ // round end
-
-                    kill_count = 0;
-
-                    for(int i=0; i<SHIP_BULLETS; i++)
-                        if (ship->bullets[i].active) active_buls ++;
-
-                    for(int i=0; i<MAX_BULLETS; i++)
-                        if (game_state.bullets[i].active) active_buls ++;
-
-
-                    if(!active_buls) round_wait_time --;
-
-                    else {
-
-                        bullet_movement(new_bullet);
-                        move_enemy_bul();
-                        update_ship_bullet();
-                    }
-                }
+                if(active_enemies) enemy_movement(-1);
+                move_enemy_bul();
+                bullet_movement(0);
             }
 
             update_ship();
             update_enemies();
             update_powerup();
+            update_ship_bullet();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            // if(ship->active && !ship->explosion_timer) ship_movement();
+
+            // move_powerup();
+            // enemy_explosion();
+            // ship_explosion();
+
+            // if(!round_wait){
+
+            //     active_powerup();
+            //     if(ship->active) bullet_movement(new_bullet);
+            //     rand_enemy = enemies_to_move();
+            //     enemies_remaining = enemy_movement(rand_enemy);
+            //     move_enemy_bul();
+
+            //     update_ship_bullet();
+            // }
+
+            // else if(round_wait_time == 1){
+
+            //     if(!ship->active){
+
+            //         ship->active = 1;
+            //         ship->pos_x = SHIP_INITIAL_X;
+            //         ship->pos_y = SHIP_INITIAL_Y;
+            //         round_wait = 0;
+            //         round_time = 0;
+
+            //         powerup_timer = 0;
+            //         kill_count /= 2;
+
+
+            //     } 
+            //     else{
+
+            //         for(int j=0; j<ENEMY_COUNT; j++)
+            //             if(game_state.enemies[j].col == col_active) game_state.enemies[j].active = 1;
+
+            //         if (++col_active == COLUMNS) round_wait = 0;
+            //     }
+            // }
+
+            // else{
+
+            //     if(!ship->active || ship->explosion_timer) { // lost life
+
+            //         for(int i=0; i<ENEMY_COUNT; i++)
+            //             if (game_state.enemies[i].moving) active_enemies ++;
+
+            //         for(int i=0; i<SHIP_BULLETS; i++)
+            //             if (ship->bullets[i].active) active_buls ++;
+
+
+            //         if(!active_buls && !active_enemies)
+            //             round_wait_time --;
+
+            //         enemy_movement(-1);
+            //         move_enemy_bul();
+
+
+            //         if (active_buls){
+
+            //             if (!ship->active) bullet_movement(0);
+
+            //             else bullet_movement(new_bullet);
+            //             update_ship_bullet();
+            //         }
+            //     }
+
+            //     else{ // round end
+
+            //         kill_count = 0;
+
+            //         for(int i=0; i<SHIP_BULLETS; i++)
+            //             if (ship->bullets[i].active) active_buls ++;
+
+            //         for(int i=0; i<MAX_BULLETS; i++)
+            //             if (game_state.bullets[i].active) active_buls ++;
+
+
+            //         if(!active_buls) round_wait_time --;
+
+            //         else {
+
+            //             bullet_movement(new_bullet);
+            //             move_enemy_bul();
+            //             update_ship_bullet();
+            //         }
+            //     }
+            // }
+
+            
 
 
             if(ship->lives <= 0){
@@ -1372,7 +1452,7 @@ int main(){
                     enemy_wiggle_time = 0;
                     enemy_wiggle = 1;
 
-                    round_wait_time = 50;
+                    round_wait_time = ROUND_WAIT;
                     round_wait = 1;
                     col_active = 0;
 

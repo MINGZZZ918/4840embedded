@@ -151,9 +151,6 @@ static void write_powerup(powerup *power_up){
 }
 
 
-
-
-
 /*
 * Update all game state at once
 */

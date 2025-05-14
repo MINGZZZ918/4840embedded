@@ -1327,7 +1327,7 @@ int main(){
 
                     enemy_movement(-1);
                     move_enemy_bul();
-                    // update_enemies();
+                    update_enemies();
 
 
                     if (active_buls){

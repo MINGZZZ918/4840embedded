@@ -110,9 +110,6 @@ static const background_color colors[] = {
 };
 
 
-static int enemies_remaining;
-
-
 
 
 #define TURN_TIME 70
@@ -742,20 +739,19 @@ void enemy_attack(enemy *enemy){
 }
 
 
-void enemy_explosion(){
+int enemy_explosion(){
 
     enemy *enemy;
+    int num_left = 1;
 
     for(int i = 0; i<ENEMY_COUNT; i++){
 
         enemy = &game_state.enemies[i];
 
-        if(enemy->active) enemies_remaining ++;
-
         if(enemy->explosion_timer == 1){
-            printf("33333333333333333\n");
+                        printf("33333333333333333\n");
 
-            printf("%d \n", enemies_remaining);
+            num_left --;
 
             memset(enemy, 0, sizeof(*enemy));
         }
@@ -765,14 +761,14 @@ void enemy_explosion(){
 
             enemy->sprite = SHIP_EXPLOSION2;
             enemy->explosion_timer --;
+            num_left++;
         }
 
         else if (enemy->explosion_timer){
 
+            num_left++;
+
             printf("1111111111\n");
-
-
-
             enemy->velo_x = 0;
             enemy->velo_y = 0;
             enemy->sprite = SHIP_EXPLOSION1;
@@ -781,6 +777,8 @@ void enemy_explosion(){
 
         }
     }
+
+    return num_left;
 }
 
 
@@ -808,7 +806,7 @@ void ship_explosion(){
 
 
 
-void enemy_movement(int rand_enemy){
+int enemy_movement(int rand_enemy){
 
     int cont, row_num, num_left = 0;
     enemy *enemy;
@@ -841,6 +839,8 @@ void enemy_movement(int rand_enemy){
         enemy = &game_state.enemies[i];
 
         if (enemy->active && !enemy->explosion_timer){
+
+            num_left++;
 
             if(!enemy->moving && rand_enemy == i){
 
@@ -903,9 +903,13 @@ void enemy_movement(int rand_enemy){
                 ship->explosion_timer = EXPLOSION_TIME;
 
                 round_wait_time = ROUND_WAIT;
+                num_left --;
+
+
             }
         }
     }
+    return num_left;
 }
 
 void move_enemy_bul(){
@@ -1229,10 +1233,9 @@ int main(){
 
     spaceship *ship = &game_state.ship;
     controller_packet packet;
-    int transferred, start = 0, new_bullet, prev_bullet = 0, rand_enemy, save_score;
+    int transferred, start = 0, new_bullet, prev_bullet = 0, enemies_remaining, enemies_exploding, rand_enemy, save_score;
     int col_active = 0, active_buls = 0, active_enemies = 0;
     int bumpers = 0, buttons = 0;
-    bool round_wait;
 
     srand(time(NULL));
 
@@ -1292,7 +1295,6 @@ int main(){
         round_time++;
         active_buls = 0;
         active_enemies = 0;
-        enemies_remaining = 0;
 
         enemy_wiggle_time += enemy_wiggle;
         if (abs(enemy_wiggle_time) == 80) enemy_wiggle = -enemy_wiggle;
@@ -1402,19 +1404,17 @@ int main(){
             if(ship->active && !ship->explosion_timer) ship_movement();
 
             move_powerup();
-            enemy_explosion();
+            enemies_enemy_explosion();
             ship_explosion();
 
             if (!round_wait_time){ // ship is alive and round is playing
-
-                // round_wait = 0;
 
                 active_powerup();
 
                 if(ship->active) bullet_movement(new_bullet); 
 
                 rand_enemy = enemies_to_move();
-                enemy_movement(rand_enemy);
+                enemies_remaining = enemy_movement(rand_enemy);
                 move_enemy_bul();
 
             }
@@ -1433,12 +1433,6 @@ int main(){
 
                     powerup_timer = 0;
                     kill_count /= 2;
-
-                    round_wait = 0;
-
-                    printf("HELLLLOOOOOOO \n");
-
-
                 } 
 
                 else{
@@ -1461,9 +1455,10 @@ int main(){
                         
                 if (round_wait_time > 30) round_wait_time --;
 
-                bullet_movement(0);
                 enemy_movement(-1);
                 move_enemy_bul();
+                bullet_movement(0);
+
             }
 
             update_ship();
@@ -1489,7 +1484,7 @@ int main(){
                 break;
             }
 
-            if(!enemies_remaining){
+            if(!enemies_remaining && !enemies_exploding){
 
                 if(round_num == 3){
 
@@ -1505,9 +1500,7 @@ int main(){
                     break;
                 }
 
-                if(!active_enemy_buls && !round_wait){
-
-                    round_wait = 1;
+                if(!active_enemy_buls){
 
                     enemy_wiggle_time = 0;
                     enemy_wiggle = 1;
@@ -1528,9 +1521,7 @@ int main(){
 
                     for(int i =1; i<5; i++){
 
-                        row_vals[i] += 1;
-                        // round_num*2;
-
+                        row_vals[i] += round_num*2;
                     }
 
                     init_round_state();

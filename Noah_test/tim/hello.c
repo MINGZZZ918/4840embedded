@@ -1015,7 +1015,6 @@ void move_enemy_bul(){
 
             change_score(SHIP);
 
-            ship->lives --;
             ship->explosion_timer = EXPLOSION_TIME;
 
             round_wait_time = ROUND_WAIT;

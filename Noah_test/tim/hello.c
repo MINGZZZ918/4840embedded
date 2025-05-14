@@ -1515,7 +1515,7 @@ int main(){
             update_powerup();
             update_ship_bullet();
 
-            if(ship->lives <= 0){
+            if(ship->lives <= 0 && !ship->explosion_timer){
                 printf("You lost =( \n");
 
                 game_state.ship.active = 0;

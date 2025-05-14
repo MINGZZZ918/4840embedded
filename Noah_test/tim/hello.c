@@ -189,8 +189,6 @@ void update_powerup() {
 
 
 
-
-
 void apply_powerup(powerup *power_up){
 
     spaceship *ship = &game_state.ship;
@@ -398,7 +396,7 @@ bool aquire_bullet(enemy *enemy){
 
             bul->active = 1;
 
-            bul->pos_x = enemy->pos_x+(ENEMY_WIDTH/2);
+            bul->pos_x = enemy->pos_x+;
             bul->pos_y = enemy->pos_y+(ENEMY_HEIGHT);
 
             bul->enemy = enemy->position;
@@ -574,7 +572,7 @@ void enemy_attack(enemy *enemy){
                 enemy->velo_y = 2;
             }
 
-            else if(++enemy->move_time < 200)
+            else if(++enemy->move_time < 250)
                 calculate_velo(ship->pos_x, ship->pos_y, enemy, 1, 3);
             else{
 

@@ -1275,7 +1275,7 @@ int main(){
 
         game_state.enemies[i].sprite = SHIP_BULLET;
         game_state.enemies[i].pos_x = x_coords[i];
-        game_state.enemies[i].pos_x = x_coords[i];
+        game_state.enemies[i].pos_y = y_coords[i];
         game_state.enemies[i].active = 1;
     }
 

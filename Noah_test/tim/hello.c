@@ -683,7 +683,7 @@ void enemy_explosion(enemy *enemy){
     }
     else{
 
-        printf("111111111 \n")
+        printf("111111111 \n");
 
         enemy->velo_x = 0;
         enemy->velo_y = 0;

@@ -65,8 +65,8 @@ static int vga_ball_fd;
 
 
 #define NUM_ROWS 5
-// static char row_vals[NUM_ROWS] = {0,4,3,2,1};
-static char row_vals[NUM_ROWS] = { 2, 6, 8, 10, 10 };
+static char row_vals[NUM_ROWS] = {0,4,3,2,1};
+// static char row_vals[NUM_ROWS] = { 2, 6, 8, 10, 10 };
 static char row_sprites[NUM_ROWS] = { ENEMY1, ENEMY2,ENEMY2, ENEMY3, ENEMY3};
 static int row_fronts[NUM_ROWS];
 static int row_backs[NUM_ROWS];
@@ -681,7 +681,7 @@ void enemy_explosion(){
 
         enemy = &game_state.enemies[i];
 
-        if(enemy->explosion_timer <= 1)
+        if(enemy->explosion_timer == 1)
         memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
 
         else if(enemy->explosion_timer < EXPLOSION_TIME/2){

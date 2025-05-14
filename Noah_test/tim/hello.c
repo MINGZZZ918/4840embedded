@@ -80,7 +80,7 @@ static int powerup_timer = 0;
 #define EXTRA_BULLET_TIME 250;
 #define EXTRA_SPEED_TIME 500;
 
-static enemy *exploding_enemy = { 0 };
+static enemy *exploding_enemy = NULL;
 static int explosion_timer = 0;
 
 

@@ -673,28 +673,26 @@ void enemy_attack(enemy *enemy){
 }
 
 
-void enemy_explosion(){
+void enemy_explosion(enemy *enemy){
 
-    if (explosion_timer == 0){
+    if(enemy->explosion_timer <= 0)
+        memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
 
-        exploding_enemy->moving = 0;
-        exploding_enemy->velo_x = 0;
-        exploding_enemy->velo_y = 0;
-        exploding_enemy->sprite = SHIP_EXPLOSION1;
+    else if(enemy->explosion_timer < 3){
+        enemy->sprite = SHIP_EXPLOSION2;
+        enemy->explosion_timer ++;
 
-        explosion_timer ++;
     }
+    else{
 
-    else if (explosion_timer == 3){
+        enemy->velo_x = 0;
+        enemy->velo_y = 0;
+        enemy->sprite = SHIP_EXPLOSION1;
 
-        exploding_enemy->sprite = SHIP_EXPLOSION2;
-        explosion_timer ++;
+        enemy->explosion_timer ++;
+
     }
-
-    else if (explosion_timer == 6)
-        memset(exploding_enemy, 0, sizeof(*exploding_enemy)); //??????????????????????????????
 }
-
 
 
 int enemy_movement(int rand_enemy){
@@ -729,7 +727,7 @@ int enemy_movement(int rand_enemy){
 
         enemy = &game_state.enemies[i];
 
-        if(enemy == exploding_enemy) enemy_explosion();
+        if(enemy->explosion_timer) enemy_explosion(enemy);
 
         else if (enemy->active){
 
@@ -770,7 +768,7 @@ int enemy_movement(int rand_enemy){
                     enemy_shoot(enemy);
             }
 
-            else if(enemy != exploding_enemy)
+            else
                 enemy->pos_x += enemy_wiggle;
 
 
@@ -848,9 +846,6 @@ void move_enemy_bul(){
 
 
 
-
-
-
 // void ship_explosion(){
 
 //     enemy->active = 0;
@@ -895,9 +890,8 @@ void bullet_colision(bullet *bul){
 
             if(enemy->moving) num_enemies_moving --;
 
-            exploding_enemy = enemy;
-            explosion_timer = 0;
-            enemy_explosion();
+            enemy->explosion_timer = 6;
+
             break;
         }
     }

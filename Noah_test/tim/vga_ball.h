@@ -65,7 +65,7 @@ typedef struct {
     short velo_x, velo_y;
     short start_x, start_y;
 
-    short move_time, turn_counter, bul_cooldown, bul;
+    short move_time, turn_counter, bul_cooldown, bul, explosion_timer;
     char sprite, row, col, position;
     bool active, returning, moving;
 } enemy;

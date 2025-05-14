@@ -208,7 +208,7 @@ void apply_powerup(powerup *power_up){
 
         case EXTRA_BULLETS:
 
-            ship->num_buls = 5;
+            ship->num_buls = 3;
             powerup_timer = EXTRA_BULLET_TIME;
             break;
     }
@@ -218,7 +218,7 @@ void active_powerup(){
 
     if (--powerup_timer <= 0){
 
-        game_state.ship.num_buls = 3;
+        game_state.ship.num_buls = 1;
         ship_velo = 2;
     }
 }
@@ -463,6 +463,8 @@ void enemy_shoot(enemy *enemy){
 
 void enemy_return (enemy *enemy){
 
+    int position;
+
 
     if (enemy->pos_y > SCREEN_HEIGHT || enemy->pos_x > SCREEN_WIDTH || enemy->pos_x < 0){
 
@@ -476,7 +478,6 @@ void enemy_return (enemy *enemy){
 
     
     if (enemy->returning){
-
 
         if (abs(enemy->pos_x - enemy->start_x + enemy_wiggle_time) < 20 && abs(enemy->pos_y -enemy->start_y) <20){
 
@@ -808,7 +809,7 @@ int enemy_movement(int rand_enemy){
 
                 if(enemy->moving) num_enemies_moving --;
 
-                memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
+                memset(enemy, 0, sizeof(*enemy)); 
 
                 ship->lives --;
                 ship->explosion_timer = EXPLOSION_TIME;

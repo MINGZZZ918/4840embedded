@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 /* 定义最大子弹数量 */
-#define SHIP_BULLETS 5
+#define SHIP_BULLETS 3
 #define MAX_BULLETS 15
 #define ENEMY_COUNT 60
 

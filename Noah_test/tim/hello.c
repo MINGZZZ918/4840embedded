@@ -259,7 +259,7 @@ void move_powerup(){
     powerup *power_up = &game_state.power_up;
     spaceship *ship = &game_state.ship;
 
-    if (power_up->active){
+    if (power_up->active && !power_up->indicator){
 
         power_up->pos_y += 1;
 
@@ -270,7 +270,8 @@ void move_powerup(){
             apply_powerup(power_up);
 
             power_up->pos_x = 400;
-            power_up->pos_y = SCREEN_HEIGHT-SHIP_HEIGHT;
+            power_up->pos_y = SCREEN_HEIGHT-SHIP_HEIGHT;\
+            power_up ->indicator = 1;
             kill_count = 0;
         }
 
@@ -293,6 +294,8 @@ void drop_powerup(enemy *enemy){
         while (i == 2) i = rand() % 3;
 
     power_up->pos_x = enemy->pos_x;
+
+    power_up->indicator = 0;
 
     power_up->pos_y = 200;
     power_up->active = 1;

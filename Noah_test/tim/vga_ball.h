@@ -57,7 +57,7 @@ typedef struct {
 typedef struct {
     unsigned short pos_x, pos_y;
     char sprite;
-    bool active;
+    bool active, indicator;
 } powerup;
 
 typedef struct {

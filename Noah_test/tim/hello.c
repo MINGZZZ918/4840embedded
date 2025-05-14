@@ -889,6 +889,8 @@ void bullet_colision(bullet *bul){
 
         enemy = &game_state.enemies[i];
 
+        if (enemy->explosion_timer) continue;
+
         if (enemy->active && 
             abs(enemy->pos_x - bul->pos_x + BULLET_WIDTH) <= ENEMY_WIDTH &&
             abs(enemy->pos_y - bul->pos_y + BULLET_HEIGHT*4) <= ENEMY_HEIGHT){
@@ -995,7 +997,6 @@ int enemies_to_move(){
 
         if (num_sent == send_per_round){
 
-            // printf("AHHHHHHHHHHH %d \n", num_enemies_moving);
 
             if (!num_enemies_moving){
 
@@ -1067,8 +1068,6 @@ void init_round_state() {
             enemy->bul = -1;
             enemy->row = row;
             enemy->col = (space/2) + j;
-
-            printf("AHHHHHHHHHHHHH \n");
 
             switch(row_sprites[row]){
 

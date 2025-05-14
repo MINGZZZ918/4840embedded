@@ -1033,14 +1033,11 @@ void init_round_state() {
 
     row_fronts[row] = 0;
 
-
     for (int i = 0, j=0; i < ENEMY_COUNT; i++, j++) {
-
 
         enemy = &game_state.enemies[i];
 
         memset(enemy, 0, sizeof(*enemy));
-
 
         while (i >= enemy_count && row < 5){
 
@@ -1069,6 +1066,8 @@ void init_round_state() {
             enemy->row = row;
             enemy->col = (space/2) + j;
 
+            printf("AHHHHHHHHHHHHH \n");
+
 
             switch(row_sprites[row]){
 
@@ -1085,12 +1084,6 @@ void init_round_state() {
                     break;
             }
         }
-
-
-        
-
-
-
     }
 }
 

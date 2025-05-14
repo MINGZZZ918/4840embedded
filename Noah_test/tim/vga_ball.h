@@ -12,11 +12,11 @@
 #define SHIP_WIDTH 16
 #define SHIP_HEIGHT 16
 
-#define SHIP 0
+#define SHIP 0 //
 #define SHIP_LEFT 1
 #define SHIP_RIGHT 2
 
-#define SHIP_BULLET 11
+#define SHIP_BULLET 1
 
 #define ENEMY1 3
 #define ENEMY2 4
@@ -26,8 +26,8 @@
 #define ENEMY_BULLET_LEFT 13
 #define ENEMY_BULLET_RIGHT 14
 
-#define EXTRA_LIFE 8
-#define SHIP_SPEED 9
+#define EXTRA_LIFE 6 // 
+#define SHIP_SPEED 7 // 
 #define EXTRA_BULLETS 10
 
 #define SHIP_FLAME 15

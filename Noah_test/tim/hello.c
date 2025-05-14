@@ -1493,7 +1493,11 @@ int main(){
 
                     printf("You Won!");
 
+                    save_score = game_state.score;
+
                     memset(&game_state, 0, sizeof(gamestate));
+
+                    game_state.score = save_score;
 
                     update_ship();
                     update_enemies();

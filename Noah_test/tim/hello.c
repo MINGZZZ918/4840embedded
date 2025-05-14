@@ -81,6 +81,9 @@ static int powerup_timer = 0;
 #define EXTRA_SPEED_TIME 500;
 
 
+#define EXPLOSION_TIME 10
+
+
 
 static int round_wait = 0, round_wait_time = 0;
 
@@ -675,16 +678,11 @@ void enemy_explosion(enemy *enemy){
     if(enemy->explosion_timer <= 1)
         memset(enemy, 0, sizeof(*enemy)); //??????????????????????????????
 
-    else if(enemy->explosion_timer < 3){
+    else if(enemy->explosion_timer < EXPLOSION_TIME/2){
         enemy->sprite = SHIP_EXPLOSION2;
         enemy->explosion_timer --;
-        printf("@@@@@@@@@@@@@@@@ \n");
-
     }
     else{
-
-        printf("111111111 \n");
-
         enemy->velo_x = 0;
         enemy->velo_y = 0;
         enemy->sprite = SHIP_EXPLOSION1;
@@ -888,7 +886,7 @@ void bullet_colision(bullet *bul){
 
             if(enemy->moving) num_enemies_moving --;
 
-            enemy->explosion_timer = 6;
+            enemy->explosion_timer = EXPLOSION_TIME;
 
             break;
         }

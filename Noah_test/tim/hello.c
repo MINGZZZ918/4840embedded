@@ -673,6 +673,29 @@ void enemy_attack(enemy *enemy){
 }
 
 
+void enemy_explosion(){
+
+    if (explosion_timer == 0){
+
+        exploding_enemy->moving = 0;
+        exploding_enemy->velo_x = 0;
+        exploding_enemy->velo_y = 0;
+        exploding_enemy->sprite = SHIP_EXPLOSION1;
+
+        explosion_timer ++;
+    }
+
+    else if (explosion_timer == 1){
+
+        exploding_enemy->sprite = SHIP_EXPLOSION2;
+        explosion_timer ++;
+    }
+
+    else
+        memset(exploding_enemy, 0, sizeof(*exploding_enemy)); //??????????????????????????????
+}
+
+
 
 int enemy_movement(int rand_enemy){
 
@@ -706,7 +729,9 @@ int enemy_movement(int rand_enemy){
 
         enemy = &game_state.enemies[i];
 
-        if (enemy->active){
+        if(enemy = exploding_enemy) enemy_explosion();
+
+        else if (enemy->active){
 
             num_left++;
 
@@ -748,11 +773,10 @@ int enemy_movement(int rand_enemy){
             else if(enemy != exploding_enemy)
                 enemy->pos_x += enemy_wiggle;
 
-        }
 
-        if (enemy->active && ship->active &&
-            abs(ship->pos_x - enemy->pos_x) <= SHIP_WIDTH
-            && abs(ship->pos_y - enemy->pos_y) <= SHIP_HEIGHT){
+            if (ship->active &&
+                abs(ship->pos_x - enemy->pos_x) <= SHIP_WIDTH
+                && abs(ship->pos_y - enemy->pos_y) <= SHIP_HEIGHT){
 
                 enemy->active = 0;
 
@@ -770,6 +794,10 @@ int enemy_movement(int rand_enemy){
                 round_wait_time = ROUND_WAIT;
                 num_left --;
             }
+
+        }
+
+
     }
 
     return num_left;
@@ -820,27 +848,7 @@ void move_enemy_bul(){
 
 
 
-void enemy_explosion(){
 
-    if (explosion_timer == 0){
-
-        exploding_enemy->moving = 0;
-        exploding_enemy->velo_x = 0;
-        exploding_enemy->velo_y = 0;
-        exploding_enemy->sprite = SHIP_EXPLOSION1;
-
-        explosion_timer ++;
-    }
-
-    else if (explosion_timer == 1){
-
-        exploding_enemy->sprite = SHIP_EXPLOSION2;
-        explosion_timer ++;
-    }
-
-    else
-        memset(exploding_enemy, 0, sizeof(*exploding_enemy)); //??????????????????????????????
-}
 
 
 // void ship_explosion(){
@@ -868,10 +876,9 @@ void bullet_colision(bullet *bul){
 
         enemy = &game_state.enemies[i];
 
-        if(enemy == exploding_enemy) enemy_explosion();
 
 
-        else if (enemy->active && 
+        if (enemy->active && 
             abs(enemy->pos_x - bul->pos_x + BULLET_WIDTH) <= ENEMY_WIDTH &&
             abs(enemy->pos_y - bul->pos_y + BULLET_HEIGHT*4) <= ENEMY_HEIGHT){
 

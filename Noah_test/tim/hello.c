@@ -396,7 +396,7 @@ bool aquire_bullet(enemy *enemy){
 
             bul->active = 1;
 
-            bul->pos_x = enemy->pos_x+;
+            bul->pos_x = enemy->pos_x;
             bul->pos_y = enemy->pos_y+(ENEMY_HEIGHT);
 
             bul->enemy = enemy->position;

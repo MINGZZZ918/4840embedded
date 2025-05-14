@@ -78,9 +78,9 @@ static void write_ship(spaceship *ship){
 
     else if (ship->sprite == SHIP_EXPLOSION2) sprite = SHIP_EXPLOSION2;
 
-    else if (ship->velo_x < 0) sprite = SHIP_LEFT;
+    else if (ship->velo_x < 0) sprite = SHIP;
 
-    else if (ship->velo_x > 0) sprite = SHIP_RIGHT;
+    else if (ship->velo_x > 0) sprite = SHIP;
 
     else sprite = SHIP;
 

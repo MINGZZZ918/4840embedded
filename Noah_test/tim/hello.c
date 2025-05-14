@@ -76,11 +76,16 @@ static int kill_count = 0;
 static int ship_velo = 2;
 
 static int powerup_timer = 0;
-#define EXTRA_BULLET_TIME 250;
-#define EXTRA_SPEED_TIME 500;
+#define EXTRA_BULLET_TIME 300;
+#define EXTRA_SPEED_TIME 750;
 
 
 #define EXPLOSION_TIME 10
+
+
+static int blink_counter = 0;
+#define BLINK_COUNT 10
+#define QUICK_BLINK_COUNT 5
 
 
 static int round_frequency = 100;
@@ -216,10 +221,42 @@ void apply_powerup(powerup *power_up){
 
 void active_powerup(){
 
-    if (--powerup_timer <= 0){
+    powerup *power_up = &game_state.power_up;
+
+    if (--powerup_timer < 0){
 
         game_state.ship.num_buls = 1;
         ship_velo = 2;
+        
+    }
+
+    else if (powerup_timer == 0){
+        power_up->active = 0;
+        blink_counter = 0;
+    }
+    else if(powerup_timer > 50 && powerup_timer < 100){
+
+        if (blink_counter == 0){
+
+            blink_counter = BLINK_COUNT;
+            power_up->active = !power_up->active;
+
+        }
+        else{
+            blink_counter --;
+        }
+    }
+    else if (powerup_timer > 0 && powerup_timer < 50){
+        
+        if (blink_counter == 0){
+
+            blink_counter = QUICK_BLINK_COUNT;
+            power_up->active = !power_up->active;
+
+        }
+        else{
+            blink_counter --;
+        }
     }
 }
 
@@ -228,7 +265,7 @@ void move_powerup(){
     powerup *power_up = &game_state.power_up;
     spaceship *ship = &game_state.ship;
 
-    if (power_up->active){
+    if (power_up->active && !power_up->indicator){
 
         power_up->pos_y += 1;
 
@@ -237,8 +274,15 @@ void move_powerup(){
             abs(ship->pos_y - power_up->pos_y) <= SHIP_HEIGHT){
 
             apply_powerup(power_up);
+            
+            if(power_up ->sprite != EXTRA_LIFE){
 
-            power_up->active=0;
+                power_up->pos_x = 400;
+                power_up->pos_y = SCREEN_HEIGHT-SHIP_HEIGHT;
+                power_up->indicator = 1;
+            }
+
+
             kill_count = 0;
         }
 
@@ -261,6 +305,8 @@ void drop_powerup(enemy *enemy){
         while (i == 2) i = rand() % 3;
 
     power_up->pos_x = enemy->pos_x;
+
+    power_up->indicator = 0;
 
     power_up->pos_y = 200;
     power_up->active = 1;
@@ -842,8 +888,8 @@ void move_enemy_bul(){
 
 
         if (ship->active && !ship->explosion_timer &&
-            abs(ship->pos_x - bul->pos_x - BULLET_WIDTH) <= SHIP_WIDTH &&
-            abs(ship->pos_y - bul->pos_y - BULLET_HEIGHT*3) <= SHIP_HEIGHT){
+            abs(ship->pos_x - bul->pos_x ) <= SHIP_WIDTH &&
+            abs(ship->pos_y - bul->pos_y ) <= SHIP_HEIGHT){
 
 
             game_state.enemies[bul->enemy].bul = -1;
@@ -898,7 +944,9 @@ void bullet_colision(bullet *bul){
 
             active_ship_buls --;
 
-            if (++ kill_count >= 15 && !game_state.power_up.active) drop_powerup(enemy);
+            if (++ kill_count >= 15 && !game_state.power_up.active &&
+                game_state.ship.active && !game_state.ship.explosion_timer) 
+                    drop_powerup(enemy);
 
             if(enemy->moving) num_enemies_moving --;
 
@@ -939,7 +987,7 @@ void bullet_movement(int new_bullet){
 
         else if (!bul->active && new_bullet && num_active < game_state.ship.num_buls) {
             bul->active = 1;
-            bul->pos_x = game_state.ship.pos_x+(SHIP_WIDTH/2);
+            bul->pos_x = game_state.ship.pos_x;
             bul->pos_y = game_state.ship.pos_y-(SHIP_HEIGHT);
             bul->velo_y = -3;
             new_bullet = 0;
@@ -1286,7 +1334,6 @@ int main(){
 
                     num_sent = 0;
 
-
                     powerup_timer = 0;
                     kill_count /= 2;
                 } 
@@ -1302,10 +1349,14 @@ int main(){
 
             else{
 
+                game_state.power_up.active = 0;
+
                 printf("%d, %d, %d \n", active_ship_buls, active_enemy_buls, num_enemies_moving);
 
                 if(!active_ship_buls && !active_enemy_buls && !num_enemies_moving)
-                        round_wait_time --;
+                    round_wait_time --;
+                        
+                if (round_wait_time > 30) round_wait_time --;
 
                 enemy_movement(-1);
                 move_enemy_bul();

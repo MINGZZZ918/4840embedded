@@ -28,8 +28,9 @@ module vga_ball#(
 
     // Background color
     logic [7:0]     background_r, background_g, background_b;
-    
-    // 游戏对象数组，每个对象包含位置和精灵信息（不懂）
+    logic [7:0]     score;
+
+   // 游戏对象数组，每个对象包含位置和精灵信息（不懂）
     logic [11:0]    obj_x[MAX_OBJECTS]; // 12位x坐标
     logic [11:0]    obj_y[MAX_OBJECTS]; // 12位y坐标
     logic [5:0]     obj_sprite[MAX_OBJECTS]; // 6位精灵索引，所以最多是64个精灵
@@ -88,7 +89,7 @@ module vga_ball#(
             background_r <= 8'h00;
             background_g <= 8'h80;
             background_b <= 8'h00;  // 深蓝色背景
-            
+            score <= 8'h00;
             // 初始化所有对象
             for (int i = 0; i < MAX_OBJECTS; i++) begin
                 obj_x[i] <= 12'd0;
@@ -105,6 +106,7 @@ module vga_ball#(
                 5'd0: {background_r, background_g, background_b} <= writedata[23:0];
                 //如果想在sw设置敌人和子弹数量可以在bg这里传，剩下8bit
                 // 对象数据更新 - 地址1到MAX_OBJECTS对应各个对象
+                5'd1: score <= writedata[7:0];
                 default: begin
                     if (address >= 7'd1 && address <= 7'd1 + MAX_OBJECTS - 1) begin //最先打印的是 bg，然后先传 ship，再传敌人，再传子弹
                         int obj_idx;
@@ -121,24 +123,34 @@ module vga_ball#(
         end
     end
 
+    logic [3:0] hundreds, tens, ones; // 每一位的 BCD 数
+    logic [7:0] value;
+    assign value = score;
+    // 用除法提取
+    assign hundreds = value / 100;
+    assign tens     = (value % 100) / 10;
+    assign ones     = value % 10;
+
     // 渲染逻辑 - 确定当前像素属于哪个对象
     // Stage00: 先确定tile的位置
     always_comb begin
-        tile_x[0] = 1280 - 3*SPRITE_WIDTH;  tile_y[0] = 0;  tile_index[0] = 6'd6;
-        tile_x[1] = 1280 - 2*SPRITE_WIDTH;  tile_y[1] = 0;  tile_index[1] = 6'd7;
-        tile_x[2] = 1280 - 1*SPRITE_WIDTH;  tile_y[2] = 0;  tile_index[2] = 6'd8;
+        tile_x[0] = 1280 - 3*SPRITE_WIDTH;  tile_y[0] = 0;  tile_index[0] = hundreds;
+        tile_x[1] = 1280 - 2*SPRITE_WIDTH;  tile_y[1] = 0;  tile_index[1] = tens;
+        tile_x[2] = 1280 - 1*SPRITE_WIDTH;  tile_y[2] = 0;  tile_index[2] = ones;
     end
 
     // 渲染逻辑 - 确定当前像素属于哪个对象
     logic [6:0] active_obj_idx;
     logic obj_visible;
     logic found; //用来判断有没有找到非透明的像素，没有就继续，直到最后
+    logic found_tile; //用来判断有没有找到非透明的像素，没有就继续，直到最后
     logic [3:0] rel_x, rel_y;
     logic [3:0] tile_rel_x, tile_rel_y;
     logic [23:0] pix; //保留当前层的rgb数据
     logic [23:0] pix_candidate; //
     always_comb begin
         found = 1'b0;
+        found_tile = 1'b0;
         obj_visible = 1'b0;
         active_obj_idx = 7'd0;
         rel_x = 4'd0;
@@ -148,38 +160,8 @@ module vga_ball#(
         pix             = {background_r,background_g,background_b};
         pix_candidate   = {background_r,background_g,background_b};
         sprite_address = 14'd0;
-
-        // 从高优先级到低优先级检查对象（最后绘制的对象优先级最高）
-        for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
-            if (!found &&
-                obj_active[i] && 
-                hcount[10:1] >= obj_x[i][9:0] && 
-                hcount[10:1] < obj_x[i][9:0] + SPRITE_WIDTH &&
-                vcount[9:0] >= obj_y[i][9:0] && 
-                vcount[9:0] < obj_y[i][9:0] + SPRITE_HEIGHT) begin
-                
-                active_obj_idx = i[6:0];
-                rel_x = hcount[10:1] - obj_x[i][9:0];
-                rel_y = vcount[9:0] - obj_y[i][9:0];
-                sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE 
-                                + rel_y * SPRITE_WIDTH 
-                                + rel_x;
-                // 原本 pix_candidate = sprite_data;
-                // 如果 rel_x==0，就把它当作透明色
-                if (rel_x == 0) begin
-                    pix_candidate = 24'h000000;
-                end else begin
-                    pix_candidate = sprite_data;
-                end
-                // 只用透明色判别
-                if (pix_candidate != 24'h000000) begin
-                    pix   = pix_candidate;
-                    found = 1'b1;
-                end
-            end
-        end
         for (int i = TILE_COUNT - 1; i >= 0; i--) begin
-            if (!found &&
+            if (!found_tile &&
                 hcount[10:1] >= tile_x[i][9:0] && 
                 hcount[10:1] < tile_x[i][9:0] + TILE_WIDTH &&
                 vcount[9:0] >= tile_y[i][9:0] && 
@@ -199,7 +181,38 @@ module vga_ball#(
                 // 只用透明色判别
                 if (pix_candidate != 24'h000000) begin
                     pix   = pix_candidate;
-                    found = 1'b1;
+                    found_tile = 1'b1;
+                end
+            end
+        end
+        if (!found_tile) begin
+            // 从高优先级到低优先级检查对象（最后绘制的对象优先级最高）
+            for (int i = MAX_OBJECTS - 1; i >= 0; i--) begin
+                if (!found &&
+                    obj_active[i] && 
+                    hcount[10:1] >= obj_x[i][9:0] && 
+                    hcount[10:1] < obj_x[i][9:0] + SPRITE_WIDTH &&
+                    vcount[9:0] >= obj_y[i][9:0] && 
+                    vcount[9:0] < obj_y[i][9:0] + SPRITE_HEIGHT) begin
+                    
+                    active_obj_idx = i[6:0];
+                    rel_x = hcount[10:1] - obj_x[i][9:0];
+                    rel_y = vcount[9:0] - obj_y[i][9:0];
+                    sprite_address = obj_sprite[active_obj_idx] * SPRITE_SIZE 
+                                    + rel_y * SPRITE_WIDTH 
+                                    + rel_x;
+                    // 原本 pix_candidate = sprite_data;
+                    // 如果 rel_x==0，就把它当作透明色
+                    if (rel_x == 0) begin
+                        pix_candidate = 24'h000000;
+                    end else begin
+                        pix_candidate = sprite_data;
+                    end
+                    // 只用透明色判别
+                    if (pix_candidate != 24'h000000) begin
+                        pix   = pix_candidate;
+                        found = 1'b1;
+                    end
                 end
             end
         end

@@ -92,8 +92,11 @@ static void write_ship(spaceship *ship){
     else sprite = SHIP;
 
     write_object (2, ship->pos_x,  ship->pos_y, sprite, ship->active);
-    
-    write_object (3, ship->pos_x,  ship->pos_y+SHIP_HEIGHT, SHIP_FLAME, ship->active);
+
+    if (ship->velo_y < 0) active = 1;
+    else active = 0;
+
+    write_object (3, ship->pos_x,  ship->pos_y+SHIP_HEIGHT, SHIP_FLAME, active);
 
     dev.ship = *ship;
 
@@ -241,7 +244,7 @@ static struct miscdevice vga_ball_misc_device = {
 static int __init vga_ball_probe(struct platform_device *pdev)
 {
     // Initial values
-    background_color background = { 0xFF, 0x00, 0xFF };
+    background_color background = { 0x00, 0x00, 0x20 };
 
     int ret;
 

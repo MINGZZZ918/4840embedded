@@ -748,16 +748,24 @@ void enemy_explosion(){
         enemy = &game_state.enemies[i];
 
         if(enemy->explosion_timer == 1){
+                        printf("33333333333333333\n");
 
             memset(enemy, 0, sizeof(*enemy));
         }
 
         else if(enemy->explosion_timer < EXPLOSION_TIME/2 && enemy->explosion_timer){
+                        printf("22222222222\n");
+
             enemy->sprite = SHIP_EXPLOSION2;
             enemy->explosion_timer --;
         }
 
         else if (enemy->explosion_timer){
+
+            printf("1111111111\n");
+
+
+
             enemy->velo_x = 0;
             enemy->velo_y = 0;
             enemy->sprite = SHIP_EXPLOSION1;
@@ -1205,9 +1213,6 @@ void init_round_state() {
 //     // !
 //     50, 66, 82, 114
 // };
-
-
-
 
 
 

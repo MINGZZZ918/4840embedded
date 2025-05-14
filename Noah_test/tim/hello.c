@@ -148,7 +148,7 @@ static int round_num = 1;
 
 static gamestate game_state = {
 
-    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_buls = 5, .bullets = { 0 }, .active = 1},
+    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_buls = 3, .bullets = { 0 }, .active = 1},
     .background = {.red = 0x00, .green = 0x00, .blue = 0x20},
     .bullets = { 0 },
     .enemies = { 0 },
@@ -224,7 +224,7 @@ void active_powerup(){
 
     if (--powerup_timer < 0){
 
-        game_state.ship.num_buls = 5;
+        game_state.ship.num_buls = 1;
         ship_velo = 2;
         
     }
@@ -739,10 +739,9 @@ void enemy_attack(enemy *enemy){
 }
 
 
-int enemy_explosion(){
+void enemy_explosion(){
 
     enemy *enemy;
-    int num_left = 1;
 
     for(int i = 0; i<ENEMY_COUNT; i++){
 
@@ -750,8 +749,6 @@ int enemy_explosion(){
 
         if(enemy->explosion_timer == 1){
                         printf("33333333333333333\n");
-
-            num_left --;
 
             memset(enemy, 0, sizeof(*enemy));
         }
@@ -761,14 +758,14 @@ int enemy_explosion(){
 
             enemy->sprite = SHIP_EXPLOSION2;
             enemy->explosion_timer --;
-            num_left++;
         }
 
         else if (enemy->explosion_timer){
 
-            num_left++;
-
             printf("1111111111\n");
+
+
+
             enemy->velo_x = 0;
             enemy->velo_y = 0;
             enemy->sprite = SHIP_EXPLOSION1;
@@ -777,8 +774,6 @@ int enemy_explosion(){
 
         }
     }
-
-    return num_left;
 }
 
 
@@ -1404,7 +1399,7 @@ int main(){
             if(ship->active && !ship->explosion_timer) ship_movement();
 
             move_powerup();
-            enemies_exploding = enemy_explosion();
+            enemy_explosion();
             ship_explosion();
 
             if (!round_wait_time){ // ship is alive and round is playing
@@ -1448,7 +1443,7 @@ int main(){
 
                 game_state.power_up.active = 0;
 
-                printf("%d, %d, %d \n", active_ship_buls, active_enemy_buls, num_enemies_moving);
+                // printf("%d, %d, %d \n", active_ship_buls, active_enemy_buls, num_enemies_moving);
 
                 if(!active_ship_buls && !active_enemy_buls && !num_enemies_moving)
                     round_wait_time --;
@@ -1484,9 +1479,7 @@ int main(){
                 break;
             }
 
-            if(!enemies_remaining && !enemies_exploding){
-
-                printf("hellooooooooooooo \n");
+            if(!enemies_remaining){
 
                 if(round_num == 3){
 

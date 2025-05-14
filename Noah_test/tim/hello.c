@@ -1523,7 +1523,7 @@ int main(){
 
                 printf("1111111 \n");
 
-                for(int i; i<MAX_BULLETS; i++){
+                for(int i = 0; i<MAX_BULLETS; i++){
 
                     game_state.bullets[i].active = 0;
                 }
@@ -1531,14 +1531,14 @@ int main(){
             printf("222222222222 \n");
 
 
-                for(int i; i<SHIP_BULLETS; i++){
+                for(int i = 0; i<SHIP_BULLETS; i++){
 
                     game_state.ship.bullets[i].active = 0;
                 }
 
                 printf("33333333333 \n");
 
-                for(int i; i<ENEMY_COUNT; i++){
+                for(int i = 0; i<ENEMY_COUNT; i++){
                     game_state.enemies[i].active = 0;
                 }
 
@@ -1567,17 +1567,17 @@ int main(){
 
                     game_state.power_up.active=0;
 
-                    for(int i; i<MAX_BULLETS; i++){
+                    for(int i = 0; i<MAX_BULLETS; i++){
 
                         game_state.bullets[i].active = 0;
                     }
 
-                    for(int i; i<SHIP_BULLETS; i++){
+                    for(int i = 0; i<SHIP_BULLETS; i++){
 
                         game_state.ship.bullets[i].active = 0;
                     }
 
-                    for(int i; i<ENEMY_COUNT; i++){
+                    for(int i= 0; i<ENEMY_COUNT; i++){
 
                         game_state.enemies[i].active = 0;
                     }

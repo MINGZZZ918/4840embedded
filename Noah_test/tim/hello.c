@@ -735,15 +735,15 @@ int enemy_movement(int rand_enemy){
 
         switch(rand_enemy){
 
-            case 2:
+            case ENEMY1:
                 row_num = 0;
                 break;
 
-            case 3:
+            case ENEMY2:
                 row_num = 1 + rand() % 2;
                 break;
 
-            case 4:
+            case ENEMY3:
                 row_num = 3 + rand() % 2;
                 break;
         }

@@ -187,8 +187,6 @@ void update_powerup() {
 
 
 
-
-
 void apply_powerup(powerup *power_up){
 
     spaceship *ship = &game_state.ship;
@@ -288,8 +286,6 @@ void drop_powerup(enemy *enemy){
 
 
 
-
-
 void change_active_amount(char enemy_sprite){
 
     switch(enemy_sprite){
@@ -378,9 +374,6 @@ void change_row_ends(int cur_end, int row_num, int front){
         }
     }
 }
-
-
-
 
 
 
@@ -584,7 +577,7 @@ void enemy_attack(enemy *enemy){
         else if (enemy->sprite == ENEMY2){
 
 
-            if (enemy->pos_y >= ship->pos_y+10 || !ship ->active) {
+            if (enemy->pos_y >= ship->pos_y+20 || !ship ->active) {
 
                 enemy->velo_x = (enemy->pos_x > ship->pos_x) ? 1 : -1;
                 enemy->velo_y = 2;

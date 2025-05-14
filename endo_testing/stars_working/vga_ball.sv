@@ -5,10 +5,7 @@
 module vga_ball#(
     parameter MAX_OBJECTS = 100,    // sprites数量（adress传递的值最后给obj_sprite，这个才是精灵种类，最多64种）
     parameter SPRITE_WIDTH = 16,   // 所有精灵标准宽度
-    parameter SPRITE_HEIGHT = 16,  // 所有精灵标准高度
-    parameter TILE_COUNT   = 1,    //tile的数量（静态贴图）
-    parameter TILE_WIDTH   = 16,   //贴图的标准宽度
-    parameter TILE_HEIGHT  = 16    //贴图的标准高度
+    parameter SPRITE_HEIGHT = 16  // 所有精灵标准高度
 ) (
     input  logic        clk,
     input  logic        reset,
@@ -34,11 +31,6 @@ module vga_ball#(
     logic [11:0]    obj_y[MAX_OBJECTS]; // 12位y坐标
     logic [5:0]     obj_sprite[MAX_OBJECTS]; // 6位精灵索引，所以最多是64个精灵
     logic           obj_active[MAX_OBJECTS]; // 活动状态位
-    
-    // 静态贴图相关
-    logic [10:0] tile_x[TILE_COUNT];
-    logic [9:0]  tile_y[TILE_COUNT];
-    logic [5:0]  tile_index[TILE_COUNT];
 
     // 精灵渲染相关
     localparam int SPRITE_SIZE  = SPRITE_WIDTH * SPRITE_HEIGHT; // 16*16=256
@@ -292,31 +284,6 @@ end
                 end else begin
                     pix_candidate = sprite_data;
                 end
-                // 只用透明色判别
-                if (pix_candidate != 24'h000000) begin
-                    pix   = pix_candidate;
-                    found = 1'b1;
-                end
-            end
-        end
-        for (int i = TILE_COUNT - 1; i >= 0; i--) begin
-            if (!found &&
-                hcount[10:1] >= tile_x[i][9:0] && 
-                hcount[10:1] < tile_x[i][9:0] + TILE_WIDTH &&
-                vcount[9:0] >= tile_y[i][9:0] && 
-                vcount[9:0] < tile_y[i][9:0] + TILE_HEIGHT) begin
-                tile_rel_x = hcount[10:1] - tile_x[i][9:0];
-                tile_rel_y = vcount[9:0] - tile_y[i][9:0];
-                // 可以换一个rom
-                sprite_address = tile_index[i] * SPRITE_SIZE 
-                                + tile_rel_y * SPRITE_WIDTH 
-                                + tile_rel_x;
-                if (tile_rel_x == 0) begin
-                    pix_candidate = 24'h000000;
-                end else begin
-                    pix_candidate = sprite_data;
-                end
-
                 // 只用透明色判别
                 if (pix_candidate != 24'h000000) begin
                     pix   = pix_candidate;

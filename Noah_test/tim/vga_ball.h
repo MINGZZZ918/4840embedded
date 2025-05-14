@@ -85,6 +85,7 @@ typedef struct {
     enemy enemies[ENEMY_COUNT];
     background_color background;
     powerup power_up;
+    int score;
 } gamestate;
 
 #define VGA_BALL_MAGIC 'v'

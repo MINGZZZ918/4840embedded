@@ -148,7 +148,8 @@ static gamestate game_state = {
     .background = {.red = 0x00, .green = 0x00, .blue = 0x20},
     .bullets = { 0 },
     .enemies = { 0 },
-    .power_up = { 0 }
+    .power_up = { 0 },
+    .score = 0
 };
 
 /**
@@ -902,6 +903,8 @@ void bullet_colision(bullet *bul){
             if(enemy->moving) num_enemies_moving --;
 
             enemy->explosion_timer = EXPLOSION_TIME;
+
+            game_state.score++;
 
             break;
         }

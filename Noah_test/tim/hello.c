@@ -983,9 +983,6 @@ int enemies_to_move(){
         else 
             rand_enemy = ENEMY3;
 
-
-
-
         if (num_sent == send_per_round){
 
             if (!num_enemies_moving){

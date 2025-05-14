@@ -755,6 +755,8 @@ void enemy_explosion(){
 
             enemies_remaining --;
 
+            printf("%d \n", enemies_remaining);
+
             memset(enemy, 0, sizeof(*enemy));
         }
 

@@ -417,7 +417,7 @@ void enemy_shoot(enemy *enemy){
 
         if (enemy->sprite == ENEMY2){
 
-            if (abs(ship->pos_x - enemy->pos_x) <= 40
+            if (abs(ship->pos_x - enemy->pos_x) <= 60
                     && abs(ship->pos_y - enemy->pos_y) <= 150
                     && ship->pos_y - 60 > enemy->pos_y){
 
@@ -562,7 +562,7 @@ void enemy_attack(enemy *enemy){
             if (!ship->active){
 
                 enemy->velo_x = 0;
-                enemy->velo_y = 2;
+                enemy->velo_y = 4;
             }
 
             else if(++enemy->move_time < 250)
@@ -580,7 +580,7 @@ void enemy_attack(enemy *enemy){
             if (enemy->pos_y >= ship->pos_y+20 || !ship ->active) {
 
                 enemy->velo_x = (enemy->pos_x > ship->pos_x) ? 1 : -1;
-                enemy->velo_y = 2;
+                enemy->velo_y = 4;
 
             }
 
@@ -630,7 +630,7 @@ void enemy_attack(enemy *enemy){
             if (!ship->active){
 
                 enemy->velo_x = (enemy->pos_x > ship->pos_x) ? 1 : -1;
-                enemy->velo_y = 2;
+                enemy->velo_y = 4;
             }
 
             else if(++enemy->move_time == 150){

@@ -705,9 +705,10 @@ void ship_explosion(){
     spaceship *ship = &game_state.ship;
 
 
-    if(ship->explosion_timer == 1)
+    if(ship->explosion_timer == 1){
         ship->active = 0;
-
+        ship->explosion_timer = 0;
+    }
     else if(ship->explosion_timer < EXPLOSION_TIME/2 && ship->explosion_timer){
         ship->sprite = SHIP_EXPLOSION2;
         ship->explosion_timer --;

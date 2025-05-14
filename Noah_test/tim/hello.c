@@ -1273,7 +1273,7 @@ void print_die(){
 
     for (int i = 0; i<48; i++){
 
-        game_state.enemies[i]->sprite = SHIP_BULLET;
+        game_state.enemies[i]->sprite = ENEMY_BULLET;
         game_state.enemies[i]->pos_x = die_x[i];
         game_state.enemies[i]->pos_x = die_y[i];
         game_state.enemies[i].active = 1;

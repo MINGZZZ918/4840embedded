@@ -1430,6 +1430,8 @@ int main(){
 
                     powerup_timer = 0;
                     kill_count /= 2;
+                    round_num++;
+
                 } 
 
                 else{
@@ -1481,7 +1483,7 @@ int main(){
                 break;
             }
 
-            if(!enemies_remaining){
+            if(!enemies_remaining && !ship->explosion_timer){
 
                 if(round_num == 3){
 
@@ -1524,7 +1526,6 @@ int main(){
                     init_round_state();
 
                     enemies_remaining = 1;
-                    round_num++;
                 }
 
             }

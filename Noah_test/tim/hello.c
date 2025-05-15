@@ -63,9 +63,9 @@ static int vga_ball_fd;
 
 
 #define NUM_ROWS 5
-static char row_vals[NUM_ROWS] = {0,0,0,0,1};
-// static char row_vals[NUM_ROWS] = {0,4,3,2,1};
-// static char row_vals[NUM_ROWS] = { 2, 6, 8, 10, 10 };
+// static char row_vals[NUM_ROWS] = {0,0,0,0,1};
+// // static char row_vals[NUM_ROWS] = {0,4,3,2,1};
+static char row_vals[NUM_ROWS] = { 2, 6, 8, 10, 10 };
 static char row_sprites[NUM_ROWS] = { ENEMY1, ENEMY2,ENEMY2, ENEMY3, ENEMY3};
 static int row_fronts[NUM_ROWS];
 static int row_backs[NUM_ROWS];
@@ -134,6 +134,79 @@ static short turn_y[TURN_TIME] = {-2,-2,-2,-2,-2,-2,-2,-2,
                     2,2,2,2,2,2};
 
 
+
+
+static int win_x[48] = {
+    // Y
+    50, 50, 66, 66, 82, 82,
+    // O
+    114, 114, 114, 130, 130, 146, 146, 146, 
+    // U
+    178, 178, 178, 194, 210, 210, 210, 
+    // W
+    274, 274, 274, 274, 290, 306, 306, 306, 306, 322, 338, 338, 338, 338,  
+    // I
+    370, 370, 370, 
+    // N
+    402, 402, 402, 418, 434, 434, 434,
+    // !
+    498, 498, 498
+};
+
+static int win_y[48] = {
+    // Y
+    50, 66, 82, 98, 50, 66,
+    // O
+    66, 82, 98, 66, 98, 66, 82, 98,
+    // U
+    66, 82, 98, 98, 66, 82, 98, 
+    // W
+    50, 66, 82, 98, 98, 50, 66, 82, 98, 98, 50, 66, 82, 98, 
+    // I
+    50, 82, 98, 
+    // N
+    66, 82, 98, 66, 66, 82, 98, 
+    // !
+    50, 66, 98
+};
+
+
+static int die_x[47] = {
+    // Y
+    50, 50, 66, 66, 82, 82,
+    // O
+    114, 114, 114, 130, 130, 146, 146, 146, 
+    // U
+    178, 178, 178, 194, 210, 210, 210, 
+    // D
+    274, 274, 274, 274, 290, 290, 306, 306, 322, 322, 
+    // I
+    354, 354, 354, 
+    // E
+    386, 386, 386, 386, 402, 402, 402, 418, 418, 418, 
+    // !
+    482, 482, 482
+};
+
+static int die_y[47] = {
+    // Y
+    50, 66, 82, 98, 50, 66,
+    // O
+    66, 82, 98, 66, 98, 66, 82, 98,
+    // U
+    66, 82, 98, 98, 66, 82, 98, 
+    // D
+    50, 66, 82, 98, 50, 98, 50, 98, 66, 82, 
+    // I
+    50, 82, 98, 
+    // E
+    50, 66, 82, 98, 50, 74, 98, 50, 74, 98, 
+    // !
+    50, 66, 98
+};
+
+
+
 static int num_enemies_moving = 0, active_ship_buls = 0, active_enemy_buls = 0;
 
 
@@ -148,7 +221,7 @@ static int round_num = 1;
 
 static gamestate game_state = {
 
-    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_buls = 3, .bullets = { 0 }, .active = 1},
+    .ship = {.pos_x = SHIP_INITIAL_X, .pos_y = SHIP_INITIAL_Y, .velo_x = 0, .velo_y = 0, .lives = LIFE_COUNT, .num_buls = 1, .bullets = { 0 }, .active = 1},
     .background = {.red = 0x00, .green = 0x00, .blue = 0x20},
     .bullets = { 0 },
     .enemies = { 0 },
@@ -224,7 +297,7 @@ void active_powerup(){
 
     if (--powerup_timer < 0){
 
-        game_state.ship.num_buls = 5;
+        game_state.ship.num_buls = 1;
         ship_velo = 2;
         
     }
@@ -739,9 +812,10 @@ void enemy_attack(enemy *enemy){
 }
 
 
-void enemy_explosion(){
+int enemy_explosion(){
 
     enemy *enemy;
+    int num_left = 0;
 
     for(int i = 0; i<ENEMY_COUNT; i++){
 
@@ -758,13 +832,14 @@ void enemy_explosion(){
 
             enemy->sprite = SHIP_EXPLOSION2;
             enemy->explosion_timer --;
+            num_left ++;
         }
 
         else if (enemy->explosion_timer){
 
             printf("1111111111\n");
 
-
+            num_left ++;
 
             enemy->velo_x = 0;
             enemy->velo_y = 0;
@@ -774,6 +849,8 @@ void enemy_explosion(){
 
         }
     }
+
+    return num_left;
 }
 
 
@@ -785,6 +862,8 @@ void ship_explosion(){
         ship->active = 0;
         ship->explosion_timer = 0;
         ship->sprite = SHIP;
+        ship->lives --;
+
     }
     else if(ship->explosion_timer < EXPLOSION_TIME/2 && ship->explosion_timer){
         ship->sprite = SHIP_EXPLOSION2;
@@ -894,8 +973,8 @@ int enemy_movement(int rand_enemy){
 
                 change_score(SHIP);
 
-                ship->lives --;
                 ship->explosion_timer = EXPLOSION_TIME;
+                enemy->explosion_timer = EXPLOSION_TIME;
 
                 round_wait_time = ROUND_WAIT;
                 num_left --;
@@ -936,7 +1015,6 @@ void move_enemy_bul(){
 
             change_score(SHIP);
 
-            ship->lives --;
             ship->explosion_timer = EXPLOSION_TIME;
 
             round_wait_time = ROUND_WAIT;
@@ -1178,41 +1256,29 @@ void init_round_state() {
 }
 
 
+void print_win(){
 
+    for (int i = 0; i<48; i++){
 
-// static int x_coords[40] = {
-//     // Y
-//     50, 66, 82, 66, 66,
-//     // O
-//     134, 150, 166, 134, 166, 134, 150, 166,
-//     // U
-//     182, 198, 214, 182, 214, 182, 198, 214,
-//     // W
-//     246, 262, 278, 294, 262,
-//     // I
-//     310, 326, 342, 326, 326,
-//     // N
-//     358, 358, 374, 390, 390,
-//     // !
-//     406, 406, 406, 406
-// };
+        game_state.enemies[i].sprite = SHIP_BULLET;
+        game_state.enemies[i].pos_x = win_x[i];
+        game_state.enemies[i].pos_y = win_y[i];
+        game_state.enemies[i].active = 1;
+    }
 
-// static int y_coords[40] = {
-//     // Y
-//     50, 50, 50, 66, 82,
-//     // O
-//     50, 50, 50, 66, 66, 82, 82, 82,
-//     // U
-//     50, 50, 50, 66, 66, 82, 82, 82,
-//     // W
-//     50, 50, 50, 50, 66,
-//     // I
-//     50, 50, 50, 66, 82,
-//     // N
-//     50, 66, 66, 82, 50,
-//     // !
-//     50, 66, 82, 114
-// };
+}
+
+void print_die(){
+
+    for (int i = 0; i<47; i++){
+
+        game_state.enemies[i].sprite = ENEMY_BULLET;
+        game_state.enemies[i].pos_x = die_x[i];
+        game_state.enemies[i].pos_y = die_y[i];
+        game_state.enemies[i].active = 1;
+    }
+}
+
 
 
 
@@ -1263,19 +1329,6 @@ int main(){
     update_ship();
 
     usleep(16000);
-
-
-
-    // for (int i = 0; i<40; i++){
-
-    //     game_state.enemies[i]->sprite = SHIP_BULLET;
-    //     game_state.enemies[i]->pos_x = x_coords[i];
-    //     game_state.enemies[i]->pos_x = x_coords[i];
-    //     game_state.enemies[i].active = 1;
-    // }
-
-    // update_enemies();
-
 
     for (int i =0; i<COLUMNS; i++){
         for(int j=0; j<ENEMY_COUNT; j++)
@@ -1399,7 +1452,7 @@ int main(){
             if(ship->active && !ship->explosion_timer) ship_movement();
 
             move_powerup();
-            enemy_explosion();
+            enemies_exploding = enemy_explosion();
             ship_explosion();
 
             if (!round_wait_time){ // ship is alive and round is playing
@@ -1428,6 +1481,7 @@ int main(){
 
                     powerup_timer = 0;
                     kill_count /= 2;
+
                 } 
 
                 else{
@@ -1461,31 +1515,74 @@ int main(){
             update_powerup();
             update_ship_bullet();
 
-            if(ship->lives <= 0){
+            if(ship->lives <= 0 && !ship->explosion_timer){
                 printf("You lost =( \n");
 
-                save_score = game_state.score;
+                game_state.ship.active = 0;
+                game_state.power_up.active=0;
 
-                memset(&game_state, 0, sizeof(gamestate));
+                printf("1111111 \n");
 
-                game_state.score = save_score;
+                for(int i = 0; i<MAX_BULLETS; i++){
+
+                    game_state.bullets[i].active = 0;
+                }
+
+            printf("222222222222 \n");
+
+
+                for(int i = 0; i<SHIP_BULLETS; i++){
+
+                    game_state.ship.bullets[i].active = 0;
+                }
+
+                printf("33333333333 \n");
+
+                for(int i = 0; i<ENEMY_COUNT; i++){
+                    game_state.enemies[i].active = 0;
+                }
+
+                printf("44444444444444 \n");
+
+                print_die();
+
+                printf("555555555555555 \n");
 
                 update_ship();
                 update_enemies();
                 update_powerup();
                 update_ship_bullet();
 
-
                 break;
             }
 
-            if(!enemies_remaining){
+            if(!enemies_remaining && !ship->explosion_timer && 
+                !round_wait_time && !enemies_exploding){
 
                 if(round_num == 3){
 
                     printf("You Won!");
 
-                    memset(&game_state, 0, sizeof(gamestate));
+                    game_state.ship.active = 0;
+
+                    game_state.power_up.active=0;
+
+                    for(int i = 0; i<MAX_BULLETS; i++){
+
+                        game_state.bullets[i].active = 0;
+                    }
+
+                    for(int i = 0; i<SHIP_BULLETS; i++){
+
+                        game_state.ship.bullets[i].active = 0;
+                    }
+
+                    for(int i= 0; i<ENEMY_COUNT; i++){
+
+                        game_state.enemies[i].active = 0;
+                    }
+
+                    print_win();
 
                     update_ship();
                     update_enemies();
@@ -1523,6 +1620,7 @@ int main(){
 
                     enemies_remaining = 1;
                     round_num++;
+
                 }
 
             }
